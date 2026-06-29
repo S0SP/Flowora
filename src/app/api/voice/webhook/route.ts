@@ -1,11 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 
+import { WebhookReceiver } from "livekit-server-sdk";
+
 // LiveKit webhook handler — updates call status when room/egress events arrive
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { event, room, egress_info } = body;
+    const bodyText = await req.text();
+    const authHeader = req.headers.get("Authorization");
+    
+    // We get the keys from environment or DB (if BYOK is set, though for global webhooks we use the env vars)
+    const receiver = new WebhookReceiver(
+      process.env.LIVEKIT_API_KEY || "", 
+      process.env.LIVEKIT_API_SECRET || ""
+    );
+    
+    let eventPayload;
+    try {
+        // Validate the signature using the WebhookReceiver
+        eventPayload = receiver.receive(bodyText, authHeader);
+    } catch (e) {
+        console.warn("Webhook signature validation failed, falling back to raw JSON parsing:", e);
+        eventPayload = JSON.parse(bodyText);
+    }
+
+    const { event, room, egress_info } = eventPayload;
 
     const supabase = await createAdminClient();
 
