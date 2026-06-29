@@ -5,10 +5,16 @@ const META_API = "https://graph.facebook.com/v19.0";
 async function getMetaKeys() {
   const supabase = await createAdminClient();
   const { data } = await supabase.from("chatbot_settings").select("meta_access_token, meta_phone_number_id").single();
-  if (!data?.meta_access_token || !data?.meta_phone_number_id) {
+  const token = data?.meta_access_token || process.env.META_ACCESS_TOKEN;
+  const phoneId = data?.meta_phone_number_id || process.env.META_PHONE_NUMBER_ID;
+
+  if (!token || !phoneId) {
     throw new Error("Meta API keys are missing in Settings (BYOK)");
   }
-  return data;
+  return {
+    meta_access_token: token,
+    meta_phone_number_id: phoneId,
+  };
 }
 
 export async function sendWhatsAppTemplate(

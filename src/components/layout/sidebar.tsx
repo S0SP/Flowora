@@ -28,6 +28,7 @@ const navItems = [
   { href: "/dashboard/lead-capture", label: "Lead Capture", icon: Zap },
   { href: "/dashboard/chatbot", label: "AI Chatbot", icon: Bot },
   { href: "/dashboard/voice-agent", label: "Voice Agent", icon: Phone },
+  { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
 interface SidebarProps {
