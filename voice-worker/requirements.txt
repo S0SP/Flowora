@@ -8,4 +8,5 @@ livekit-plugins-sarvam
 requests
 certifi
 livekit-plugins-noise-cancellation
+livekit-plugins-google
 aiohttp

@@ -17,6 +17,7 @@ from livekit.plugins import (
     deepgram,
     noise_cancellation,
     sarvam,
+    google
 )
 from livekit.agents import llm, stt as stt_module
 from typing import Annotated, Optional
@@ -289,78 +290,125 @@ async def entrypoint(ctx: agents.JobContext):
 
     # Initialize function context
     fnc_ctx = TransferFunctions(ctx, phone_number)
-
-    # Build TTS instance (kept as a reference so we can update language later)
-    tts_instance = _build_tts(config_dict.get("tts_provider"), config_dict.get("voice_id"))
-
-    # Build STT with multilingual support
-    # NOTE: detect_language=True is NOT supported in Deepgram streaming mode.
-    # Instead, we use language="hi" which enables Hindi+English code-switching in Nova-2.
-    # Our _detect_language() function then reads each transcript and updates the TTS language.
-    stt_language = os.getenv("STT_LANGUAGE", config.STT_LANGUAGE)
-    stt_model = os.getenv("STT_MODEL", config.STT_MODEL)
     
-    stt_instance = deepgram.STT(
-        model=stt_model,
-        language=stt_language,  # "hi" enables Hindi+English code-switching
-    )
-
-    # Initialize the Agent Session with plugins
-    session = AgentSession(
-        vad=None,
-        stt=stt_instance,
-        llm=_build_llm(config_dict.get("model_provider")),
-        tts=tts_instance,
-    )
-
-    # Setup multilingual auto-switching BEFORE starting the session
-    _setup_language_auto_switch(session, tts_instance)
-
-    # Start the session
-    await session.start(
-        room=ctx.room,
-        agent=OutboundAssistant(
-            tools=list(fnc_ctx.function_tools.values()),
-            system_prompt=config_dict.get("user_prompt")
-        ),
-        room_input_options=RoomInputOptions(
-            noise_cancellation=noise_cancellation.BVCTelephony(),
-            close_on_disconnect=True, # Close room when agent disconnects
-        ),
-    )
-
-    # The API (livekit.ts) already:
-    #   1. Creates the room
-    #   2. Dispatches the agent
-    #   3. Calls sipClient.createSipParticipant to dial the user
-    #
-    # So the agent must NOT dial again. It just waits for the SIP participant
-    # to join the room, then greets them.
-    #
-    # For web/dashboard sessions (no phone_number), greet immediately.
-
-    if phone_number:
-        logger.info(f"Outbound call mode — waiting for SIP participant to join room...")
-        # Wait up to 30 seconds for the SIP participant to arrive
-        sip_joined = False
-        for _ in range(30):
-            for p in ctx.room.remote_participants.values():
-                if "sip_" in p.identity:
-                    sip_joined = True
-                    break
-            if sip_joined:
-                break
-            await asyncio.sleep(1)
-
-        if sip_joined:
-            logger.info("SIP participant joined. Generating greeting...")
-            await session.generate_reply(instructions=config.INITIAL_GREETING)
+    model_provider = config_dict.get("model_provider", "groq").lower()
+    
+    if model_provider == "gemini":
+        logger.info("Using Native Gemini Multimodal Live API")
+        
+        voice_id = config_dict.get("voice_id", "Aoede")
+        valid_gemini_voices = ["Puck", "Charon", "Kore", "Fenrir", "Aoede", "Puma"]
+        
+        if voice_id.capitalize() not in valid_gemini_voices:
+            voice_id = "Aoede"
         else:
-            logger.warning("SIP participant never joined within 30s. Room will close.")
+            voice_id = voice_id.capitalize()
+
+        session = google.beta.MultimodalAgent(
+            model="models/gemini-2.0-flash-exp",
+            api_key=os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY"),
+            instructions=config_dict.get("user_prompt") or config.SYSTEM_PROMPT,
+            voice=voice_id,
+            fnc_ctx=fnc_ctx
+        )
+        
+        session.start(ctx.room, participant=None)
+        logger.info("Gemini Multimodal Agent started in room")
+        
+        # MultimodalAgent does not have generate_reply. 
+        # It greets by receiving a text prompt if needed, or just naturally responds to voice.
+        if phone_number:
+            logger.info("Outbound call mode — waiting for SIP participant to join room...")
+            sip_joined = False
+            for _ in range(30):
+                for p in ctx.room.remote_participants.values():
+                    if "sip_" in p.identity:
+                        sip_joined = True
+                        break
+                if sip_joined:
+                    break
+                await asyncio.sleep(1)
+
+            if sip_joined:
+                logger.info("SIP participant joined. Prompting Gemini to greet...")
+                try:
+                    # Nudge Gemini to greet the user (if supported)
+                    if hasattr(session, "generate_reply"):
+                        await session.generate_reply("The user just joined the call. Please greet them warmly.")
+                    else:
+                        # For MultimodalAgent, we might just wait for user to speak or rely on system prompt
+                        logger.info("MultimodalAgent waiting for user speech.")
+                except Exception as e:
+                    logger.warning(f"Could not nudge Gemini: {e}")
+            else:
+                logger.warning("SIP participant never joined within 30s. Room will close.")
+        else:
+            logger.info("Web/dashboard session. Prompting Gemini to greet...")
+            await asyncio.sleep(1)
+            try:
+                if hasattr(session, "generate_reply"):
+                    await session.generate_reply("The user just opened the web app. Please greet them warmly.")
+            except Exception as e:
+                pass
+
     else:
-        logger.info("Web/dashboard session. Greeting immediately...")
-        await asyncio.sleep(1)
-        await session.generate_reply(instructions=config.WEB_GREETING)
+        # Build TTS instance (kept as a reference so we can update language later)
+        tts_instance = _build_tts(config_dict.get("tts_provider"), config_dict.get("voice_id"))
+
+        # Build STT with multilingual support
+        stt_language = os.getenv("STT_LANGUAGE", config.STT_LANGUAGE)
+        stt_model = os.getenv("STT_MODEL", config.STT_MODEL)
+        
+        stt_instance = deepgram.STT(
+            model=stt_model,
+            language=stt_language,
+        )
+
+        # Initialize the Agent Session with plugins
+        session = AgentSession(
+            vad=None,
+            stt=stt_instance,
+            llm=_build_llm(config_dict.get("model_provider")),
+            tts=tts_instance,
+        )
+
+        # Setup multilingual auto-switching BEFORE starting the session
+        _setup_language_auto_switch(session, tts_instance)
+
+        # Start the session
+        await session.start(
+            room=ctx.room,
+            agent=OutboundAssistant(
+                tools=list(fnc_ctx.function_tools.values()),
+                system_prompt=config_dict.get("user_prompt")
+            ),
+            room_input_options=RoomInputOptions(
+                noise_cancellation=noise_cancellation.BVCTelephony(),
+                close_on_disconnect=True,
+            ),
+        )
+
+        if phone_number:
+            logger.info(f"Outbound call mode — waiting for SIP participant to join room...")
+            sip_joined = False
+            for _ in range(30):
+                for p in ctx.room.remote_participants.values():
+                    if "sip_" in p.identity:
+                        sip_joined = True
+                        break
+                if sip_joined:
+                    break
+                await asyncio.sleep(1)
+
+            if sip_joined:
+                logger.info("SIP participant joined. Generating greeting...")
+                await session.generate_reply(instructions=config.INITIAL_GREETING)
+            else:
+                logger.warning("SIP participant never joined within 30s. Room will close.")
+        else:
+            logger.info("Web/dashboard session. Greeting immediately...")
+            await asyncio.sleep(1)
+            await session.generate_reply(instructions=config.WEB_GREETING)
 
     @ctx.room.on("disconnected")
     def on_disconnect(reason):
