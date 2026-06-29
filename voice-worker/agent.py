@@ -305,7 +305,7 @@ async def entrypoint(ctx: agents.JobContext):
             voice_id = voice_id.capitalize()
 
         model = google.beta.realtime.RealtimeModel(
-            model="models/gemini-2.0-flash",
+            model=os.getenv("GEMINI_LIVE_MODEL", "gemini-2.0-flash-exp"),
             api_key=os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY"),
             instructions=config_dict.get("user_prompt") or config.SYSTEM_PROMPT,
             voice=voice_id,
