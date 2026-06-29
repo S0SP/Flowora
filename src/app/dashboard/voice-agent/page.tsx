@@ -65,6 +65,21 @@ export default function VoiceAgentPage() {
     }
   }
 
+  async function handleHangup() {
+    if (!currentCallId) return;
+    try {
+      const res = await fetch(`/api/voice/calls/${currentCallId}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setCallStatus("ended");
+        toast.success("Call hung up");
+      }
+    } catch (err) {
+      toast.error("Failed to hang up");
+    }
+  }
+
   async function pollStatus(callId: string) {
     let attempts = 0;
     const interval = setInterval(async () => {
@@ -153,23 +168,25 @@ export default function VoiceAgentPage() {
               </div>
             )}
 
-            {/* Call Button */}
+            {/* Call / Hangup Button */}
             <button
-              onClick={isInCall ? undefined : handleCall}
-              disabled={isInCall || !phoneNumber}
+              onClick={callStatus === "idle" ? handleCall : (isInCall ? handleHangup : undefined)}
+              disabled={(isInCall && callStatus === "calling") || (!phoneNumber && callStatus === "idle")}
               className={cn(
                 "w-full py-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-200",
                 callStatus === "idle"
                   ? "bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95"
                   : callStatus === "ended"
                   ? "bg-green-600 text-white"
+                  : callStatus === "active" || callStatus === "ringing"
+                  ? "bg-destructive text-destructive-foreground hover:bg-destructive/90 active:scale-95 cursor-pointer"
                   : "bg-destructive/80 text-white cursor-not-allowed"
               )}
             >
               {callStatus === "idle" && <><Phone className="w-4 h-4" /> Place Call</>}
               {callStatus === "calling" && <><Loader2 className="w-4 h-4 animate-spin" /> Connecting…</>}
-              {callStatus === "ringing" && <><Phone className="w-4 h-4 animate-bounce" /> Ringing…</>}
-              {callStatus === "active" && <><PhoneOff className="w-4 h-4" /> In Call</>}
+              {callStatus === "ringing" && <><PhoneOff className="w-4 h-4" /> Hang Up (Ringing)</>}
+              {callStatus === "active" && <><PhoneOff className="w-4 h-4" /> Hang Up</>}
               {callStatus === "ended" && <><Check className="w-4 h-4" /> Call Ended</>}
             </button>
 
