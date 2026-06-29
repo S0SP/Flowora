@@ -1,4 +1,4 @@
-import { RoomServiceClient, SipClient, AgentDispatchClient, EgressClient } from "livekit-server-sdk";
+import { RoomServiceClient, SipClient, AgentDispatchClient, EgressClient, EncodedFileOutput, S3Upload } from "livekit-server-sdk";
 import { createAdminClient } from "@/lib/supabase/server";
 
 export async function getLiveKitClients() {
@@ -82,17 +82,22 @@ export async function dialSip(opts: DialOptions) {
 export async function startEgressRecording(roomName: string, callRecordId: string) {
   const { egressClient } = await getLiveKitClients();
   try {
-    const egress = await egressClient.startRoomCompositeEgress(roomName, {
-      file: {
-        filepath: `recordings/${callRecordId}.mp3`,
-        s3: {
+    const fileOutput = new EncodedFileOutput({
+      filepath: `recordings/${callRecordId}.mp3`,
+      output: {
+        case: "s3",
+        value: new S3Upload({
           accessKey: process.env.SUPABASE_S3_ACCESS_KEY || "",
           secret: process.env.SUPABASE_S3_SECRET || "",
           region: process.env.SUPABASE_S3_REGION || "ap-south-1",
           bucket: process.env.SUPABASE_S3_BUCKET || "call-recordings",
           endpoint: process.env.SUPABASE_S3_ENDPOINT || "",
-        },
+        }),
       },
+    });
+
+    const egress = await egressClient.startRoomCompositeEgress(roomName, {
+      file: fileOutput,
     });
     return egress.egressId;
   } catch (e) {

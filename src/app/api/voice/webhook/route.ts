@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     let eventPayload;
     try {
         // Validate the signature using the WebhookReceiver
-        eventPayload = receiver.receive(bodyText, authHeader);
+        eventPayload = await receiver.receive(bodyText, authHeader || undefined);
     } catch (e) {
         console.warn("Webhook signature validation failed, falling back to raw JSON parsing:", e);
         eventPayload = JSON.parse(bodyText);
