@@ -66,13 +66,19 @@ export async function POST(req: NextRequest) {
               await supabase
                 .from("contacts")
                 .update({
-                  message_count: supabase.rpc ? undefined : undefined,
+                  message_count: undefined,
                   last_message_at: new Date().toISOString(),
                 })
                 .eq("id", upsertedContact.id);
 
               // Use raw SQL increment
               await supabase.rpc("increment_message_count", { contact_id: upsertedContact.id });
+
+              // Async trigger the AI Chatbot response generation in the background
+              const { generateChatbotResponse } = await import("@/services/ai");
+              generateChatbotResponse(phone, text, upsertedContact.id).catch((err) => {
+                console.error("Webhook: AI Chatbot background trigger error:", err);
+              });
             }
           }
         }

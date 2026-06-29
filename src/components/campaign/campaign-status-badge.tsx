@@ -3,6 +3,7 @@ import { CampaignStatus } from "@/types";
 
 const configs = {
   draft: { label: "Draft", className: "bg-muted text-muted-foreground" },
+  scheduled: { label: "Scheduled", className: "bg-amber-500/10 text-amber-500" },
   running: { label: "Running", className: "bg-blue-500/10 text-blue-500" },
   completed: { label: "Completed", className: "bg-primary/10 text-primary" },
   failed: { label: "Failed", className: "bg-destructive/10 text-destructive" },

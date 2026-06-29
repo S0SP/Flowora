@@ -11,6 +11,9 @@ import {
   BarChart3,
   Settings,
   ChevronLeft,
+  Zap,
+  Bot,
+  Phone,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { User } from "@supabase/supabase-js";
@@ -22,6 +25,9 @@ const navItems = [
   { href: "/dashboard/campaigns", label: "Campaigns", icon: Megaphone },
   { href: "/dashboard/contacts", label: "Contacts", icon: Users },
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/dashboard/lead-capture", label: "Lead Capture", icon: Zap },
+  { href: "/dashboard/chatbot", label: "AI Chatbot", icon: Bot },
+  { href: "/dashboard/voice-agent", label: "Voice Agent", icon: Phone },
 ];
 
 interface SidebarProps {
@@ -52,7 +58,7 @@ export function Sidebar({ user }: SidebarProps) {
           </div>
           {!collapsed && (
             <span className="text-sm font-semibold text-sidebar-foreground whitespace-nowrap">
-              WA CRM
+              Flowora
             </span>
           )}
         </div>

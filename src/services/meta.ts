@@ -1,14 +1,28 @@
+import { createAdminClient } from "@/lib/supabase/server";
+
 const META_API = "https://graph.facebook.com/v19.0";
+
+async function getMetaKeys() {
+  const supabase = await createAdminClient();
+  const { data } = await supabase.from("app_settings").select("meta_access_token, meta_phone_number_id").single();
+  if (!data?.meta_access_token || !data?.meta_phone_number_id) {
+    throw new Error("Meta API keys are missing in Settings (BYOK)");
+  }
+  return data;
+}
 
 export async function sendWhatsAppTemplate(
   phone: string,
   templateName: string,
   templateLanguage: string
+  templateLanguage: string
 ) {
-  const res = await fetch(`${META_API}/${process.env.META_PHONE_NUMBER_ID}/messages`, {
+  const keys = await getMetaKeys();
+
+  const res = await fetch(`${META_API}/${keys.meta_phone_number_id}/messages`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${process.env.META_ACCESS_TOKEN}`,
+      Authorization: `Bearer ${keys.meta_access_token}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
@@ -31,10 +45,12 @@ export async function sendWhatsAppTemplate(
 }
 
 export async function sendWhatsAppText(phone: string, message: string) {
-  const res = await fetch(`${META_API}/${process.env.META_PHONE_NUMBER_ID}/messages`, {
+  const keys = await getMetaKeys();
+
+  const res = await fetch(`${META_API}/${keys.meta_phone_number_id}/messages`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${process.env.META_ACCESS_TOKEN}`,
+      Authorization: `Bearer ${keys.meta_access_token}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({

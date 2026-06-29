@@ -15,7 +15,15 @@ const schema = z.object({
   campaign_name: z.string().min(2, "Campaign name required"),
   template_name: z.string().min(1, "Select a template"),
   template_language: z.string().min(1),
-});
+  send_later: z.boolean().default(false),
+  scheduled_at: z.string().optional().nullable(),
+}).refine(
+  (data) => !data.send_later || (data.scheduled_at && new Date(data.scheduled_at).getTime() > Date.now()),
+  {
+    message: "Schedule time must be in the future",
+    path: ["scheduled_at"],
+  }
+);
 
 type FormData = z.infer<typeof schema>;
 
@@ -30,10 +38,11 @@ export function CampaignSender() {
 
   const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { template_language: "en" },
+    defaultValues: { template_language: "en", send_later: false },
   });
 
   const templateName = watch("template_name");
+  const sendLater = watch("send_later");
 
   const fetchTemplates = async () => {
     setLoadingTemplates(true);
@@ -118,6 +127,7 @@ export function CampaignSender() {
           template_name: data.template_name,
           template_language: data.template_language,
           contacts,
+          scheduled_at: data.send_later ? data.scheduled_at : null,
         }),
       });
 
@@ -127,13 +137,13 @@ export function CampaignSender() {
       }
 
       setStep("success");
-      toast.success("Campaign sent successfully!");
+      toast.success(data.send_later ? "Campaign scheduled successfully!" : "Campaign sent successfully!");
       setTimeout(() => {
         setOpen(false);
         reset();
         setContacts([]);
         setStep("form");
-      }, 2000);
+      }, 2500);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -166,7 +176,9 @@ export function CampaignSender() {
             <div className="flex items-center justify-between p-6 border-b border-border">
               <div>
                 <h2 className="text-base font-semibold text-foreground">
-                  {step === "success" ? "Campaign Sent!" : step === "preview" ? "Review & Send" : "New Campaign"}
+                  {step === "success" 
+                    ? watch("send_later") ? "Campaign Scheduled!" : "Campaign Sent!"
+                    : step === "preview" ? "Review & Send" : "New Campaign"}
                 </h2>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {step === "preview" ? `${contacts.length} contacts ready` : "Upload contacts and choose template"}
@@ -182,8 +194,14 @@ export function CampaignSender() {
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                   <CheckCircle2 className="w-8 h-8 text-primary" />
                 </div>
-                <p className="text-base font-semibold text-foreground">Campaign sent!</p>
-                <p className="text-sm text-muted-foreground mt-1">Messages delivered successfully.</p>
+                <p className="text-base font-semibold text-foreground">
+                  {watch("send_later") ? "Campaign scheduled!" : "Campaign sent!"}
+                </p>
+                <p className="text-sm text-muted-foreground mt-1 text-center px-6">
+                  {watch("send_later")
+                    ? `Messages will be sent automatically on ${new Date(watch("scheduled_at")!).toLocaleString("en-IN")}`
+                    : "Messages delivered successfully."}
+                </p>
               </div>
             ) : (
               <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-5">
@@ -278,6 +296,37 @@ export function CampaignSender() {
                         onChange={(e) => { if (e.target.files?.[0]) handleFile(e.target.files[0]); }}
                       />
                     </div>
+
+                    {/* Schedule Option */}
+                    <div className="space-y-3 pt-4 border-t border-border/50">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="send_later"
+                          {...register("send_later")}
+                          className="w-4 h-4 rounded border-input text-primary focus:ring-ring"
+                        />
+                        <label htmlFor="send_later" className="text-sm font-medium text-foreground cursor-pointer">
+                          Schedule campaign for later
+                        </label>
+                      </div>
+
+                      {sendLater && (
+                        <div className="space-y-1.5 pl-6 animate-fade-in">
+                          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            Choose Date & Time
+                          </label>
+                          <input
+                            type="datetime-local"
+                            {...register("scheduled_at")}
+                            className="w-full px-3 py-2.5 bg-background border border-input rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                          />
+                          {errors.scheduled_at && (
+                            <p className="text-xs text-destructive">{errors.scheduled_at.message}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </>
                 )}
 
@@ -337,13 +386,18 @@ export function CampaignSender() {
                     className="flex-1 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-medium rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     {sending ? (
-                      <><Loader2 className="w-4 h-4 animate-spin" /> Sending...</>
+                      <><Loader2 className="w-4 h-4 animate-spin" /> Processing...</>
                     ) : step === "preview" ? (
-                      <><Send className="w-4 h-4" /> Send Campaign</>
+                      watch("send_later") ? (
+                        <>Schedule Campaign</>
+                      ) : (
+                        <><Send className="w-4 h-4" /> Send Campaign</>
+                      )
                     ) : (
                       "Continue"
                     )}
                   </button>
+
                 </div>
               </form>
             )}

@@ -7,8 +7,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
 
 export const metadata: Metadata = {
-  title: "WA CRM — WhatsApp Marketing Dashboard",
-  description: "Professional WhatsApp CRM for campaign management, inbox, and analytics.",
+  title: "Flowora — AI Sales & Outreach Platform",
+  description: "Professional AI CRM for WhatsApp and Voice campaign management.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -1,0 +1,12 @@
+python-dotenv
+livekit-agents
+livekit-plugins-openai
+livekit-plugins-deepgram
+livekit-plugins-cartesia
+livekit-plugins-elevenlabs
+livekit-plugins-sarvam
+requests
+certifi
+livekit-plugins-noise-cancellation
+livekit-plugins-silero
+aiohttp

@@ -1,7 +1,7 @@
 export type ContactStatus = "active" | "inactive" | "blocked";
 export type MessageDirection = "inbound" | "outbound";
 export type MessageStatus = "sent" | "delivered" | "read" | "failed";
-export type CampaignStatus = "draft" | "running" | "completed" | "failed";
+export type CampaignStatus = "draft" | "scheduled" | "running" | "completed" | "failed";
 
 export interface Contact {
   id: string;
@@ -46,6 +46,8 @@ export interface Campaign {
   created_at: string;
   updated_at: string;
   completed_at: string | null;
+  scheduled_at: string | null;
+  contacts_json: ParsedContact[] | null;
 }
 
 export interface CampaignLog {
@@ -94,6 +96,7 @@ export interface SendCampaignPayload {
   template_name: string;
   template_language: string;
   contacts: ParsedContact[];
+  scheduled_at?: string | null;
 }
 
 export interface SendReplyPayload {

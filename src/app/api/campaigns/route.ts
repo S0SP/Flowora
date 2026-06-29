@@ -6,13 +6,14 @@ import { SendCampaignPayload } from "@/types";
 export async function POST(req: NextRequest) {
   try {
     const body: SendCampaignPayload = await req.json();
-    const { campaign_name, template_name, template_language, contacts } = body;
+    const { campaign_name, template_name, template_language, contacts, scheduled_at } = body;
 
     if (!campaign_name || !template_name || !contacts?.length) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
     const supabase = await createAdminClient();
+    const isScheduled = !!scheduled_at;
 
     // Create campaign
     const { data: campaign, error: campaignError } = await supabase
@@ -21,14 +22,25 @@ export async function POST(req: NextRequest) {
         name: campaign_name,
         template_name,
         template_language,
-        status: "running",
+        status: isScheduled ? "scheduled" : "running",
         total_contacts: contacts.length,
+        scheduled_at: isScheduled ? new Date(scheduled_at).toISOString() : null,
+        contacts_json: isScheduled ? contacts : null,
       })
       .select()
       .single();
 
     if (campaignError || !campaign) {
       throw new Error(campaignError?.message ?? "Failed to create campaign");
+    }
+
+    if (isScheduled) {
+      return NextResponse.json({
+        success: true,
+        campaign_id: campaign.id,
+        status: "scheduled",
+        scheduled_at: campaign.scheduled_at,
+      });
     }
 
     // Upsert contacts

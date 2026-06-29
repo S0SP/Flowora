@@ -1,130 +1,83 @@
-# WhatsApp CRM Dashboard
+# Autonomous Lead Outreach System
 
-A 100% free, production-ready WhatsApp CRM built with Next.js 15, Supabase, and Meta WhatsApp Cloud API. No N8N, no paid services.
+A powerful, AI-driven CRM and outreach system that automatically captures leads from Google Sheets and engages them via WhatsApp Messages and AI Voice Calls. Built with Next.js, Supabase, Meta WhatsApp API, and LiveKit AI Agents.
 
-## Free Stack
+## 🚀 Features
 
-| Service | Cost |
-|---|---|
-| Next.js | Free |
-| Supabase | Free tier |
-| Meta WhatsApp Cloud API | Free |
-| Vercel | Free tier |
-
----
-
-## Architecture
-
-```
-Browser → Next.js App Router
-             ↓
-     /api/campaigns  →  Meta WhatsApp API (sends templates)
-     /api/messages   →  Meta WhatsApp API (sends replies)
-     /api/webhook    ←  Meta webhook (incoming messages + delivery updates)
-     /api/contacts
-     /api/analytics
-     /api/templates  →  Meta API (fetch approved templates)
-             ↓
-     Supabase (PostgreSQL + Realtime + Auth)
-```
+- **Multi-Channel Outreach**: Send WhatsApp text/template messages or trigger realistic AI Voice Calls to your leads.
+- **Google Sheets Integration**: Automatically poll and capture new leads dropping into a connected Google Sheet.
+- **AI Voice Agent**: A fully interactive, low-latency conversational AI agent powered by LiveKit, capable of speaking multiple languages (e.g., English and Hindi) using advanced LLMs (Groq/Gemini) and TTS (Sarvam/Cartesia).
+- **Scheduled Campaigns**: Bulk outreach capabilities. Schedule messages and calls to be sent at specific dates and times, or immediately.
+- **BYOK (Bring Your Own Key)**: Secure, database-backed UI for configuring your Meta, LiveKit, and AI API keys without hardcoding them into environment variables.
+- **Call Recordings**: Automatically records AI voice calls and uploads them to Supabase Storage, viewable directly from your dashboard call history.
+- **Serverless & Scalable**: Designed to run the dashboard on Vercel (Serverless) while running the persistent Voice Worker in a Docker container (Railway, Render, or Oracle Cloud).
 
 ---
 
-## Quick Start
+## 🏗️ Architecture
 
-### 1. Install
-```bash
-npm install
-cp .env.example .env.local
-```
-
-### 2. Fill .env.local
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
-SUPABASE_SERVICE_ROLE_KEY=eyJ...
-META_ACCESS_TOKEN=EAAxxxx
-META_PHONE_NUMBER_ID=your-phone-number-id
-META_WABA_ID=your-whatsapp-business-account-id
-META_VERIFY_TOKEN=your-custom-verify-token
-```
-
-### 3. Set up Supabase
-1. Create project at supabase.com
-2. Run `database/schema.sql` in SQL Editor
-3. Run `database/fix-functions.sql` in SQL Editor
-4. Create user: Authentication → Users → Add user
-
-### 4. Configure Meta Webhook
-1. Go to Meta Developer Console → WhatsApp → Configuration
-2. Callback URL: `https://your-domain.com/api/webhook`
-3. Verify Token: match your `META_VERIFY_TOKEN`
-4. Subscribe to: `messages`
-
-### 5. Run
-```bash
-npm run dev
-```
+This repository is split into two distinct parts:
+1. **Frontend & API (`/src`)**: A Next.js 14 App Router application. Handles the UI, database interactions, Google Sheets syncing, Meta WhatsApp API calls, and Cron job endpoints.
+2. **AI Voice Worker (`/voice-worker`)**: A Python application that connects to LiveKit to act as the AI agent answering and making SIP trunk calls.
 
 ---
 
-## Environment Variables
+## 🛠️ Quick Start & Deployment
 
-| Variable | Where to find |
-|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Settings → API |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Settings → API |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Settings → API |
-| `META_ACCESS_TOKEN` | Meta → WhatsApp → API Setup |
-| `META_PHONE_NUMBER_ID` | Meta → WhatsApp → API Setup |
-| `META_WABA_ID` | Meta → WhatsApp → Configuration |
-| `META_VERIFY_TOKEN` | You choose this string |
+### 1. Database Setup (Supabase)
+1. Create a project on [Supabase](https://supabase.com).
+2. Run the SQL files found in the `/database` folder in your Supabase SQL Editor to set up the necessary tables (including the `app_settings` BYOK table).
+3. Get your `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`.
 
----
+### 2. Deploying the Frontend (Vercel)
+1. Push this repository to GitHub.
+2. Import the repository into [Vercel](https://vercel.com).
+3. Add the following Environment Variables:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `CRON_SECRET` (A random string you generate, e.g., `my-super-secret-cron-123`)
+4. Deploy!
+5. **Important**: Go to your deployed dashboard, navigate to **Settings (BYOK)**, and enter your Meta, LiveKit, and AI API keys. 
 
-## Features
+*Note: If you are on the Vercel Free Tier, set up a cron job on [cron-job.org](https://cron-job.org) to ping `https://your-domain.vercel.app/api/campaigns/process-scheduled` every minute with the header `Authorization: Bearer <YOUR_CRON_SECRET>`.*
 
-- Campaign sender with Excel/CSV upload
-- Dynamic template fetching from Meta (only approved templates shown)
-- Realtime chat inbox with WhatsApp-style UI
-- Delivery status tracking (sent → delivered → read)
-- Contact management
-- Analytics with charts
-- Dark mode
-- Supabase Auth
-
----
-
-## Deployment
-
-### Vercel
-```bash
-npm install -g vercel
-vercel --prod
-```
-Add all env vars in Vercel Dashboard → Settings → Environment Variables.
-
-Then update your Meta webhook callback URL to your Vercel domain.
+### 3. Deploying the Voice Worker (Railway / Render / Oracle Cloud)
+Because the Voice Worker requires a persistent WebSocket connection, it cannot run on Vercel. 
+1. Deploy this exact same repository to a host that supports Docker (like Railway).
+2. Set the **Root Directory** or **Build Context** to `/voice-worker`.
+3. Provide the following Environment Variables to the worker:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+4. The worker will automatically fetch the LiveKit and AI keys from your Supabase BYOK settings and boot up the agent!
 
 ---
 
-## Contacts File Format
+## 📖 How to Use
 
-Excel or CSV with headers:
-
-| phone | name | email |
-|---|---|---|
-| 9876543210 | Rahul Sharma | rahul@example.com |
-| +919876543211 | Priya Singh | |
-
-- `phone` required — 10 digits (auto +91) or full international format
-- `name` and `email` optional
+1. **Settings**: Start by going to `/dashboard/settings` and adding your Meta API Keys and LiveKit SIP details.
+2. **Lead Capture**: Go to the Lead Capture tab. Paste a public Google Sheet URL. The system will map the columns (Name, Phone, etc.). Choose what happens when a lead arrives (e.g., Wait 5 minutes, then send a WhatsApp Template AND trigger an AI Voice Call).
+3. **Campaigns**: Go to Campaigns to bulk-import numbers and schedule an immediate or future blast of WhatsApp messages and AI Calls.
+4. **Call History**: View past calls, see the AI's transcription, and listen to the MP3 recordings of the conversation.
 
 ---
 
-## Security
+## 💻 Local Development
 
-- `SUPABASE_SERVICE_ROLE_KEY` is server-only — never exposed to browser
-- `META_ACCESS_TOKEN` is server-only — never exposed to browser
-- All API calls to Meta happen server-side via Next.js API routes
-- RLS policies protect all database tables
+1. Clone the repo and install dependencies:
+   ```bash
+   npm install
+   ```
+2. Copy `.env.example` to `.env.local` and fill in your Supabase keys.
+3. Start the Next.js dev server:
+   ```bash
+   npm run dev
+   ```
+4. Start the Python Voice Worker:
+   ```bash
+   cd voice-worker
+   python -m venv venv
+   source venv/bin/activate  # On Windows: .\venv\Scripts\activate
+   pip install -r requirements.txt
+   python agent.py start
+   ```
