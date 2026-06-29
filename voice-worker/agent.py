@@ -304,19 +304,31 @@ async def entrypoint(ctx: agents.JobContext):
         else:
             voice_id = voice_id.capitalize()
 
-        session = google.beta.MultimodalAgent(
+        model = google.beta.realtime.RealtimeModel(
             model="models/gemini-2.0-flash-exp",
             api_key=os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY"),
             instructions=config_dict.get("user_prompt") or config.SYSTEM_PROMPT,
             voice=voice_id,
-            fnc_ctx=fnc_ctx
+            temperature=0.8,
+        )
+
+        session = AgentSession(
+            llm=model,
         )
         
-        session.start(ctx.room, participant=None)
+        await session.start(
+            room=ctx.room,
+            agent=OutboundAssistant(
+                tools=list(fnc_ctx.function_tools.values()),
+                system_prompt=config_dict.get("user_prompt")
+            ),
+            room_input_options=RoomInputOptions(
+                noise_cancellation=noise_cancellation.BVCTelephony(),
+                close_on_disconnect=True,
+            ),
+        )
         logger.info("Gemini Multimodal Agent started in room")
         
-        # MultimodalAgent does not have generate_reply. 
-        # It greets by receiving a text prompt if needed, or just naturally responds to voice.
         if phone_number:
             logger.info("Outbound call mode — waiting for SIP participant to join room...")
             sip_joined = False
@@ -332,12 +344,7 @@ async def entrypoint(ctx: agents.JobContext):
             if sip_joined:
                 logger.info("SIP participant joined. Prompting Gemini to greet...")
                 try:
-                    # Nudge Gemini to greet the user (if supported)
-                    if hasattr(session, "generate_reply"):
-                        await session.generate_reply("The user just joined the call. Please greet them warmly.")
-                    else:
-                        # For MultimodalAgent, we might just wait for user to speak or rely on system prompt
-                        logger.info("MultimodalAgent waiting for user speech.")
+                    await session.generate_reply("The user just joined the call. Please greet them warmly.")
                 except Exception as e:
                     logger.warning(f"Could not nudge Gemini: {e}")
             else:
@@ -346,8 +353,7 @@ async def entrypoint(ctx: agents.JobContext):
             logger.info("Web/dashboard session. Prompting Gemini to greet...")
             await asyncio.sleep(1)
             try:
-                if hasattr(session, "generate_reply"):
-                    await session.generate_reply("The user just opened the web app. Please greet them warmly.")
+                await session.generate_reply("The user just opened the web app. Please greet them warmly.")
             except Exception as e:
                 pass
 
