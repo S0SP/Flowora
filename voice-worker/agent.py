@@ -73,6 +73,13 @@ def _build_tts(config_provider: str = None, config_voice: str = None):
         logger.info(f"Using Sarvam TTS (Voice: {config_voice})")
         model = os.getenv("SARVAM_TTS_MODEL", config.SARVAM_MODEL)
         voice = config_voice or os.getenv("SARVAM_VOICE", "anushka")
+        
+        # Sarvam strict voice check
+        valid_sarvam_voices = ["anushka", "manisha", "vidya", "arya", "abhilash", "karun", "hitesh"]
+        if voice.lower() not in valid_sarvam_voices:
+            logger.warning(f"Voice {voice} is not valid for Sarvam. Falling back to anushka.")
+            voice = "anushka"
+            
         language = os.getenv("SARVAM_LANGUAGE", config.SARVAM_LANGUAGE)
         return sarvam.TTS(model=model, speaker=voice, target_language_code=language)
 
