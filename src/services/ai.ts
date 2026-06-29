@@ -23,9 +23,11 @@ export async function generateChatbotResponse(phone: string, incomingMessage: st
     }
 
     const apiKey = settings.gemini_api_key || process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      console.error("Chatbot: Gemini API Key is missing. Configure it in database or env.");
-      return { success: false, error: "API Key missing" };
+    const groqKey = settings.groq_api_key || process.env.GROQ_API_KEY;
+
+    if (!apiKey && !groqKey) {
+      console.error("Chatbot: Both Gemini and Groq API Keys are missing. Configure them in settings.");
+      return { success: false, error: "API Keys missing" };
     }
 
     // 2. Fetch last 6 messages (pruning context history for cost optimization)
@@ -66,7 +68,7 @@ export async function generateChatbotResponse(phone: string, incomingMessage: st
 
     // Check Google Gemini prompt context cache details
     const { getOrUpdatePromptCache } = await import("./gemini-cache");
-    const cacheResourceName = await getOrUpdatePromptCache(supabase, settings, apiKey);
+    const cacheResourceName = apiKey ? await getOrUpdatePromptCache(supabase, settings, apiKey) : null;
 
     // Define available tools (Gemini Function Declarations)
     const functionDeclarations: any[] = [];
@@ -119,132 +121,149 @@ export async function generateChatbotResponse(phone: string, incomingMessage: st
       };
     }
 
-    // 3. Make Gemini 2.5 Flash API HTTP request
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-
-    const res = await fetch(geminiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(apiPayload),
-    });
-
-    if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(`Gemini API error (${res.status}): ${errText}`);
-    }
-
-    const result = await res.json();
     let replyText = "";
-    const firstPart = result.candidates?.[0]?.content?.parts?.[0];
+    const useGroqDirectly = !apiKey && groqKey;
 
-    // Check if the model triggered a tool call
-    if (firstPart && firstPart.functionCall) {
-      const { name: funcName, args } = firstPart.functionCall;
-      console.log(`Chatbot Agent: Gemini requested functionCall "${funcName}" with args:`, args);
-
-      let functionResponseData: any = {};
-
-      if (funcName === "check_lead_status") {
-        const lookup = args.email_or_phone?.trim();
-        if (lookup) {
-          const { data: leadData } = await supabase
-            .from("lead_capture_leads")
-            .select("*")
-            .or(`email.eq.${lookup},phone.eq.${lookup}`)
-            .limit(1);
-
-          if (leadData && leadData.length > 0) {
-            functionResponseData = {
-              found: true,
-              name: leadData[0].name,
-              email: leadData[0].email,
-              phone: leadData[0].phone,
-              status: leadData[0].status || "Captured",
-              created_at: leadData[0].created_at
-            };
-          } else {
-            functionResponseData = {
-              found: false,
-              message: `No booking records or leads found for "${lookup}".`
-            };
-          }
-        } else {
-          functionResponseData = { found: false, message: "No email or phone number was provided." };
-        }
-      } else if (funcName === "get_store_products") {
-        functionResponseData = {
-          store_url: "https://ebook.unboundyou.com/storeproduct",
-          products: [
-            { name: "Physics Formula eBook", price: "₹99", description: "Contains all essential formulas for IGCSE Physics." },
-            { name: "Physics Master Revision eBook", price: "₹299", description: "Complete notes and practice questions." },
-            { name: "Chemistry Master Revision eBook", price: "₹299", description: "All core concepts for IGCSE Chemistry." },
-            { name: "Biology Master Revision eBook", price: "₹299", description: "IGCSE Biology notes and exam-style solutions." },
-            { name: "Science Master Revision Combo", price: "₹699", description: "Combo pack of Physics, Chemistry, and Biology eBooks." }
-          ]
-        };
-      }
-
-      console.log("Chatbot Agent: Tool execution result:", functionResponseData);
-
-      // Perform follow-up request to Gemini containing function call results
-      const followUpPayload: Record<string, any> = {
-        contents: [
-          ...chatHistory,
-          {
-            role: "model",
-            parts: [{ functionCall: { name: funcName, args } }]
-          },
-          {
-            role: "function",
-            parts: [{
-              functionResponse: {
-                name: funcName,
-                response: { output: functionResponseData }
-              }
-            }]
-          }
-        ],
-        generationConfig: apiPayload.generationConfig,
-      };
-
-      if (cacheResourceName) {
-        followUpPayload.cachedContent = cacheResourceName;
-      } else {
-        followUpPayload.systemInstruction = apiPayload.systemInstruction;
-      }
-
-      const followUpRes = await fetch(geminiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(followUpPayload),
-      });
-
-      if (!followUpRes.ok) {
-        const errText = await followUpRes.text();
-        throw new Error(`Gemini tool follow-up API error (${followUpRes.status}): ${errText}`);
-      }
-
-      const followUpResult = await followUpRes.json();
-      const followUpParts = followUpResult.candidates?.[0]?.content?.parts || [];
-      replyText = followUpParts
-        .filter((part: any) => !part.thought)
-        .map((part: any) => part.text || "")
-        .join("")
-        .trim();
+    if (useGroqDirectly) {
+      console.log("Chatbot: Gemini API Key is missing. Falling back to Groq directly.");
+      replyText = await generateGroqResponse(chatHistory, settings.system_prompt, groqKey);
     } else {
-      // Normal text generation
-      const candidateParts = result.candidates?.[0]?.content?.parts || [];
-      replyText = candidateParts
-        .filter((part: any) => !part.thought)
-        .map((part: any) => part.text || "")
-        .join("")
-        .trim();
-    }
+      try {
+        // 3. Make Gemini 2.5 Flash API HTTP request
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
-    if (!replyText) {
-      throw new Error("Gemini returned an empty or invalid response.");
+        const res = await fetch(geminiUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(apiPayload),
+        });
+
+        if (!res.ok) {
+          const errText = await res.text();
+          throw new Error(`Gemini API error (${res.status}): ${errText}`);
+        }
+
+        const result = await res.json();
+        const firstPart = result.candidates?.[0]?.content?.parts?.[0];
+
+        // Check if the model triggered a tool call
+        if (firstPart && firstPart.functionCall) {
+          const { name: funcName, args } = firstPart.functionCall;
+          console.log(`Chatbot Agent: Gemini requested functionCall "${funcName}" with args:`, args);
+
+          let functionResponseData: any = {};
+
+          if (funcName === "check_lead_status") {
+            const lookup = args.email_or_phone?.trim();
+            if (lookup) {
+              const { data: leadData } = await supabase
+                .from("lead_capture_leads")
+                .select("*")
+                .or(`email.eq.${lookup},phone.eq.${lookup}`)
+                .limit(1);
+
+              if (leadData && leadData.length > 0) {
+                functionResponseData = {
+                  found: true,
+                  name: leadData[0].name,
+                  email: leadData[0].email,
+                  phone: leadData[0].phone,
+                  status: leadData[0].status || "Captured",
+                  created_at: leadData[0].created_at
+                };
+              } else {
+                functionResponseData = {
+                  found: false,
+                  message: `No booking records or leads found for "${lookup}".`
+                };
+              }
+            } else {
+              functionResponseData = { found: false, message: "No email or phone number was provided." };
+            }
+          } else if (funcName === "get_store_products") {
+            functionResponseData = {
+              store_url: "https://ebook.unboundyou.com/storeproduct",
+              products: [
+                { name: "Physics Formula eBook", price: "₹99", description: "Contains all essential formulas for IGCSE Physics." },
+                { name: "Physics Master Revision eBook", price: "₹299", description: "Complete notes and practice questions." },
+                { name: "Chemistry Master Revision eBook", price: "₹299", description: "All core concepts for IGCSE Chemistry." },
+                { name: "Biology Master Revision eBook", price: "₹299", description: "IGCSE Biology notes and exam-style solutions." },
+                { name: "Science Master Revision Combo", price: "₹699", description: "Combo pack of Physics, Chemistry, and Biology eBooks." }
+              ]
+            };
+          }
+
+          console.log("Chatbot Agent: Tool execution result:", functionResponseData);
+
+          // Perform follow-up request to Gemini containing function call results
+          const followUpPayload: Record<string, any> = {
+            contents: [
+              ...chatHistory,
+              {
+                role: "model",
+                parts: [{ functionCall: { name: funcName, args } }]
+              },
+              {
+                role: "function",
+                parts: [{
+                  functionResponse: {
+                    name: funcName,
+                    response: { output: functionResponseData }
+                  }
+                }]
+              }
+            ],
+            generationConfig: apiPayload.generationConfig,
+          };
+
+          if (cacheResourceName) {
+            followUpPayload.cachedContent = cacheResourceName;
+          } else {
+            followUpPayload.systemInstruction = apiPayload.systemInstruction;
+          }
+
+          const followUpRes = await fetch(geminiUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(followUpPayload),
+          });
+
+          if (!followUpRes.ok) {
+            const errText = await followUpRes.text();
+            throw new Error(`Gemini tool follow-up API error (${followUpRes.status}): ${errText}`);
+          }
+
+          const followUpResult = await followUpRes.json();
+          const followUpParts = followUpResult.candidates?.[0]?.content?.parts || [];
+          replyText = followUpParts
+            .filter((part: any) => !part.thought)
+            .map((part: any) => part.text || "")
+            .join("")
+            .trim();
+        } else {
+          // Normal text generation
+          const candidateParts = result.candidates?.[0]?.content?.parts || [];
+          replyText = candidateParts
+            .filter((part: any) => !part.thought)
+            .map((part: any) => part.text || "")
+            .join("")
+            .trim();
+        }
+
+        if (!replyText) {
+          throw new Error("Gemini returned an empty or invalid response.");
+        }
+      } catch (geminiError: any) {
+        console.warn("Chatbot: Gemini generation failed:", geminiError.message || geminiError);
+        if (groqKey) {
+          console.log("Chatbot: Falling back to Groq due to Gemini error...");
+          replyText = await generateGroqResponse(chatHistory, settings.system_prompt, groqKey);
+        } else {
+          throw geminiError;
+        }
+      }
     }
 
     console.log(`Chatbot: AI response generated: "${replyText.slice(0, 50)}..."`);
@@ -279,4 +298,44 @@ export async function generateChatbotResponse(phone: string, incomingMessage: st
     console.error("Chatbot: error in generateChatbotResponse:", err);
     return { success: false, error: err instanceof Error ? err.message : "Unknown error" };
   }
+}
+
+async function generateGroqResponse(
+  chatHistory: { role: "user" | "model"; parts: { text: string }[] }[],
+  systemPrompt: string,
+  groqKey: string
+): Promise<string> {
+  const messages = [
+    { role: "system", content: systemPrompt },
+    ...chatHistory.map((h) => ({
+      role: h.role === "model" ? "assistant" : "user",
+      content: h.parts[0]?.text || "",
+    })),
+  ];
+
+  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${groqKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "llama-3.3-70b-versatile",
+      messages,
+      temperature: 0.7,
+      max_tokens: 1024,
+    }),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Groq API error (${res.status}): ${errText}`);
+  }
+
+  const data = await res.json();
+  const reply = data.choices?.[0]?.message?.content;
+  if (!reply) {
+    throw new Error("Groq returned empty response");
+  }
+  return reply;
 }

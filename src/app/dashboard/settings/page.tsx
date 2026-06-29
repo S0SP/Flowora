@@ -179,6 +179,17 @@ export default function SettingsPage() {
               />
             </div>
             <div className="space-y-1.5">
+              <label className="text-xs font-semibold uppercase text-muted-foreground">Groq API Key (Chatbot Fallback / Voice Agent)</label>
+              <input
+                type="password"
+                name="groq_api_key"
+                value={keys.groq_api_key || ""}
+                onChange={handleChange}
+                placeholder="gsk_..."
+                className="w-full px-3 py-2 bg-background border rounded-lg text-sm"
+              />
+            </div>
+            <div className="space-y-1.5">
               <label className="text-xs font-semibold uppercase text-muted-foreground">Sarvam API Key (Indic)</label>
               <input
                 type="password"
