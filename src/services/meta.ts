@@ -15,7 +15,6 @@ export async function sendWhatsAppTemplate(
   phone: string,
   templateName: string,
   templateLanguage: string
-  templateLanguage: string
 ) {
   const keys = await getMetaKeys();
 
