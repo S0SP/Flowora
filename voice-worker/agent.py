@@ -22,7 +22,8 @@ from livekit.plugins import (
 from livekit.agents import llm, stt as stt_module
 from typing import Annotated, Optional
 import asyncio
-from aiohttp import web
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 # Load environment variables
 load_dotenv(".env")
@@ -394,26 +395,25 @@ async def entrypoint(ctx: agents.JobContext):
 
         asyncio.create_task(send_webhook())
 
-async def _health_handler(request):
-    return web.Response(text="Server is running")
+class _HealthHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"Server is running")
+        
+    def log_message(self, format, *args):
+        pass # Suppress logging
 
-async def _start_health_server():
-    app = web.Application()
-    app.router.add_get('/', _health_handler)
-    app.router.add_get('/health', _health_handler)
-    
-    runner = web.AppRunner(app)
-    await runner.setup()
-    
+def _start_health_server():
     port = int(os.environ.get("PORT", 8080))
-    site = web.TCPSite(runner, '0.0.0.0', port)
-    await site.start()
+    server = HTTPServer(('0.0.0.0', port), _HealthHandler)
     logger.info(f"Healthcheck server running on port {port}")
-
-def prewarm_process(proc: agents.JobProcess):
-    asyncio.create_task(_start_health_server())
+    server.serve_forever()
 
 if __name__ == "__main__":
+    # Start health server in a background thread
+    threading.Thread(target=_start_health_server, daemon=True).start()
+
     try:
         config.load_dynamic_config()
     except Exception as e:
@@ -422,7 +422,6 @@ if __name__ == "__main__":
     agents.cli.run_app(
         agents.WorkerOptions(
             entrypoint_fnc=entrypoint,
-            prewarm_fnc=prewarm_process,
             agent_name="outbound-caller", 
         )
     )
