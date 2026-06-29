@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/server";
 
 export async function GET() {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const { data, error } = await supabase.from("chatbot_settings").select("*").single();
   
   if (error && error.code !== "PGRST116") {
@@ -14,7 +14,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
     const body = await req.json();
 
     // Upsert logic - fetch existing first to keep the singleton ID if present
