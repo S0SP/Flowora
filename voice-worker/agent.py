@@ -16,7 +16,6 @@ from livekit.plugins import (
     cartesia,
     deepgram,
     noise_cancellation,
-    silero,
     sarvam,
 )
 from livekit.agents import llm, stt as stt_module
@@ -301,7 +300,6 @@ async def entrypoint(ctx: agents.JobContext):
 
     # Initialize the Agent Session with plugins
     session = AgentSession(
-        vad=silero.VAD.load(),
         stt=stt_instance,
         llm=_build_llm(config_dict.get("model_provider")),
         tts=tts_instance,
