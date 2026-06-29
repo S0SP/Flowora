@@ -3,7 +3,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 
 export async function getLiveKitClients() {
   const supabase = await createAdminClient();
-  const { data } = await supabase.from("app_settings").select("livekit_url, livekit_api_key, livekit_api_secret, livekit_sip_trunk_id").single();
+  const { data } = await supabase.from("chatbot_settings").select("livekit_url, livekit_api_key, livekit_api_secret, livekit_sip_trunk_id").single();
   
   const url = data?.livekit_url || process.env.LIVEKIT_URL!;
   const key = data?.livekit_api_key || process.env.LIVEKIT_API_KEY!;

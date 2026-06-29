@@ -79,7 +79,7 @@ def load_dynamic_config():
         logger.warning("Supabase credentials missing. Cannot load BYOK settings.")
         return
     
-    api_url = f"{supabase_url}/rest/v1/app_settings?select=*"
+    api_url = f"{supabase_url}/rest/v1/chatbot_settings?select=*"
     headers = {
         "apikey": supabase_key,
         "Authorization": f"Bearer {supabase_key}"
@@ -106,7 +106,7 @@ def load_dynamic_config():
                 
                 logger.info("BYOK Configuration successfully loaded from Supabase.")
             else:
-                logger.warning("No app_settings found in Supabase.")
+                logger.warning("No chatbot_settings found in Supabase.")
         else:
             logger.warning(f"Failed to fetch config: {resp.status_code} {resp.text}")
     except Exception as e:

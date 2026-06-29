@@ -4,7 +4,7 @@ const META_API = "https://graph.facebook.com/v19.0";
 
 async function getMetaKeys() {
   const supabase = await createAdminClient();
-  const { data } = await supabase.from("app_settings").select("meta_access_token, meta_phone_number_id").single();
+  const { data } = await supabase.from("chatbot_settings").select("meta_access_token, meta_phone_number_id").single();
   if (!data?.meta_access_token || !data?.meta_phone_number_id) {
     throw new Error("Meta API keys are missing in Settings (BYOK)");
   }
