@@ -109,7 +109,7 @@ def _build_llm(config_provider: str = None):
         # Requires GOOGLE_API_KEY env var
         return google.LLM(
             api_key=os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY"),
-            model=os.getenv("GEMINI_LIVE_MODEL", "gemini-2.0-flash-exp")
+            model=os.getenv("GEMINI_LIVE_MODEL", "gemini-2.0-flash")
         )
         
     # Default to OpenAI
@@ -305,7 +305,7 @@ async def entrypoint(ctx: agents.JobContext):
             voice_id = voice_id.capitalize()
 
         model = google.beta.realtime.RealtimeModel(
-            model="models/gemini-2.0-flash-exp",
+            model="models/gemini-2.0-flash",
             api_key=os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY"),
             instructions=config_dict.get("user_prompt") or config.SYSTEM_PROMPT,
             voice=voice_id,
@@ -344,7 +344,7 @@ async def entrypoint(ctx: agents.JobContext):
             if sip_joined:
                 logger.info("SIP participant joined. Prompting Gemini to greet...")
                 try:
-                    await session.generate_reply("The user just joined the call. Please greet them warmly.")
+                    await session.generate_reply(instructions="The user just joined the call. Please greet them warmly.")
                 except Exception as e:
                     logger.warning(f"Could not nudge Gemini: {e}")
             else:
@@ -353,7 +353,7 @@ async def entrypoint(ctx: agents.JobContext):
             logger.info("Web/dashboard session. Prompting Gemini to greet...")
             await asyncio.sleep(1)
             try:
-                await session.generate_reply("The user just opened the web app. Please greet them warmly.")
+                await session.generate_reply(instructions="The user just opened the web app. Please greet them warmly.")
             except Exception as e:
                 pass
 
