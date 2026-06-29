@@ -15,10 +15,10 @@ from livekit.plugins import (
     openai,
     cartesia,
     deepgram,
-    noise_cancellation,
     sarvam,
     google
 )
+# noise_cancellation is lazy-imported only when ENABLE_NOISE_CANCELLATION=true to save ~300MB RAM
 from livekit.agents import llm, stt as stt_module
 from typing import Annotated, Optional
 import asyncio
@@ -316,6 +316,12 @@ async def entrypoint(ctx: agents.JobContext):
             llm=model,
         )
         
+        use_nc = os.getenv("ENABLE_NOISE_CANCELLATION", "false").lower() == "true"
+        if use_nc:
+            from livekit.plugins import noise_cancellation as _nc
+            nc_plugin = _nc.BVCTelephony()
+        else:
+            nc_plugin = None
         await session.start(
             room=ctx.room,
             agent=OutboundAssistant(
@@ -323,7 +329,7 @@ async def entrypoint(ctx: agents.JobContext):
                 system_prompt=config_dict.get("user_prompt")
             ),
             room_input_options=RoomInputOptions(
-                noise_cancellation=noise_cancellation.BVCTelephony(),
+                noise_cancellation=nc_plugin,
                 close_on_disconnect=True,
             ),
         )
@@ -373,6 +379,7 @@ async def entrypoint(ctx: agents.JobContext):
         # Initialize the Agent Session with plugins
         session = AgentSession(
             stt=stt_instance,
+            vad=None,
             llm=_build_llm(config_dict.get("model_provider")),
             tts=tts_instance,
         )
@@ -381,6 +388,12 @@ async def entrypoint(ctx: agents.JobContext):
         _setup_language_auto_switch(session, tts_instance)
 
         # Start the session
+        use_nc = os.getenv("ENABLE_NOISE_CANCELLATION", "false").lower() == "true"
+        if use_nc:
+            from livekit.plugins import noise_cancellation as _nc
+            nc_plugin = _nc.BVCTelephony()
+        else:
+            nc_plugin = None
         await session.start(
             room=ctx.room,
             agent=OutboundAssistant(
@@ -388,7 +401,7 @@ async def entrypoint(ctx: agents.JobContext):
                 system_prompt=config_dict.get("user_prompt")
             ),
             room_input_options=RoomInputOptions(
-                noise_cancellation=noise_cancellation.BVCTelephony(),
+                noise_cancellation=nc_plugin,
                 close_on_disconnect=True,
             ),
         )
