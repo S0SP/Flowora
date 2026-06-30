@@ -517,6 +517,9 @@ if __name__ == "__main__":
     # Start health server in a background thread
     threading.Thread(target=_start_health_server, daemon=True).start()
 
+    logger.info(f"=== AGENT BOOT === system_prompt starts with: {config.SYSTEM_PROMPT[:60].strip()!r}")
+    logger.info(f"=== AGENT BOOT === default_voice: {config.DEFAULT_TTS_VOICE}, default_llm: {config.DEFAULT_LLM_PROVIDER}")
+
     try:
         config.load_dynamic_config()
     except Exception as e:
