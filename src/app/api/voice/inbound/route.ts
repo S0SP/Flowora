@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getLiveKitClients } from "@/lib/livekit";
 
-// GET — list current dispatch rules (useful for debugging)
+// GET — list current dispatch rules
 export async function GET(req: NextRequest) {
   try {
     const supabase = await createClient();
@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     const rules = await sipClient.listSipDispatchRule();
     return NextResponse.json({ rules });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message, detail: String(err) }, { status: 500 });
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
 
@@ -30,51 +30,23 @@ export async function POST(req: NextRequest) {
 
     const { sipClient } = await getLiveKitClients();
 
-    const metadata = JSON.stringify({
-      inbound: true,
-      model_provider: agentType === "gemini" ? "gemini" : "groq",
-      voice_id: voiceId,
-      tts_provider: "sarvam",
-    });
-
-    // trunkIds left empty → rule applies to ALL inbound trunks.
-    // The outbound SIP trunk ID must NOT be passed here — it's a different entity.
-    let rule: any;
-    let lastError: any;
-
-    // Try the protobuf-es oneof format first (livekit-server-sdk v2)
-    try {
-      rule = await sipClient.createSipDispatchRule({
+    // createSipDispatchRule(rule, opts) — two separate args, rule has `type` field
+    const rule = await sipClient.createSipDispatchRule(
+      {
+        type: "individual",   // each caller gets their own room
+        roomPrefix: "inbound-",
+      },
+      {
         name: "ai-inbound-handler",
-        trunkIds: [],
-        rule: {
-          case: "dispatchRuleIndividual",
-          value: { roomNamePrefix: "inbound-" },
-        },
-        metadata,
-      } as any);
-    } catch (e1: any) {
-      lastError = e1;
-      // Fallback: try dispatchRuleDirect format
-      try {
-        rule = await sipClient.createSipDispatchRule({
-          name: "ai-inbound-handler",
-          trunkIds: [],
-          rule: {
-            case: "dispatchRuleDirect",
-            value: { roomName: "inbound-{callerNumber}" },
-          },
-          metadata,
-        } as any);
-      } catch (e2: any) {
-        // Return both errors so we can debug
-        return NextResponse.json({
-          error: "Both dispatch rule formats failed",
-          errorIndividual: e1?.message,
-          errorDirect: e2?.message,
-        }, { status: 500 });
+        trunkIds: [],         // empty = applies to all inbound trunks
+        metadata: JSON.stringify({
+          inbound: true,
+          model_provider: agentType === "gemini" ? "gemini" : "groq",
+          voice_id: voiceId,
+          tts_provider: "sarvam",
+        }),
       }
-    }
+    );
 
     return NextResponse.json({ ok: true, ruleId: rule.sipDispatchRuleId, rule });
   } catch (err: any) {
@@ -83,7 +55,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// DELETE — remove all dispatch rules (reset/start over)
+// DELETE — remove all dispatch rules
 export async function DELETE(req: NextRequest) {
   try {
     const supabase = await createClient();
@@ -95,6 +67,6 @@ export async function DELETE(req: NextRequest) {
     await Promise.all(rules.map(r => sipClient.deleteSipDispatchRule(r.sipDispatchRuleId)));
     return NextResponse.json({ ok: true, deleted: rules.length });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message, detail: String(err) }, { status: 500 });
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
