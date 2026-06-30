@@ -421,12 +421,20 @@ export function LeadCaptureClient() {
     fetchSettingsAndLeads();
   }, []);
 
-  // Live polling: refresh the leads queue every 10s so progress shows in real time.
+  // Live polling: while the page is open, kick the queue processor and then
+  // refresh, every 10s — so progress shows in near real time without waiting
+  // for the server cron. The processor has its own overlap locks, so this is safe.
   useEffect(() => {
     if (!autoRefresh) return;
-    const id = setInterval(() => {
+    const tick = async () => {
+      try {
+        await fetch("/api/campaigns/process-queue", { method: "POST" });
+      } catch {
+        // Non-fatal — the server cron is the source of truth; this is just a nudge.
+      }
       fetchSettingsAndLeads();
-    }, 10000);
+    };
+    const id = setInterval(tick, 10000);
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoRefresh]);

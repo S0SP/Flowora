@@ -40,7 +40,7 @@ This repository is split into two distinct parts:
 4. Deploy!
 5. **Important**: Go to your deployed dashboard, navigate to **Settings (BYOK)**, and enter your Meta, LiveKit, and AI API keys. 
 
-*Note: If you are on the Vercel Free Tier, set up a cron job on [cron-job.org](https://cron-job.org) to ping `https://your-domain.vercel.app/api/campaigns/process-scheduled` every minute with the header `Authorization: Bearer <YOUR_CRON_SECRET>`.*
+*Note: `vercel.json` already defines a Vercel Cron that pings `/api/campaigns/process-queue` every minute (this drives campaign sending AND Lead Capture sheet sync/processing). Per-minute crons require the Vercel **Pro** plan. On the **Hobby/Free** tier (crons run at most once per day), set up an external cron on [cron-job.org](https://cron-job.org) to ping `https://your-domain.vercel.app/api/campaigns/process-queue` every minute instead.*
 
 ### 3. Deploying the Voice Worker (Railway / Render / Oracle Cloud)
 Because the Voice Worker requires a persistent WebSocket connection, it cannot run on Vercel. 
