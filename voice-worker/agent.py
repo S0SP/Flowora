@@ -303,7 +303,16 @@ async def entrypoint(ctx: agents.JobContext):
 
     # Initialize function context
     fnc_ctx = TransferFunctions(ctx, phone_number)
-    
+
+    # === DIAGNOSTIC: show exactly what will be used for this call ===
+    resolved_prompt = config_dict.get("user_prompt") or config.SYSTEM_PROMPT
+    resolved_voice  = config_dict.get("voice_id") or config.DEFAULT_TTS_VOICE
+    logger.info(f"=== CALL CONFIG === room={ctx.room.name}")
+    logger.info(f"=== CALL CONFIG === job_meta={ctx.job.metadata[:120] if ctx.job.metadata else 'EMPTY'}")
+    logger.info(f"=== CALL CONFIG === room_meta={ctx.room.metadata[:120] if ctx.room.metadata else 'EMPTY'}")
+    logger.info(f"=== CALL CONFIG === voice={resolved_voice!r}  prompt_src={'metadata' if config_dict.get('user_prompt') else 'config.py'}")
+    logger.info(f"=== CALL CONFIG === prompt_start={resolved_prompt[:80]!r}")
+
     model_provider = config_dict.get("model_provider", "groq").lower()
     
     if model_provider == "gemini":
