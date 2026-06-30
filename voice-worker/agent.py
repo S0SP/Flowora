@@ -276,6 +276,7 @@ async def entrypoint(ctx: agents.JobContext):
     """
     Main entrypoint for the agent.
     """
+    await ctx.connect()
     logger.info(f"Connecting to room: {ctx.room.name}")
     
     phone_number = None
@@ -389,9 +390,10 @@ async def entrypoint(ctx: agents.JobContext):
         )
 
         # Initialize the Agent Session with plugins
+        # vad omitted intentionally — AgentSession uses bundled Silero VAD by default.
+        # Passing vad=None explicitly disables VAD and crashes the TurnDetector on first audio.
         session = AgentSession(
             stt=stt_instance,
-            vad=None,
             llm=_build_llm(config_dict.get("model_provider")),
             tts=tts_instance,
         )
@@ -432,13 +434,19 @@ async def entrypoint(ctx: agents.JobContext):
 
             if sip_joined:
                 logger.info("SIP participant joined. Generating greeting...")
-                await session.generate_reply(instructions=config.INITIAL_GREETING)
+                try:
+                    await session.generate_reply(instructions=config.INITIAL_GREETING)
+                except Exception as e:
+                    logger.error(f"Greeting failed: {e}")
             else:
                 logger.warning("SIP participant never joined within 30s. Room will close.")
         else:
             logger.info("Web/dashboard session. Greeting immediately...")
             await asyncio.sleep(1)
-            await session.generate_reply(instructions=config.WEB_GREETING)
+            try:
+                await session.generate_reply(instructions=config.WEB_GREETING)
+            except Exception as e:
+                logger.error(f"Web greeting failed: {e}")
 
     @ctx.room.on("disconnected")
     def on_disconnect(reason):
