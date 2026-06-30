@@ -105,7 +105,7 @@ DEFAULT_LLM_PROVIDER = "groq"
 DEFAULT_LLM_MODEL = "gpt-4o-mini"
 
 # Groq Specifics
-GROQ_MODEL = "llama-3.3-70b-versatile"
+GROQ_MODEL = "llama-3.1-8b-instant"
 GROQ_TEMPERATURE = 0.7
 
 # --- 5. TELEPHONY & TRANSFERS ---
