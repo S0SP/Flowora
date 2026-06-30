@@ -2,6 +2,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { sendWhatsAppTemplate } from "./meta";
 import { parsePhoneFromExcel, isValidPhone } from "@/lib/utils";
 import { sendMail, compileEmailTemplate } from "./mailer";
+import { dialSip, startEgressRecording } from "@/lib/livekit";
 import Papa from "papaparse";
 import crypto from "crypto";
 
@@ -151,6 +152,23 @@ export async function sendPendingLeads() {
       return { success: false, error: leadsError?.message };
     }
 
+    // Resolve an owner user_id for voice call records (single-tenant app).
+    // Voice calls are placed server-to-server via dialSip, so no auth session
+    // exists here — we attribute the call record to the most recent caller.
+    let dialUserId: string | null = null;
+    if (leads.some((l) => l.lead_capture_settings?.voice_enabled)) {
+      const { data: anyCall } = await supabase
+        .from("voice_calls")
+        .select("user_id")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      dialUserId = anyCall?.user_id ?? null;
+      if (!dialUserId) {
+        console.warn("LeadCapture: no existing voice_calls owner found; voice call will be placed without a call-log record.");
+      }
+    }
+
     let processedCount = 0;
 
     for (const lead of leads) {
@@ -208,6 +226,7 @@ export async function sendPendingLeads() {
             
             waSent = ok;
             waError = error;
+            console.log(`LeadCapture: WhatsApp -> ${lead.phone} ok=${ok}${error ? ` error=${error}` : ` wamid=${wamid}`}`);
 
             // Log WhatsApp message in messages history table
             await supabase.from("messages").insert({
@@ -272,6 +291,12 @@ export async function sendPendingLeads() {
             });
           } catch (e) {
             emailError = e instanceof Error ? e.message : "SMTP Error";
+            // Make Gmail's opaque "535 BadCredentials" actionable for the user.
+            const code = (e as { code?: string })?.code;
+            if (code === "EAUTH" || /5\.7\.8|BadCredentials|Username and Password not accepted/i.test(emailError)) {
+              emailError =
+                "Gmail rejected the login (535 BadCredentials). Use a 16-character Google App Password — NOT your normal Gmail password — and make sure 2-Step Verification is ON. The SMTP user must be your full Gmail address.";
+            }
             console.error(`LeadCapture: failed to send email to ${lead.email}:`, e);
 
             await supabase.from("messages").insert({
@@ -300,25 +325,52 @@ export async function sendPendingLeads() {
                 .replace(/\{\{brand_name\}\}/g, brandName);
             };
 
-            const systemPrompt = setting.voice_prompt 
-              ? replacePlaceholders(setting.voice_prompt) 
+            const systemPrompt = setting.voice_prompt
+              ? replacePlaceholders(setting.voice_prompt)
               : `You are an AI assistant for ${brandName}. You are calling a new lead named ${lead.name || "friend"}. Be helpful and answer their questions.`;
 
-            // Call the internal Next.js API for dialing
-            const dialRes = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/voice/dial`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                toNumber: lead.phone,
-                agentType: setting.voice_agent_type || "livekit",
-                voiceId: setting.voice_id || "anushka",
-                systemPrompt,
-              }),
-            });
+            const agentType: "livekit" | "gemini" =
+              setting.voice_agent_type === "gemini" ? "gemini" : "livekit";
+            const voiceId = setting.voice_id || "anushka";
 
-            if (!dialRes.ok) {
-              const err = await dialRes.json();
-              throw new Error(err.error || "Dial API failed");
+            // Place the SIP call directly via LiveKit (server-to-server).
+            // The old code did fetch('/api/voice/dial') which (a) defaulted to
+            // localhost:3000 in production → ECONNREFUSED, and (b) required a
+            // logged-in user session that a background job doesn't have → 401.
+            // Calling dialSip() here avoids both problems entirely.
+            const { roomName, sipCallId } = await dialSip({
+              toNumber: lead.phone,
+              userId: dialUserId || "",
+              agentType,
+              voiceId,
+              systemPrompt,
+            });
+            console.log(`LeadCapture: Voice -> ${lead.phone} dialed room=${roomName} sip=${sipCallId}`);
+
+            // Best-effort call-log record (non-critical; column/owner may be absent).
+            if (dialUserId) {
+              try {
+                const { data: callRecord } = await supabase
+                  .from("voice_calls")
+                  .insert({
+                    user_id: dialUserId,
+                    to_number: lead.phone,
+                    agent_type: agentType,
+                    voice_id: voiceId,
+                    status: "ringing",
+                    livekit_room_name: roomName,
+                    livekit_sip_call_id: sipCallId,
+                  })
+                  .select("id")
+                  .single();
+                if (callRecord?.id) {
+                  startEgressRecording(roomName, callRecord.id).catch((err) =>
+                    console.error("LeadCapture: egress recording failed:", err)
+                  );
+                }
+              } catch (recErr) {
+                console.warn("LeadCapture: could not write voice_calls record:", recErr);
+              }
             }
 
             voiceSent = true;
@@ -380,6 +432,35 @@ export async function sendPendingLeads() {
             error_message: finalErrorMessage,
           })
           .eq("id", lead.id);
+
+        // 5. Best-effort per-channel breakdown for the frontend activity panel.
+        // Requires the `channel_status` column (see migration-lead-capture-channel-status.sql).
+        // If the column isn't present yet, this update is ignored and the core
+        // status update above still stands — so the workflow never breaks.
+        const channelStatus = {
+          whatsapp: hasWhatsAppTask ? (waSent ? "sent" : "failed") : "disabled",
+          whatsapp_error: hasWhatsAppTask && !waSent ? waError || "unknown" : null,
+          email: setting.email_enabled
+            ? hasEmailTask
+              ? emailSent
+                ? "sent"
+                : "failed"
+              : "no_email"
+            : "disabled",
+          email_error: hasEmailTask && !emailSent ? emailError || "unknown" : null,
+          voice: hasVoiceTask ? (voiceSent ? "sent" : "failed") : "disabled",
+          voice_error: hasVoiceTask && !voiceSent ? voiceError || "unknown" : null,
+          updated_at: new Date().toISOString(),
+        };
+        const { error: csErr } = await supabase
+          .from("lead_capture_leads")
+          .update({ channel_status: channelStatus })
+          .eq("id", lead.id);
+        if (csErr) {
+          console.warn(
+            `LeadCapture: channel_status not saved (run migration-lead-capture-channel-status.sql): ${csErr.message}`
+          );
+        }
 
         processedCount++;
       } catch (leadError) {

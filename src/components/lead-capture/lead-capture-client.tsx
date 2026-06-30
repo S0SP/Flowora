@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -26,7 +26,8 @@ import {
   Monitor,
   Mic,
   Brain,
-  Headphones
+  Headphones,
+  Activity
 } from "lucide-react";
 import { WhatsAppTemplate } from "@/types";
 import { formatDate } from "@/lib/utils";
@@ -66,6 +67,18 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
+type ChannelState = "sent" | "failed" | "disabled" | "no_email";
+
+interface ChannelStatus {
+  whatsapp?: ChannelState;
+  whatsapp_error?: string | null;
+  email?: ChannelState;
+  email_error?: string | null;
+  voice?: ChannelState;
+  voice_error?: string | null;
+  updated_at?: string;
+}
+
 interface Lead {
   id: string;
   phone: string;
@@ -75,7 +88,14 @@ interface Lead {
   scheduled_for: string;
   processed_at: string | null;
   error_message: string | null;
+  channel_status: ChannelStatus | null;
   created_at: string;
+}
+
+interface ActivityEntry {
+  ts: string;
+  kind: "info" | "success" | "error" | "sync";
+  message: string;
 }
 
 // 6 Premade templates mirrored locally for client state prefilling and preview compilation
@@ -225,6 +245,7 @@ function compileEmailPreviewHtml(
 export function LeadCaptureClient() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [toggling, setToggling] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<"sheet" | "whatsapp" | "smtp" | "email_template" | "voice">("sheet");
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">("desktop");
@@ -234,7 +255,18 @@ export function LeadCaptureClient() {
   const [capturedLeads, setCapturedLeads] = useState<Lead[]>([]);
   const [settingsId, setSettingsId] = useState<string | null>(null);
 
-  const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<FormData>({
+  // Live activity feed (derived from polling the leads queue)
+  const [activity, setActivity] = useState<ActivityEntry[]>([]);
+  const [lastSynced, setLastSynced] = useState<Date | null>(null);
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const prevLeadsRef = useRef<Map<string, Lead> | null>(null);
+
+  const pushActivity = (entries: ActivityEntry[]) => {
+    if (entries.length === 0) return;
+    setActivity((prev) => [...entries, ...prev].slice(0, 120));
+  };
+
+  const { register, handleSubmit, watch, setValue, getValues, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
       phone_column: "phone",
@@ -337,7 +369,43 @@ export function LeadCaptureClient() {
           voice_prompt: settings.voice_prompt,
         });
       }
-      setCapturedLeads(leads || []);
+      const freshLeads: Lead[] = leads || [];
+
+      // Diff against the previous poll to build a live activity feed.
+      const now = new Date();
+      const time = now.toLocaleTimeString();
+      const prevMap = prevLeadsRef.current;
+      const newEntries: ActivityEntry[] = [];
+
+      if (prevMap === null) {
+        // First load — seed without flooding the feed.
+        newEntries.push({
+          ts: time,
+          kind: "sync",
+          message: `Loaded ${freshLeads.length} captured lead${freshLeads.length === 1 ? "" : "s"} from queue.`,
+        });
+      } else {
+        for (const lead of freshLeads) {
+          const old = prevMap.get(lead.id);
+          const who = lead.name || lead.phone;
+          if (!old) {
+            newEntries.push({ ts: time, kind: "info", message: `New lead queued → ${who}` });
+          } else if (old.status !== lead.status) {
+            if (lead.status === "processing") {
+              newEntries.push({ ts: time, kind: "info", message: `Processing channels → ${who}` });
+            } else if (lead.status === "sent") {
+              newEntries.push({ ts: time, kind: "success", message: `Delivered → ${who}` });
+            } else if (lead.status === "failed") {
+              newEntries.push({ ts: time, kind: "error", message: `Failed → ${who}: ${lead.error_message || "unknown error"}` });
+            }
+          }
+        }
+      }
+
+      pushActivity(newEntries);
+      prevLeadsRef.current = new Map(freshLeads.map((l) => [l.id, l]));
+      setLastSynced(now);
+      setCapturedLeads(freshLeads);
       if (showToast) toast.success("Data refreshed");
     } catch (err) {
       console.error("LeadCapture: fetch failed:", err);
@@ -352,6 +420,16 @@ export function LeadCaptureClient() {
     fetchTemplates();
     fetchSettingsAndLeads();
   }, []);
+
+  // Live polling: refresh the leads queue every 10s so progress shows in real time.
+  useEffect(() => {
+    if (!autoRefresh) return;
+    const id = setInterval(() => {
+      fetchSettingsAndLeads();
+    }, 10000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoRefresh]);
 
   // Preset Template loader
   const handleApplyPresetTemplate = (templateId: string) => {
@@ -403,6 +481,42 @@ export function LeadCaptureClient() {
     }
   };
 
+  // One-click pause/resume — flips is_active and persists immediately,
+  // without needing a full form re-save.
+  const toggleAutomation = async () => {
+    if (!settingsId) {
+      toast.error("Save your configuration first, then you can pause/resume it.");
+      return;
+    }
+    const next = !isActive;
+    setToggling(true);
+    try {
+      const res = await fetch("/api/lead-capture", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...getValues(), id: settingsId, is_active: next }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error ?? "Failed to update automation status");
+      }
+      setValue("is_active", next);
+      pushActivity([
+        {
+          ts: new Date().toLocaleTimeString(),
+          kind: next ? "success" : "info",
+          message: next ? "Automation resumed — polling Google Sheet" : "Automation paused — sheet polling stopped",
+        },
+      ]);
+      toast.success(next ? "Automation resumed" : "Automation paused");
+      fetchSettingsAndLeads();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Something went wrong");
+    } finally {
+      setToggling(false);
+    }
+  };
+
   const getStatusBadge = (status: Lead["status"]) => {
     const badges = {
       pending: { label: "Pending", class: "bg-amber-500/10 text-amber-500 border-amber-500/20", icon: Clock },
@@ -417,6 +531,49 @@ export function LeadCaptureClient() {
         <Icon className={`w-3.5 h-3.5 ${status === "processing" ? "animate-spin" : ""}`} />
         {badge.label}
       </span>
+    );
+  };
+
+  // Per-channel delivery chip for the captured-leads breakdown
+  const ChannelChip = ({
+    icon: Icon,
+    label,
+    state,
+    error,
+  }: {
+    icon: typeof MessageSquare;
+    label: string;
+    state?: ChannelState;
+    error?: string | null;
+  }) => {
+    if (!state || state === "disabled") return null;
+    const styles: Record<string, string> = {
+      sent: "bg-primary/10 text-primary border-primary/20",
+      failed: "bg-destructive/10 text-destructive border-destructive/20",
+      no_email: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+    };
+    const labels: Record<string, string> = { sent: "OK", failed: "Fail", no_email: "No addr" };
+    const title = error || `${label}: ${labels[state] || state}`;
+    return (
+      <span
+        title={title}
+        className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-semibold border ${styles[state] || "bg-muted text-muted-foreground border-border"}`}
+      >
+        <Icon className="w-3 h-3" />
+        {label} · {labels[state] || state}
+      </span>
+    );
+  };
+
+  const renderChannelBreakdown = (lead: Lead) => {
+    const cs = lead.channel_status;
+    if (!cs) return null;
+    return (
+      <div className="flex flex-wrap gap-1 mt-1.5">
+        <ChannelChip icon={MessageSquare} label="WA" state={cs.whatsapp} error={cs.whatsapp_error} />
+        <ChannelChip icon={Mail} label="Email" state={cs.email} error={cs.email_error} />
+        <ChannelChip icon={Headphones} label="Voice" state={cs.voice} error={cs.voice_error} />
+      </div>
     );
   };
 
@@ -468,12 +625,36 @@ export function LeadCaptureClient() {
 
       {/* SECTION 1: INTERACTIVE WORKFLOW VISUALIZATION */}
       <div className="bg-card border border-border rounded-2xl p-6 shadow-sm overflow-hidden">
-        <div className="flex items-center gap-2 mb-6 border-b border-border pb-3">
-          <Layout className="w-5 h-5 text-primary" />
-          <div>
-            <h3 className="font-semibold text-sm text-foreground">Interactive Workflow Pipeline</h3>
-            <p className="text-[11px] text-muted-foreground">Visualise how leads travel from your Google Sheet to customer devices.</p>
+        <div className="flex items-center justify-between gap-2 mb-6 border-b border-border pb-3">
+          <div className="flex items-center gap-2">
+            <Layout className="w-5 h-5 text-primary" />
+            <div>
+              <h3 className="font-semibold text-sm text-foreground">Interactive Workflow Pipeline</h3>
+              <p className="text-[11px] text-muted-foreground">Visualise how leads travel from your Google Sheet to customer devices.</p>
+            </div>
           </div>
+
+          {/* Quick pause/resume — applies instantly without saving the whole form */}
+          <button
+            type="button"
+            onClick={toggleAutomation}
+            disabled={toggling || !settingsId}
+            title={!settingsId ? "Save your configuration first" : isActive ? "Pause the workflow" : "Resume the workflow"}
+            className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+              isActive
+                ? "bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/15"
+                : "bg-primary/10 text-primary border-primary/20 hover:bg-primary/15"
+            }`}
+          >
+            {toggling ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : isActive ? (
+              <Pause className="w-3.5 h-3.5 fill-destructive" />
+            ) : (
+              <Play className="w-3.5 h-3.5 fill-primary" />
+            )}
+            {toggling ? "Updating…" : isActive ? "Pause Workflow" : "Resume Workflow"}
+          </button>
         </div>
 
         <div className="relative flex flex-col md:flex-row items-center justify-between gap-8 md:gap-4 py-6 px-2 min-h-[160px]">
@@ -1131,9 +1312,67 @@ export function LeadCaptureClient() {
           )}
         </div>
 
-        {/* Right 5 cols: Captured Leads log history */}
+        {/* Right 5 cols: Live activity + Captured Leads log history */}
         {(activeTab !== "email_template" || !emailEnabled) && (
           <div className="xl:col-span-5 space-y-6">
+
+            {/* Live workflow activity feed */}
+            <div className="bg-card border border-border rounded-2xl overflow-hidden flex flex-col shadow-sm">
+              <div className="p-4 border-b border-border flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Activity className={`w-4 h-4 ${autoRefresh ? "text-primary" : "text-muted-foreground"}`} />
+                  <h3 className="font-semibold text-sm text-foreground">Live Activity</h3>
+                  {autoRefresh && (
+                    <span className="flex items-center gap-1 text-[10px] text-primary">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                      live
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-muted-foreground">
+                    {lastSynced ? `Synced ${lastSynced.toLocaleTimeString()}` : "Not synced"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setAutoRefresh((v) => !v)}
+                    className={`text-[10px] px-2 py-1 rounded-lg border transition-all ${
+                      autoRefresh
+                        ? "bg-primary/10 text-primary border-primary/20"
+                        : "bg-muted text-muted-foreground border-border"
+                    }`}
+                    title="Toggle 10s auto-refresh"
+                  >
+                    {autoRefresh ? "Auto" : "Paused"}
+                  </button>
+                </div>
+              </div>
+              <div className="max-h-[220px] overflow-y-auto scrollbar-thin p-3 space-y-1.5 font-mono text-[10px] bg-muted/10">
+                {activity.length === 0 ? (
+                  <p className="text-muted-foreground/60 text-center py-6">
+                    Waiting for workflow events… Activate automation and add a row to your sheet.
+                  </p>
+                ) : (
+                  activity.map((entry, i) => {
+                    const color =
+                      entry.kind === "success"
+                        ? "text-primary"
+                        : entry.kind === "error"
+                        ? "text-destructive"
+                        : entry.kind === "sync"
+                        ? "text-muted-foreground"
+                        : "text-blue-500";
+                    return (
+                      <div key={i} className="flex items-start gap-2 leading-relaxed">
+                        <span className="text-muted-foreground/50 shrink-0">{entry.ts}</span>
+                        <span className={`${color} break-all`}>{entry.message}</span>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+
             <div className="bg-card border border-border rounded-2xl overflow-hidden flex flex-col h-full shadow-sm min-h-[400px]">
               <div className="p-4 border-b border-border flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -1180,7 +1419,7 @@ export function LeadCaptureClient() {
                           <td className="px-3 py-2.5">{getStatusBadge(lead.status)}</td>
                           <td className="px-3 py-2.5 font-mono text-[9px]">
                             {lead.status === "failed" ? (
-                              <span className="text-destructive font-medium truncate max-w-[120px] block" title={lead.error_message || ""}>
+                              <span className="text-destructive font-medium truncate max-w-[160px] block" title={lead.error_message || ""}>
                                 {lead.error_message || "Delivery failed"}
                               </span>
                             ) : lead.status === "sent" ? (
@@ -1190,6 +1429,7 @@ export function LeadCaptureClient() {
                             ) : (
                               <span className="text-muted-foreground">In Queue</span>
                             )}
+                            {renderChannelBreakdown(lead)}
                           </td>
                         </tr>
                       ))}
