@@ -38,7 +38,7 @@ import config
 # Language detection helpers
 # ---------------------------------------------------------------------------
 
-# Common Hindi words / Devanagari script detector
+# Common Hindi words / Devanagari script detector and testig 
 _HINDI_PATTERN = re.compile(
     r'[\u0900-\u097F]|'                            # Devanagari script
     r'\b(kya|hai|hain|aap|main|mujhe|karo|kar|'
