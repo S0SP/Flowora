@@ -55,13 +55,22 @@ def _detect_language(text: str) -> str:
     return "en-IN"
 
 
+SARVAM_V2_VOICES = {"anushka", "manisha", "vidya", "arya", "abhilash", "karun", "hitesh"}
+SARVAM_V3_VOICES = {
+    "ritu", "pooja", "simran", "kavya", "ishita", "shreya", "priya",
+    "shubh", "rahul", "amit", "ratan", "rohan", "dev", "manan", "sumit",
+    "aditya", "kabir", "neha", "varun", "roopa", "aayan", "ashutosh", "advait",
+    "amelia", "sophia",
+}
+SARVAM_ALL_VOICES = SARVAM_V2_VOICES | SARVAM_V3_VOICES
+
+
 def _build_tts(config_provider: str = None, config_voice: str = None):
     """Configure the Text-to-Speech provider based on env vars or dynamic config."""
-    # Priority: Config > Env Var > Default
     provider = (config_provider or os.getenv("TTS_PROVIDER", config.DEFAULT_TTS_PROVIDER)).lower()
-    
-    # If using Sarvam Voice names (Anushka/Aravind), force Sarvam provider
-    if config_voice in ["anushka", "aravind", "amartya", "dhruv"]:
+
+    # Force Sarvam for any known Sarvam voice ID
+    if config_voice and config_voice.lower() in SARVAM_ALL_VOICES:
         provider = "sarvam"
 
     if provider == "cartesia":
@@ -69,19 +78,22 @@ def _build_tts(config_provider: str = None, config_voice: str = None):
         model = os.getenv("CARTESIA_TTS_MODEL", config.CARTESIA_MODEL)
         voice = os.getenv("CARTESIA_TTS_VOICE", config.CARTESIA_VOICE)
         return cartesia.TTS(model=model, voice=voice)
-    
+
     if provider == "sarvam":
-        logger.info(f"Using Sarvam TTS (Voice: {config_voice})")
-        model = os.getenv("SARVAM_TTS_MODEL", config.SARVAM_MODEL)
-        voice = config_voice or os.getenv("SARVAM_VOICE", "anushka")
-        
-        # Sarvam strict voice check
-        valid_sarvam_voices = ["anushka", "manisha", "vidya", "arya", "abhilash", "karun", "hitesh"]
-        if voice.lower() not in valid_sarvam_voices:
-            logger.warning(f"Voice {voice} is not valid for Sarvam. Falling back to anushka.")
+        voice = (config_voice or os.getenv("SARVAM_VOICE", "anushka")).lower()
+
+        if voice not in SARVAM_ALL_VOICES:
+            logger.warning(f"Unknown Sarvam voice '{voice}', falling back to anushka.")
             voice = "anushka"
-            
+
+        # Pick the right model based on which generation the voice belongs to
+        if voice in SARVAM_V3_VOICES:
+            model = "bulbul:v3-beta"
+        else:
+            model = os.getenv("SARVAM_TTS_MODEL", config.SARVAM_MODEL)  # bulbul:v2
+
         language = os.getenv("SARVAM_LANGUAGE", config.SARVAM_LANGUAGE)
+        logger.info(f"Using Sarvam TTS (voice: {voice}, model: {model})")
         return sarvam.TTS(model=model, speaker=voice, target_language_code=language)
 
     # Default to OpenAI
