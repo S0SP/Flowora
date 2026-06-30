@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
     if (error || !user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const body = await req.json().catch(() => ({}));
-    const voiceId = body.voiceId || "anushka";
+    const voiceId = body.voiceId || "sumit";
     const agentType = body.agentType || "livekit";
 
     const { sipClient } = await getLiveKitClients();
