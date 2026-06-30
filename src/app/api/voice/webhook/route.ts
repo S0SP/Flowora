@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
-
 import { WebhookReceiver } from "livekit-server-sdk";
+import { getLiveKitClients } from "@/lib/livekit";
 
 // LiveKit webhook handler — updates call status when room/egress events arrive
 export async function POST(req: NextRequest) {
@@ -27,6 +27,19 @@ export async function POST(req: NextRequest) {
     const { event, room, egress_info } = eventPayload;
 
     const supabase = await createAdminClient();
+
+    // Inbound call: dispatch agent when a room created by the SIP dispatch rule appears
+    if (event === "room_started" && room?.name?.startsWith("inbound-")) {
+      try {
+        const { agentClient } = await getLiveKitClients();
+        await agentClient.createDispatch(room.name, "outbound-caller", {
+          metadata: room.metadata || "",
+        });
+        console.log(`[inbound] Agent dispatched to room ${room.name}`);
+      } catch (e) {
+        console.error("[inbound] Failed to dispatch agent:", e);
+      }
+    }
 
     if (event === "room_finished" && room?.name) {
       // Mark call completed

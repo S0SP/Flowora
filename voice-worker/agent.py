@@ -19,8 +19,8 @@ from livekit.plugins import (
     google
 )
 # noise_cancellation is lazy-imported only when ENABLE_NOISE_CANCELLATION=true to save ~300MB RAM
-from livekit.agents import llm, stt as stt_module
-from typing import Annotated, Optional
+from livekit.agents import llm
+from typing import Optional
 import asyncio
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -420,8 +420,14 @@ async def entrypoint(ctx: agents.JobContext):
             ),
         )
 
-        if phone_number:
-            logger.info(f"Outbound call mode — waiting for SIP participant to join room...")
+        is_inbound = config_dict.get("inbound", False)
+
+        if phone_number or is_inbound:
+            if phone_number:
+                logger.info(f"Outbound call mode — waiting for SIP participant to join room...")
+            else:
+                logger.info(f"Inbound call mode — waiting for SIP caller to join room...")
+
             sip_joined = False
             for _ in range(30):
                 for p in ctx.room.remote_participants.values():
@@ -433,9 +439,10 @@ async def entrypoint(ctx: agents.JobContext):
                 await asyncio.sleep(1)
 
             if sip_joined:
-                logger.info("SIP participant joined. Generating greeting...")
+                greeting = config.INITIAL_GREETING if phone_number else "The user has called in. Answer the call warmly and ask how you can help them today."
+                logger.info(f"SIP participant joined. Generating greeting ({('outbound' if phone_number else 'inbound')})...")
                 try:
-                    await session.generate_reply(instructions=config.INITIAL_GREETING)
+                    await session.generate_reply(instructions=greeting)
                 except Exception as e:
                     logger.error(f"Greeting failed: {e}")
             else:

@@ -1,0 +1,72 @@
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import { getLiveKitClients } from "@/lib/livekit";
+
+// GET — list current dispatch rules
+export async function GET(req: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error || !user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const { sipClient } = await getLiveKitClients();
+    const rules = await sipClient.listSipDispatchRule();
+    return NextResponse.json({ rules });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
+
+// POST — create inbound dispatch rule so callers reach the AI agent
+export async function POST(req: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error || !user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const body = await req.json().catch(() => ({}));
+    const voiceId = body.voiceId || "anushka";
+    const agentType = body.agentType || "livekit";
+
+    const { sipClient, agentClient, trunkId } = await getLiveKitClients();
+
+    // Each inbound call gets its own room (caller number + timestamp keeps them unique)
+    const rule = await sipClient.createSipDispatchRule({
+      name: "ai-inbound-handler",
+      trunkIds: [trunkId],
+      rule: {
+        case: "dispatchRuleIndividual",
+        value: {
+          roomNamePrefix: "inbound-",
+        },
+      },
+      metadata: JSON.stringify({
+        inbound: true,
+        model_provider: agentType === "gemini" ? "gemini" : "groq",
+        voice_id: voiceId,
+        tts_provider: "sarvam",
+      }),
+    } as any);
+
+    return NextResponse.json({ ok: true, ruleId: rule.sipDispatchRuleId, rule });
+  } catch (err: any) {
+    console.error("Inbound setup error:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
+
+// DELETE — remove all dispatch rules (reset)
+export async function DELETE(req: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error || !user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const { sipClient } = await getLiveKitClients();
+    const rules = await sipClient.listSipDispatchRule();
+    await Promise.all(rules.map(r => sipClient.deleteSipDispatchRule(r.sipDispatchRuleId)));
+    return NextResponse.json({ ok: true, deleted: rules.length });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
