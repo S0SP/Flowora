@@ -103,27 +103,96 @@ def _build_tts(config_provider: str = None, config_voice: str = None):
     return openai.TTS(model=model, voice=voice)
 
 
+def _is_rate_limit(exc: BaseException) -> bool:
+    """Walk the exception chain looking for a 429 / rate_limit signal."""
+    seen: set = set()
+    e: BaseException | None = exc
+    while e is not None and id(e) not in seen:
+        seen.add(id(e))
+        msg = str(e)
+        if "429" in msg or "rate_limit" in msg.lower() or "rate limit" in msg.lower():
+            return True
+        e = getattr(e, "__cause__", None) or getattr(e, "__context__", None)
+    return False
+
+
+class _FallbackStream(llm.LLMStream):
+    """Streams from primary; on 429 transparently retries with fallback."""
+
+    def __init__(self, llm_instance, *, primary, fallback, chat_ctx, tools, conn_options=None):
+        super().__init__(llm_instance, chat_ctx=chat_ctx, tools=tools, conn_options=conn_options)
+        self._primary = primary
+        self._fallback = fallback
+
+    async def _run(self):
+        candidates = [(self._primary, "Groq"), (self._fallback, "Gemini")]
+        for i, (candidate_llm, name) in enumerate(candidates):
+            is_last = i == len(candidates) - 1
+            try:
+                inner = candidate_llm.chat(chat_ctx=self._chat_ctx, tools=self._tools)
+                async for chunk in inner:
+                    self._event_ch.send_nowait(chunk)
+                return
+            except Exception as e:
+                if not is_last and _is_rate_limit(e):
+                    logger.warning(f"⚡ {name} rate limited — switching to Gemini fallback for this turn")
+                    continue
+                raise
+
+
+class FallbackLLM(llm.LLM):
+    """Primary LLM with automatic Gemini fallback on 429 rate limits."""
+
+    def __init__(self, primary: llm.LLM, fallback: llm.LLM):
+        super().__init__()
+        self._primary = primary
+        self._fallback = fallback
+
+    def chat(self, *, chat_ctx, tools=None, conn_options=None, **kwargs):
+        return _FallbackStream(
+            self,
+            primary=self._primary,
+            fallback=self._fallback,
+            chat_ctx=chat_ctx,
+            tools=tools or [],
+            conn_options=conn_options,
+        )
+
+
 def _build_llm(config_provider: str = None):
-    """Configure the LLM provider based on config or env vars."""
+    """Configure the LLM provider. Groq gets automatic Gemini fallback on 429."""
     provider = (config_provider or os.getenv("LLM_PROVIDER", config.DEFAULT_LLM_PROVIDER)).lower()
 
     if provider == "groq":
         logger.info("Using Groq LLM")
-        return openai.LLM(
+        primary = openai.LLM(
             base_url="https://api.groq.com/openai/v1",
             api_key=os.getenv("GROQ_API_KEY"),
             model=os.getenv("GROQ_MODEL", config.GROQ_MODEL),
             temperature=float(os.getenv("GROQ_TEMPERATURE", str(config.GROQ_TEMPERATURE))),
         )
+        gemini_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+        if gemini_key:
+            try:
+                fallback = google.LLM(
+                    api_key=gemini_key,
+                    model="gemini-2.0-flash",
+                )
+                logger.info("🔄 Gemini Flash configured as fallback for Groq rate limits")
+                return FallbackLLM(primary=primary, fallback=fallback)
+            except Exception as e:
+                logger.warning(f"Could not build Gemini fallback LLM: {e}")
+        else:
+            logger.warning("GEMINI_API_KEY not set — no fallback for Groq rate limits")
+        return primary
+
     if provider == "gemini":
         logger.info("Using Gemini LLM")
-        from livekit.plugins import google
-        # Requires GOOGLE_API_KEY env var
         return google.LLM(
             api_key=os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY"),
-            model=os.getenv("GEMINI_LIVE_MODEL", "gemini-2.0-flash")
+            model=os.getenv("GEMINI_LLM_MODEL", "gemini-2.0-flash"),
         )
-        
+
     # Default to OpenAI
     logger.info("Using OpenAI LLM")
     return openai.LLM(model=config.DEFAULT_LLM_MODEL)
@@ -469,11 +538,26 @@ async def entrypoint(ctx: agents.JobContext):
         logger.info(f"Room disconnected: {reason}")
         # Build transcript from session history
         try:
-            messages = session.history.messages if hasattr(session, 'history') else []
-            transcript_text = "\n".join([
-                f"{m.role}: {m.content[0].text if isinstance(m.content, list) else m.content}"
-                for m in messages if m.content
-            ])
+            history = session.history
+            if callable(history):
+                history = history()
+            raw = getattr(history, "messages", None)
+            if callable(raw):
+                raw = raw()
+            messages = list(raw) if raw else []
+            parts = []
+            for m in messages:
+                content = m.content
+                if callable(content):
+                    content = content()
+                if isinstance(content, list) and content:
+                    text = getattr(content[0], "text", None) or str(content[0])
+                elif isinstance(content, str):
+                    text = content
+                else:
+                    continue
+                parts.append(f"{m.role}: {text}")
+            transcript_text = "\n".join(parts)
         except Exception as e:
             logger.warning(f"Could not extract transcript: {e}")
             transcript_text = ""
