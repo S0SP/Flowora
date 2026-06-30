@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { StatCard } from "@/components/analytics/stat-card";
-import { MessageSquare, Users, Megaphone, TrendingUp, CheckCheck, XCircle } from "lucide-react";
+import {
+  MessageSquare, Users, Megaphone, TrendingUp, CheckCheck, XCircle, Activity,
+} from "lucide-react";
 import { formatPercent } from "@/lib/utils";
 import { RecentCampaigns } from "@/components/campaign/recent-campaigns";
 
@@ -19,9 +21,9 @@ async function getOverviewStats() {
     supabase.from("messages").select("status"),
   ]);
 
-  const delivered = statusCounts?.filter((m) => m.status === "delivered").length ?? 0;
-  const read = statusCounts?.filter((m) => m.status === "read").length ?? 0;
-  const failed = statusCounts?.filter((m) => m.status === "failed").length ?? 0;
+  const delivered = statusCounts?.filter(m => m.status === "delivered").length ?? 0;
+  const read = statusCounts?.filter(m => m.status === "read").length ?? 0;
+  const failed = statusCounts?.filter(m => m.status === "failed").length ?? 0;
   const total = statusCounts?.length ?? 1;
 
   return {
@@ -37,14 +39,26 @@ async function getOverviewStats() {
 export default async function DashboardPage() {
   const stats = await getOverviewStats();
 
+  const now = new Date();
+  const hour = now.getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div>
-        <h2 className="text-lg font-semibold text-foreground mb-1">Good to see you back</h2>
-        <p className="text-sm text-muted-foreground">Here&apos;s what&apos;s happening with your campaigns.</p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h2 className="text-xl font-bold text-foreground">{greeting}</h2>
+          <p className="text-sm text-muted-foreground mt-0.5">Here&apos;s what&apos;s happening with your campaigns today.</p>
+        </div>
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-card border border-border px-3 py-1.5 rounded-full">
+          <Activity className="w-3.5 h-3.5 text-emerald-500" />
+          <span>System Operational</span>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      {/* Stats grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
         <StatCard
           label="Total Messages"
           value={stats.totalMessages.toLocaleString()}
@@ -55,6 +69,7 @@ export default async function DashboardPage() {
           label="Contacts"
           value={stats.totalContacts.toLocaleString()}
           icon={Users}
+          variant="info"
         />
         <StatCard
           label="Campaigns"
@@ -66,21 +81,25 @@ export default async function DashboardPage() {
           value={formatPercent(stats.deliveredRate)}
           icon={CheckCheck}
           variant="success"
+          trendLabel="vs last 7 days"
         />
         <StatCard
           label="Read Rate"
           value={formatPercent(stats.readRate)}
           icon={TrendingUp}
           variant="info"
+          trendLabel="of delivered messages"
         />
         <StatCard
           label="Failed"
           value={formatPercent(stats.failedRate)}
           icon={XCircle}
           variant="danger"
+          trendLabel="delivery failures"
         />
       </div>
 
+      {/* Recent Campaigns */}
       <RecentCampaigns />
     </div>
   );
