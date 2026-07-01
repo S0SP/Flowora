@@ -730,7 +730,7 @@ export function LeadCaptureClient() {
           animation: flowing-dash 0.8s linear infinite;
         }
         .pulsing-glow {
-          box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+          box-shadow: 0 0 12px rgba(255, 226, 124, 0.4);
         }
       `}</style>
 
@@ -765,7 +765,7 @@ export function LeadCaptureClient() {
                   : "border-border hover:border-primary/30 text-muted-foreground hover:text-foreground"
               }`}
             >
-              <span className={`w-2 h-2 rounded-full ${wf.is_active ? "bg-emerald-500 animate-pulse" : "bg-muted-foreground/30"}`} />
+              <span className={`w-2 h-2 rounded-full ${wf.is_active ? "bg-primary animate-pulse" : "bg-muted-foreground/30"}`} />
               <span className="text-xs font-medium truncate max-w-[140px]">{wf.name}</span>
               <button
                 type="button"
@@ -827,17 +827,17 @@ export function LeadCaptureClient() {
               <path
                 d="M 230,80 L 375,80"
                 fill="none"
-                stroke={isActive ? "#10b981" : "#cbd5e1"}
+                stroke={isActive ? "#FFE27C" : "#cbd5e1"}
                 strokeWidth={2}
                 className={isActive ? "flowing-wire" : ""}
               />
-              
+
               {/* Line 2: Timer -> WhatsApp (Branch Top) */}
               {whatsappEnabled !== false && (
                 <path
                   d="M 495,80 Q 560,80 560,45 L 610,45"
                   fill="none"
-                  stroke={isActive ? "#3b82f6" : "#cbd5e1"}
+                  stroke={isActive ? "#25D366" : "#cbd5e1"}
                   strokeWidth={2}
                   className={isActive ? "flowing-wire" : ""}
                 />
@@ -848,7 +848,7 @@ export function LeadCaptureClient() {
                 <path
                   d="M 495,80 Q 560,80 560,115 L 610,115"
                   fill="none"
-                  stroke={isActive ? "#ec4899" : "#cbd5e1"}
+                  stroke={isActive ? "#B1D8FC" : "#cbd5e1"}
                   strokeWidth={2}
                   className={isActive ? "flowing-wire" : ""}
                 />
@@ -859,7 +859,7 @@ export function LeadCaptureClient() {
                 <path
                   d="M 495,80 Q 560,80 560,185 L 610,185"
                   fill="none"
-                  stroke={isActive ? "#8b5cf6" : "#cbd5e1"}
+                  stroke={isActive ? "#C4B1F9" : "#cbd5e1"}
                   strokeWidth={2}
                   className={isActive ? "flowing-wire" : ""}
                 />
@@ -869,9 +869,9 @@ export function LeadCaptureClient() {
 
           {/* Node 1: Google Sheet Source */}
           <div className={`w-full md:w-56 bg-background border rounded-xl p-3.5 z-10 flex items-start gap-3 transition-all ${
-            isActive ? "border-emerald-500/40 shadow-sm shadow-emerald-500/5 ring-1 ring-emerald-500/10" : "border-border"
+            isActive ? "border-primary/40 shadow-sm shadow-primary/5 ring-1 ring-primary/10" : "border-border"
           }`}>
-            <div className={`p-2.5 rounded-lg shrink-0 ${isActive ? "bg-emerald-500/10 text-emerald-500 animate-pulse" : "bg-muted text-muted-foreground"}`}>
+            <div className={`p-2.5 rounded-lg shrink-0 ${isActive ? "bg-primary/10 text-primary animate-pulse" : "bg-muted text-muted-foreground"}`}>
               <FileSpreadsheet className="w-5 h-5" />
             </div>
             <div className="overflow-hidden min-w-0">
@@ -880,7 +880,7 @@ export function LeadCaptureClient() {
                 {sheetUrl ? sheetUrl.replace(/https:\/\/(docs\.)?google\.com\/spreadsheets\/d\//, "").slice(0, 15) + "..." : "Setup Sheet Link"}
               </p>
               <span className={`inline-block mt-1 text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${
-                isActive ? "bg-emerald-500/15 text-emerald-600" : "bg-muted text-muted-foreground"
+                isActive ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
               }`}>
                 {isActive ? "Active Listening" : "Paused"}
               </span>
@@ -907,10 +907,10 @@ export function LeadCaptureClient() {
           <div className="flex flex-col gap-3 w-full md:w-60 z-10">
             {/* Node 3: WhatsApp */}
             <div className={`bg-background border rounded-xl p-3 flex items-start gap-3 transition-all ${
-              whatsappEnabled !== false ? (isActive ? "border-blue-500/40 shadow-sm text-foreground" : "border-border") : "opacity-40 border-dashed"
+              whatsappEnabled !== false ? (isActive ? "border-emerald-500/40 shadow-sm text-foreground" : "border-border") : "opacity-40 border-dashed"
             }`}>
               <div className={`p-2 rounded-lg shrink-0 ${
-                whatsappEnabled !== false ? (isActive ? "bg-blue-500/10 text-blue-500" : "bg-muted text-muted-foreground") : "bg-muted text-muted-foreground"
+                whatsappEnabled !== false ? (isActive ? "bg-emerald-500/10 text-emerald-500" : "bg-muted text-muted-foreground") : "bg-muted text-muted-foreground"
               }`}>
                 <MessageSquare className="w-4 h-4" />
               </div>
@@ -924,10 +924,10 @@ export function LeadCaptureClient() {
 
             {/* Node 4: SMTP Email */}
             <div className={`bg-background border rounded-xl p-3 flex items-start gap-3 transition-all ${
-              emailEnabled ? (isActive ? "border-pink-500/40 shadow-sm text-foreground" : "border-border") : "opacity-40 border-dashed"
+              emailEnabled ? (isActive ? "border-sky-400/40 shadow-sm text-foreground" : "border-border") : "opacity-40 border-dashed"
             }`}>
               <div className={`p-2 rounded-lg shrink-0 ${
-                emailEnabled ? (isActive ? "bg-pink-500/10 text-pink-500 animate-pulse" : "bg-muted text-muted-foreground") : "bg-muted text-muted-foreground"
+                emailEnabled ? (isActive ? "bg-sky-400/10 text-sky-500 animate-pulse" : "bg-muted text-muted-foreground") : "bg-muted text-muted-foreground"
               }`}>
                 <Mail className="w-4 h-4" />
               </div>
@@ -941,10 +941,10 @@ export function LeadCaptureClient() {
 
             {/* Node 5: Voice Call */}
             <div className={`bg-background border rounded-xl p-3 flex items-start gap-3 transition-all ${
-              voiceEnabled ? (isActive ? "border-purple-500/40 shadow-sm text-foreground" : "border-border") : "opacity-40 border-dashed"
+              voiceEnabled ? (isActive ? "border-purple-400/40 shadow-sm text-foreground" : "border-border") : "opacity-40 border-dashed"
             }`}>
               <div className={`p-2 rounded-lg shrink-0 ${
-                voiceEnabled ? (isActive ? "bg-purple-500/10 text-purple-500 animate-pulse" : "bg-muted text-muted-foreground") : "bg-muted text-muted-foreground"
+                voiceEnabled ? (isActive ? "bg-purple-400/10 text-purple-400 animate-pulse" : "bg-muted text-muted-foreground") : "bg-muted text-muted-foreground"
               }`}>
                 <Headphones className="w-4 h-4" />
               </div>
@@ -980,7 +980,7 @@ export function LeadCaptureClient() {
                   activeTab === "sheet" ? "bg-background text-foreground shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-500" />
+                <FileSpreadsheet className="w-3.5 h-3.5 text-primary" />
                 Sheet Config
               </button>
               <button
@@ -1318,7 +1318,7 @@ export function LeadCaptureClient() {
                           <div className="flex items-center gap-1.5">
                             <span className="w-2.5 h-2.5 rounded-full bg-destructive/60"></span>
                             <span className="w-2.5 h-2.5 rounded-full bg-amber-500/60"></span>
-                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/60"></span>
+                            <span className="w-2.5 h-2.5 rounded-full bg-primary/60"></span>
                             <span className="text-[10px] font-bold text-muted-foreground/80 font-mono ml-2">Live Preview (John Doe)</span>
                           </div>
                           
