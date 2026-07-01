@@ -99,7 +99,6 @@ export async function startEgressRecording(roomName: string, callRecordId: strin
     });
 
     const egress = await egressClient.startRoomCompositeEgress(roomName, {
-      audio_only: true,
       file: fileOutput,
     });
     return egress.egressId;

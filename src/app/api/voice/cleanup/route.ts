@@ -30,17 +30,17 @@ export async function POST(req: NextRequest) {
 
     // 3. Mark stuck call records as failed in DB
     const admin = await createAdminClient();
-    const { count } = await admin
+    const { data: fixedRows } = await admin
       .from("voice_calls")
       .update({ status: "failed", updated_at: new Date().toISOString() })
       .in("status", ["initiated", "ringing", "active"])
       .eq("user_id", user.id)
-      .select("id", { count: "exact", head: true });
+      .select("id");
 
     return NextResponse.json({
       ok: true,
       rooms_killed: results.length,
-      db_records_fixed: count ?? 0,
+      db_records_fixed: fixedRows?.length ?? 0,
       details: results,
     });
   } catch (err: any) {
