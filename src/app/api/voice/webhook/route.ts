@@ -77,6 +77,16 @@ export async function POST(req: NextRequest) {
         .eq("status", "ringing");
     }
 
+    if (event === "participant_left" && room?.name) {
+      console.log(`[webhook] Participant left room ${room.name}. Deleting room to free SIP channel.`);
+      try {
+        const { roomService } = await getLiveKitClients();
+        await roomService.deleteRoom(room.name);
+      } catch (e) {
+        console.error(`[webhook] Failed to delete room ${room.name} on participant_left:`, e);
+      }
+    }
+
     return NextResponse.json({ ok: true });
   } catch (err: any) {
     console.error("Webhook error:", err);
