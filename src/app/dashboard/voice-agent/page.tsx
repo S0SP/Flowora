@@ -234,8 +234,17 @@ export default function VoiceAgentPage() {
       const res = await fetch("/api/voice/cleanup");
       const data = await res.json();
       setActiveRooms(data.active_rooms ?? 0);
-      if (data.active_rooms === 0) toast.success("No stuck rooms — SIP trunk is clear");
-      else toast.warning(`${data.active_rooms} stuck room(s) found — click Kill to free channels`);
+
+      if (data.active_rooms > 0) {
+        toast.warning(`${data.active_rooms} stuck LiveKit room(s) — click Kill to free SIP channels`);
+      } else if ((data.stuck_db_records ?? 0) > 0) {
+        toast.warning(
+          `LiveKit is clean but ${data.stuck_db_records} DB record(s) are stuck. ` +
+          `If calls still fail, go to Voicelink admin → Active Calls → Force Terminate.`
+        );
+      } else {
+        toast.success("LiveKit clean. If Voicelink still blocks calls → check Voicelink admin panel for stuck SIP sessions.");
+      }
     } catch {
       toast.error("Could not check rooms");
     }
