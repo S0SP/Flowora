@@ -9,10 +9,9 @@ logger = logging.getLogger("config")
 
 # =========================================================================================
 #  🤖 AI AGENT CONFIGURATION
-#  Use this file to customize your agent's personality, models, and behavior.
 # =========================================================================================
 
-# --- 1. AGENT PERSONA & PROMPTS --- v2
+# --- 1. AGENT PERSONA & PROMPTS ---
 SYSTEM_PROMPT = """
 You are Aria, a senior Academic Advisor from UnboundYou's admissions team. You are human — never say you're an AI unless directly asked, then briefly say "voice assistant" and move on.
 
@@ -29,11 +28,13 @@ DEMO SESSION: 99 rupees. Includes 60-min diagnostic, personalized roadmap, mento
 
 STATS: 1000+ students, 5000+ hours, 98% grade improvement, rated 4.8 Google / 4.7 Trustpilot.
 
-HINGLISH MODE: Default to Hinglish — a natural Hindi-English mix — unless the user speaks pure Hindi or pure English. Match their language fully if they switch.
-- Use Hindi for warmth: haan, bilkul, koi baat nahi, bahut accha, theek hai, shukriya.
-- Use English for product names and facts.
-- Always respond in Roman script, never Devanagari.
-Example: "Haan bilkul — demo session sirf 99 rupees mein hota hai, it includes a full diagnostic and a personalized roadmap."
+MULTILINGUAL RULES:
+- Detect the user's language from their very first message and match it completely.
+- Supported: Hindi, English, Bengali, Gujarati, Kannada, Malayalam, Marathi, Odia, Punjabi, Tamil, Telugu, and mixed Hinglish.
+- For Hinglish (mixed Hindi-English): use Roman script only — NEVER Devanagari or other native scripts in your response.
+- For pure regional languages (Tamil, Telugu, Kannada, etc.): respond in that language using its native script.
+- Switch language mid-call if the user switches — always mirror the user.
+- Use English only for product names, URLs, and technical terms regardless of language.
 
 VOICE CALL RULES:
 1. Max 2 sentences per reply — this is a phone call.
@@ -42,7 +43,7 @@ VOICE CALL RULES:
 4. Discover before recommending — ask grade, subject, and board first.
 5. Educate, never hard-sell.
 6. If not interested → one calm follow-up, then accept gracefully.
-7. If they say bye → "Theek hai, bahut shukriya! Have a great day!" and close.
+7. If they say bye → short warm closing in their language and close.
 
 DATA GUARDRAIL: You have NO access to bookings, payments, or student accounts. If asked, say: "I don't have access to account details on this call — please reach our team at team at unboundyou dot com or plus 91 62993 78633."
 
@@ -51,84 +52,90 @@ NEVER: Fabricate prices, offers, or mentor names. Guarantee grades. Criticize co
 CALL GOAL: End every call with a clear next step — demo booked, WhatsApp follow-up agreed, or callback scheduled.
 """
 
-INITIAL_GREETING = "The user has picked up the call. Introduce yourself as Aria, a senior Academic Advisor from UnboundYou, warmly and in under 2 sentences. Then ask how you can help them today."
+INITIAL_GREETING = "The user has picked up the call. Introduce yourself as Aria, a senior Academic Advisor from UnboundYou, warmly in under 2 sentences using the same language as the user. Then ask how you can help them today."
 WEB_GREETING = "Hi, I am Aria from UnboundYou. How can I help you today?"
 
-# --- 2. SPEECH-TO-TEXT (STT) SETTINGS ---
+# --- 2. SPEECH-TO-TEXT (STT) ---
 STT_PROVIDER = "deepgram"
-STT_MODEL = "nova-2"       # nova-2 supports Hindi + English well
-STT_LANGUAGE = "hi"        # "hi" = Hindi base enables Hindi+English code-switching
-                           # detect_language=True in agent.py handles per-utterance detection
+STT_MODEL    = "nova-2"   # Nova-2 supports 30+ languages auto-detected via language="multi"
+STT_LANGUAGE = "multi"    # Enable automatic language detection for all languages
 
-# --- 3. TEXT-TO-SPEECH (TTS) SETTINGS ---
-DEFAULT_TTS_PROVIDER = "sarvam"   # Sarvam supports Hindi + English natively
-DEFAULT_TTS_VOICE = "anushka"    # Default Sarvam voice (bulbul:v2 female)
+# --- 3. TEXT-TO-SPEECH (TTS) ---
+DEFAULT_TTS_PROVIDER = "sarvam"
+DEFAULT_TTS_VOICE    = "anushka"
 
-# Sarvam AI Specifics (for Indian Context)
-SARVAM_MODEL = "bulbul:v2"
-SARVAM_LANGUAGE = "en-IN"  # Starting language; auto-switched to hi-IN when Hindi detected
+SARVAM_MODEL    = "bulbul:v2"
+SARVAM_LANGUAGE = "en-IN"   # Starting language; auto-updated per-utterance in agent.py
 
-# Cartesia Specifics
 CARTESIA_MODEL = "sonic-2"
 CARTESIA_VOICE = "f786b574-daa5-4673-aa0c-cbe3e8534c02"
 
-# OpenAI TTS
 OPENAI_TTS_MODEL = "tts-1"
 OPENAI_TTS_VOICE = "alloy"
 
-# --- 4. LARGE LANGUAGE MODEL (LLM) SETTINGS ---
+# --- 4. LLM ---
 DEFAULT_LLM_PROVIDER = "groq"
-DEFAULT_LLM_MODEL = "gpt-4o-mini"
+DEFAULT_LLM_MODEL    = "gpt-4o-mini"
 
-# Groq Specifics
-GROQ_MODEL = "llama-3.1-8b-instant"
+# Use llama-3.1-8b-instant for lowest latency on voice calls
+# Override with GROQ_MODEL env var for higher quality (e.g. llama-3.3-70b-versatile)
+GROQ_MODEL       = "llama-3.1-8b-instant"
 GROQ_TEMPERATURE = 0.7
 
 # --- 5. TELEPHONY & TRANSFERS ---
 DEFAULT_TRANSFER_NUMBER = os.getenv("DEFAULT_TRANSFER_NUMBER")
 SIP_TRUNK_ID = os.getenv("VOICELINK_SIP_TRUNK_ID")
-SIP_DOMAIN = os.getenv("VOICELINK_SIP_DOMAIN", "160.30.71.89:3300")
+SIP_DOMAIN   = os.getenv("VOICELINK_SIP_DOMAIN", "160.30.71.89:3300")
+
+# --- 6. LANGUAGE NAME MAP (for logging) ---
+LANGUAGE_NAMES = {
+    "hi-IN": "Hindi",
+    "en-IN": "English (India)",
+    "bn-IN": "Bengali",
+    "gu-IN": "Gujarati",
+    "pa-IN": "Punjabi",
+    "or-IN": "Odia",
+    "ta-IN": "Tamil",
+    "te-IN": "Telugu",
+    "kn-IN": "Kannada",
+    "ml-IN": "Malayalam",
+    "mr-IN": "Marathi",
+}
+
 
 def load_dynamic_config():
-    """
-    Fetches configuration directly from Supabase using REST API (BYOK).
-    """
+    """Fetches BYOK configuration from Supabase REST API."""
     supabase_url = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
     supabase_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
     if not supabase_url or not supabase_key:
         logger.warning("Supabase credentials missing. Cannot load BYOK settings.")
         return
-    
+
     api_url = f"{supabase_url}/rest/v1/chatbot_settings?select=*"
     headers = {
         "apikey": supabase_key,
-        "Authorization": f"Bearer {supabase_key}"
+        "Authorization": f"Bearer {supabase_key}",
     }
-    
+
     try:
-        logger.info(f"Fetching BYOK config from Supabase...")
+        logger.info("Fetching BYOK config from Supabase...")
         resp = requests.get(api_url, headers=headers, timeout=5)
         if resp.status_code == 200:
             data = resp.json()
-            if len(data) > 0:
+            if data:
                 settings = data[0]
-                
-                # Apply API keys to environment for LiveKit/AI plugins
-                if settings.get("livekit_url"): os.environ["LIVEKIT_URL"] = settings["livekit_url"]
-                if settings.get("livekit_api_key"): os.environ["LIVEKIT_API_KEY"] = settings["livekit_api_key"]
+                if settings.get("livekit_url"):     os.environ["LIVEKIT_URL"]        = settings["livekit_url"]
+                if settings.get("livekit_api_key"): os.environ["LIVEKIT_API_KEY"]    = settings["livekit_api_key"]
                 if settings.get("livekit_api_secret"): os.environ["LIVEKIT_API_SECRET"] = settings["livekit_api_secret"]
-                
-                if settings.get("gemini_api_key"): os.environ["GEMINI_API_KEY"] = settings["gemini_api_key"]
-                if settings.get("sarvam_api_key"): os.environ["SARVAM_API_KEY"] = settings["sarvam_api_key"]
-                
+                if settings.get("gemini_api_key"):  os.environ["GEMINI_API_KEY"]     = settings["gemini_api_key"]
+                if settings.get("sarvam_api_key"):  os.environ["SARVAM_API_KEY"]     = settings["sarvam_api_key"]
                 global SIP_TRUNK_ID
                 if settings.get("livekit_sip_trunk_id"): SIP_TRUNK_ID = settings["livekit_sip_trunk_id"]
-                
-                logger.info("BYOK Configuration successfully loaded from Supabase.")
+                logger.info("BYOK config loaded from Supabase.")
             else:
                 logger.warning("No chatbot_settings found in Supabase.")
         else:
-            logger.warning(f"Failed to fetch config: {resp.status_code} {resp.text}")
+            logger.warning(f"Failed to fetch config: {resp.status_code}")
     except Exception as e:
-        logger.error(f"Could not fetch dynamic config from Supabase: {e}")
+        logger.error(f"Could not fetch dynamic config: {e}")

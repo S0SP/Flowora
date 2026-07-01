@@ -7,6 +7,8 @@ os.environ['SSL_CERT_FILE'] = certifi.where()
 import logging
 import json
 import re
+import time
+import math
 from dotenv import load_dotenv
 
 from livekit import agents, api
@@ -18,42 +20,78 @@ from livekit.plugins import (
     sarvam,
     google
 )
-# noise_cancellation is lazy-imported only when ENABLE_NOISE_CANCELLATION=true to save ~300MB RAM
 from livekit.agents import llm
 from typing import Optional
 import asyncio
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-# Load environment variables
 load_dotenv(".env")
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("outbound-agent")
 
 import config
 
 # ---------------------------------------------------------------------------
-# Language detection helpers
+# Cost pricing constants (prices in INR, USD-INR rate: 84)
+# ---------------------------------------------------------------------------
+COST_CALL_PULSE_INR        = 0.50    # ₹0.50 per started minute (pulse billing)
+COST_DEEPGRAM_PER_MIN_INR  = 0.3612  # Deepgram Nova-2: $0.0043/min × 84
+COST_SARVAM_PER_1K_CHARS_INR = 0.80  # Sarvam bulbul TTS: ~₹0.80/1000 chars
+COST_GROQ_8B_INPUT_PER_1K  = 0.0042  # llama-3.1-8b-instant: $0.05/1M × 84
+COST_GROQ_8B_OUTPUT_PER_1K = 0.0067  # llama-3.1-8b-instant: $0.08/1M × 84
+COST_GROQ_70B_INPUT_PER_1K = 0.0496  # llama-3.3-70b-versatile: $0.59/1M × 84
+COST_GROQ_70B_OUTPUT_PER_1K = 0.0664 # llama-3.3-70b-versatile: $0.79/1M × 84
+COST_GEMINI_INPUT_PER_1K   = 0.0063  # gemini-2.0-flash: $0.075/1M × 84
+COST_GEMINI_OUTPUT_PER_1K  = 0.0252  # gemini-2.0-flash: $0.30/1M × 84
+
+# ---------------------------------------------------------------------------
+# Multilingual language detection — all major Indian scripts + romanized
 # ---------------------------------------------------------------------------
 
-# Common Hindi words / Devanagari script detector and testig 
-_HINDI_PATTERN = re.compile(
-    r'[\u0900-\u097F]|'                            # Devanagari script
-    r'\b(kya|hai|hain|aap|main|mujhe|karo|kar|'
-    r'kyun|kaise|nahi|haan|theek|bahut|accha|'
-    r'school|admission|fees|kab|kitna|bata|batao|'
-    r'paisa|rupay|namaste|shukriya|dhanyawad)\b',
+# Unicode script ranges mapped to Sarvam TTS language codes
+_SCRIPT_TO_LANG = [
+    (re.compile(r'[ঀ-৿]'), "bn-IN"),  # Bengali
+    (re.compile(r'[઀-૿]'), "gu-IN"),  # Gujarati
+    (re.compile(r'[਀-੿]'), "pa-IN"),  # Gurmukhi / Punjabi
+    (re.compile(r'[଀-୿]'), "or-IN"),  # Odia
+    (re.compile(r'[஀-௿]'), "ta-IN"),  # Tamil
+    (re.compile(r'[ఀ-౿]'), "te-IN"),  # Telugu
+    (re.compile(r'[ಀ-೿]'), "kn-IN"),  # Kannada
+    (re.compile(r'[ഀ-ൿ]'), "ml-IN"),  # Malayalam
+    (re.compile(r'[ऀ-ॿ]'), "hi-IN"),  # Devanagari (Hindi/Marathi)
+]
+
+# Romanized Hindi / Hinglish keyword detector
+_HINGLISH_PATTERN = re.compile(
+    r'\b(kya|hai|hain|aap|main|mujhe|karo|kar|kyun|kaise|nahi|nahin|'
+    r'haan|theek|bahut|accha|school|fees|kab|kitna|bata|batao|'
+    r'paisa|rupay|namaste|shukriya|dhanyawad|bilkul|zaroor|'
+    r'samajh|samjhe|bol|bolo|kuch|sab|woh|yeh|jo|toh|lekin|'
+    r'mera|meri|tera|teri|thik|karo|bhai|didi|acha)\b',
     re.IGNORECASE
 )
 
 def _detect_language(text: str) -> str:
-    """Return 'hi-IN' if Hindi is detected in the text, else 'en-IN'."""
-    if _HINDI_PATTERN.search(text):
+    """
+    Detect language from transcribed text.
+    Returns a Sarvam-compatible BCP-47 language code.
+    Priority: Unicode script → romanized Hinglish keywords → English default.
+    """
+    if not text or not text.strip():
+        return "en-IN"
+    for pattern, lang_code in _SCRIPT_TO_LANG:
+        if pattern.search(text):
+            return lang_code
+    if _HINGLISH_PATTERN.search(text):
         return "hi-IN"
     return "en-IN"
 
+
+# ---------------------------------------------------------------------------
+# TTS voice catalogue
+# ---------------------------------------------------------------------------
 
 SARVAM_V2_VOICES = {"anushka", "manisha", "vidya", "arya", "abhilash", "karun", "hitesh"}
 SARVAM_V3_VOICES = {
@@ -66,45 +104,41 @@ SARVAM_ALL_VOICES = SARVAM_V2_VOICES | SARVAM_V3_VOICES
 
 
 def _build_tts(config_provider: str = None, config_voice: str = None):
-    """Configure the Text-to-Speech provider based on env vars or dynamic config."""
+    """Configure Text-to-Speech provider from env vars or dynamic config."""
     provider = (config_provider or os.getenv("TTS_PROVIDER", config.DEFAULT_TTS_PROVIDER)).lower()
 
-    # Force Sarvam for any known Sarvam voice ID
     if config_voice and config_voice.lower() in SARVAM_ALL_VOICES:
         provider = "sarvam"
 
     if provider == "cartesia":
         logger.info("Using Cartesia TTS")
-        model = os.getenv("CARTESIA_TTS_MODEL", config.CARTESIA_MODEL)
-        voice = os.getenv("CARTESIA_TTS_VOICE", config.CARTESIA_VOICE)
-        return cartesia.TTS(model=model, voice=voice)
+        return cartesia.TTS(
+            model=os.getenv("CARTESIA_TTS_MODEL", config.CARTESIA_MODEL),
+            voice=os.getenv("CARTESIA_TTS_VOICE", config.CARTESIA_VOICE),
+        )
 
     if provider == "sarvam":
         voice = (config_voice or os.getenv("SARVAM_VOICE", "anushka")).lower()
-
         if voice not in SARVAM_ALL_VOICES:
             logger.warning(f"Unknown Sarvam voice '{voice}', falling back to anushka.")
             voice = "anushka"
-
-        # Pick the right model based on which generation the voice belongs to
-        if voice in SARVAM_V3_VOICES:
-            model = "bulbul:v3-beta"
-        else:
-            model = os.getenv("SARVAM_TTS_MODEL", config.SARVAM_MODEL)  # bulbul:v2
-
+        model = "bulbul:v3-beta" if voice in SARVAM_V3_VOICES else os.getenv("SARVAM_TTS_MODEL", config.SARVAM_MODEL)
         language = os.getenv("SARVAM_LANGUAGE", config.SARVAM_LANGUAGE)
-        logger.info(f"Using Sarvam TTS (voice: {voice}, model: {model})")
+        logger.info(f"Using Sarvam TTS — voice={voice}, model={model}, lang={language}")
         return sarvam.TTS(model=model, speaker=voice, target_language_code=language)
 
-    # Default to OpenAI
-    logger.info(f"Using OpenAI TTS (Voice: {config_voice})")
-    model = os.getenv("OPENAI_TTS_MODEL", "tts-1")
-    voice = config_voice or os.getenv("OPENAI_TTS_VOICE", config.DEFAULT_TTS_VOICE)
-    return openai.TTS(model=model, voice=voice)
+    logger.info(f"Using OpenAI TTS")
+    return openai.TTS(
+        model=os.getenv("OPENAI_TTS_MODEL", "tts-1"),
+        voice=config_voice or os.getenv("OPENAI_TTS_VOICE", config.DEFAULT_TTS_VOICE),
+    )
 
+
+# ---------------------------------------------------------------------------
+# Groq → Gemini fallback LLM
+# ---------------------------------------------------------------------------
 
 def _is_rate_limit(exc: BaseException) -> bool:
-    """Walk the exception chain looking for a 429 / rate_limit signal."""
     seen: set = set()
     e: BaseException | None = exc
     while e is not None and id(e) not in seen:
@@ -117,8 +151,6 @@ def _is_rate_limit(exc: BaseException) -> bool:
 
 
 class _FallbackStream(llm.LLMStream):
-    """Streams from primary; on 429 transparently retries with fallback."""
-
     def __init__(self, llm_instance, *, primary, fallback, chat_ctx, tools, conn_options=None):
         super().__init__(llm_instance, chat_ctx=chat_ctx, tools=tools, conn_options=conn_options)
         self._primary = primary
@@ -135,14 +167,12 @@ class _FallbackStream(llm.LLMStream):
                 return
             except Exception as e:
                 if not is_last and _is_rate_limit(e):
-                    logger.warning(f"⚡ {name} rate limited — switching to Gemini fallback for this turn")
+                    logger.warning(f"⚡ {name} rate-limited — switching to Gemini fallback")
                     continue
                 raise
 
 
 class FallbackLLM(llm.LLM):
-    """Primary LLM with automatic Gemini fallback on 429 rate limits."""
-
     def __init__(self, primary: llm.LLM, fallback: llm.LLM):
         super().__init__()
         self._primary = primary
@@ -160,7 +190,7 @@ class FallbackLLM(llm.LLM):
 
 
 def _build_llm(config_provider: str = None):
-    """Configure the LLM provider. Groq gets automatic Gemini fallback on 429."""
+    """Configure LLM. Groq gets automatic Gemini fallback on 429."""
     provider = (config_provider or os.getenv("LLM_PROVIDER", config.DEFAULT_LLM_PROVIDER)).lower()
 
     if provider == "groq":
@@ -174,16 +204,11 @@ def _build_llm(config_provider: str = None):
         gemini_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
         if gemini_key:
             try:
-                fallback = google.LLM(
-                    api_key=gemini_key,
-                    model="gemini-2.0-flash",
-                )
-                logger.info("🔄 Gemini Flash configured as fallback for Groq rate limits")
+                fallback = google.LLM(api_key=gemini_key, model="gemini-2.0-flash")
+                logger.info("🔄 Gemini Flash configured as Groq fallback")
                 return FallbackLLM(primary=primary, fallback=fallback)
             except Exception as e:
-                logger.warning(f"Could not build Gemini fallback LLM: {e}")
-        else:
-            logger.warning("GEMINI_API_KEY not set — no fallback for Groq rate limits")
+                logger.warning(f"Could not build Gemini fallback: {e}")
         return primary
 
     if provider == "gemini":
@@ -193,10 +218,13 @@ def _build_llm(config_provider: str = None):
             model=os.getenv("GEMINI_LLM_MODEL", "gemini-2.0-flash"),
         )
 
-    # Default to OpenAI
     logger.info("Using OpenAI LLM")
     return openai.LLM(model=config.DEFAULT_LLM_MODEL)
 
+
+# ---------------------------------------------------------------------------
+# Tool definitions
+# ---------------------------------------------------------------------------
 
 class TransferFunctions(llm.ToolContext):
     def __init__(self, ctx: agents.JobContext, phone_number: str = None):
@@ -206,62 +234,42 @@ class TransferFunctions(llm.ToolContext):
 
     @llm.function_tool(description="Look up user details by phone number.")
     def lookup_user(self, phone: str):
-        """
-        Mock function to look up user details.
-
-        Args:
-            phone: The phone number to look up
-        """
         logger.info(f"Looking up user: {phone}")
-        return f"User found: Sumit Chourasia. Status: Active. Welcome back."
+        return f"User found: Active customer. Welcome back."
 
-    @llm.function_tool(description="Transfer the call to a human support agent or another phone number.")
+    @llm.function_tool(description="Transfer the call to a human support agent.")
     async def transfer_call(self, destination: Optional[str] = None):
-        """
-        Transfer the call.
-        """
         if destination is None:
             destination = config.DEFAULT_TRANSFER_NUMBER
             if not destination:
-                 return "Error: No default transfer number configured."
+                return "Error: No default transfer number configured."
         if "@" not in destination:
-            # If no domain is provided, append the SIP domain
             if config.SIP_DOMAIN:
-                # Ensure clean number (strip tel: or sip: prefix if present but no domain)
                 clean_dest = destination.replace("tel:", "").replace("sip:", "")
                 destination = f"sip:{clean_dest}@{config.SIP_DOMAIN}"
-            else:
-                # Fallback to tel URI if no domain configured
-                if not destination.startswith("tel:") and not destination.startswith("sip:"):
-                     destination = f"tel:{destination}"
+            elif not destination.startswith("tel:") and not destination.startswith("sip:"):
+                destination = f"tel:{destination}"
         elif not destination.startswith("sip:"):
-             destination = f"sip:{destination}"
-        
-        logger.info(f"Transferring call to {destination}")
-        
+            destination = f"sip:{destination}"
+
         participant_identity = None
-        
-        # If we stored the phone number from metadata, we can construct the identity
         if self.phone_number:
             participant_identity = f"sip_{self.phone_number}"
         else:
-            # Try to find a participant that is NOT the agent
             for p in self.ctx.room.remote_participants.values():
                 participant_identity = p.identity
                 break
-        
+
         if not participant_identity:
-            logger.error("Could not determine participant identity for transfer")
             return "Failed to transfer: could not identify the caller."
 
         try:
-            logger.info(f"Transferring participant {participant_identity} to {destination}")
             await self.ctx.api.sip.transfer_sip_participant(
                 api.TransferSIPParticipantRequest(
                     room_name=self.ctx.room.name,
                     participant_identity=participant_identity,
                     transfer_to=destination,
-                    play_dialtone=False
+                    play_dialtone=False,
                 )
             )
             return "Transfer initiated successfully."
@@ -271,16 +279,16 @@ class TransferFunctions(llm.ToolContext):
 
 
 class OutboundAssistant(Agent):
-    """
-    An AI agent tailored for outbound calls.
-    Attempts to be helpful and concise.
-    """
     def __init__(self, tools: list, system_prompt: str = None) -> None:
         super().__init__(
             instructions=system_prompt or config.SYSTEM_PROMPT,
             tools=tools,
         )
 
+
+# ---------------------------------------------------------------------------
+# SIP number formatting
+# ---------------------------------------------------------------------------
 
 def format_voicelink_sip_number(to_number: str) -> str:
     digits = ''.join(c for c in to_number if c.isdigit())
@@ -292,142 +300,227 @@ def format_voicelink_sip_number(to_number: str) -> str:
         formatted = "91" + digits[1:]
     else:
         formatted = digits
-    
     tech_prefix = os.getenv("VOICELINK_SIP_TECH_PREFIX", "45454")
     return f"{tech_prefix}{formatted}"
 
 
+# ---------------------------------------------------------------------------
+# Multilingual auto-switch for TTS
+# ---------------------------------------------------------------------------
+
 def _setup_language_auto_switch(session: AgentSession, tts_instance) -> None:
     """
-    Subscribe to STT events and auto-switch TTS language when user
-    switches between Hindi and English.
-    
-    Works for both Sarvam TTS (supports update_options) and falls back
-    gracefully for other TTS providers.
+    Listens to every user utterance and updates Sarvam TTS language in real-time
+    when the user switches between any supported Indian language or English.
     """
     current_language = {"code": os.getenv("SARVAM_LANGUAGE", config.SARVAM_LANGUAGE)}
 
     def on_user_speech_committed(ev):
-        """Called when the user finishes speaking and transcript is committed."""
-        # ev.transcript contains the recognized text
-        transcript = ""
-        if hasattr(ev, "transcript"):
-            transcript = ev.transcript
-        elif hasattr(ev, "text"):
-            transcript = ev.text
-        
+        transcript = getattr(ev, "transcript", "") or getattr(ev, "text", "") or ""
         if not transcript:
             return
 
         detected = _detect_language(transcript)
+        if detected == current_language["code"]:
+            return
 
-        if detected != current_language["code"]:
-            current_language["code"] = detected
-            logger.info(f"🌐 Language switch detected → {detected} (transcript: '{transcript[:60]}')")
+        current_language["code"] = detected
+        lang_name = config.LANGUAGE_NAMES.get(detected, detected)
+        logger.info(f"🌐 Language switch → {detected} ({lang_name}) | transcript: '{transcript[:60]}'")
 
-            # Only Sarvam TTS supports real-time language switching
-            if isinstance(tts_instance, sarvam.TTS):
-                try:
-                    tts_instance.update_options(target_language_code=detected)
-                    logger.info(f"✅ Sarvam TTS language updated to: {detected}")
-                except Exception as e:
-                    logger.error(f"Failed to update Sarvam TTS language: {e}")
-            else:
-                # For other providers, just log (they don't support dynamic language switching)
-                logger.info(f"TTS provider does not support dynamic language switch. Current lang: {detected}")
+        if isinstance(tts_instance, sarvam.TTS):
+            try:
+                tts_instance.update_options(target_language_code=detected)
+                logger.info(f"✅ Sarvam TTS language updated to: {detected} ({lang_name})")
+            except Exception as e:
+                logger.error(f"Failed to update Sarvam TTS language: {e}")
+        else:
+            logger.info(f"TTS provider does not support dynamic language switching. User lang: {detected}")
 
-    # Register the event handler on the session
     session.on("user_speech_committed", on_user_speech_committed)
-    logger.info("🌐 Multilingual auto-switch enabled (Hindi ↔ English)")
+    logger.info("🌐 Multilingual auto-switch enabled (10 Indian languages + English)")
 
+
+# ---------------------------------------------------------------------------
+# Cost calculation
+# ---------------------------------------------------------------------------
+
+def _get_message_text(m) -> str:
+    """Extract plain text from a chat message, regardless of content structure."""
+    try:
+        content = m.content
+        if callable(content):
+            content = content()
+        if isinstance(content, list) and content:
+            return getattr(content[0], "text", None) or str(content[0])
+        if isinstance(content, str):
+            return content
+    except Exception:
+        pass
+    return ""
+
+
+def _calculate_costs(messages: list, call_duration_secs: int, llm_provider: str, llm_model: str) -> dict:
+    """
+    Estimate per-call API costs in INR from transcript and call duration.
+    Uses rough token estimation (1 token ≈ 3.5 chars for mixed Hindi/English).
+    """
+    CHARS_PER_TOKEN = 3.5
+
+    assistant_text = ""
+    full_context = config.SYSTEM_PROMPT
+    for m in messages:
+        text = _get_message_text(m)
+        if not text:
+            continue
+        full_context += " " + text
+        if getattr(m, "role", "") == "assistant":
+            assistant_text += text + " "
+
+    input_tokens  = max(1, int(len(full_context) / CHARS_PER_TOKEN))
+    output_tokens = max(1, int(len(assistant_text) / CHARS_PER_TOKEN))
+    tts_chars     = len(assistant_text.strip())
+    duration_mins = call_duration_secs / 60.0
+
+    # Pulse billing: ceiling per started minute
+    pulses = max(1, math.ceil(duration_mins))
+
+    # LLM pricing tier
+    model_lower = llm_model.lower()
+    if "gemini" in llm_provider.lower():
+        in_rate, out_rate = COST_GEMINI_INPUT_PER_1K, COST_GEMINI_OUTPUT_PER_1K
+        llm_label = "Gemini 2.0 Flash"
+    elif "70b" in model_lower or "versatile" in model_lower:
+        in_rate, out_rate = COST_GROQ_70B_INPUT_PER_1K, COST_GROQ_70B_OUTPUT_PER_1K
+        llm_label = "Groq llama-3.3-70b"
+    else:
+        in_rate, out_rate = COST_GROQ_8B_INPUT_PER_1K, COST_GROQ_8B_OUTPUT_PER_1K
+        llm_label = "Groq llama-3.1-8b"
+
+    call_cost = pulses * COST_CALL_PULSE_INR
+    stt_cost  = duration_mins * COST_DEEPGRAM_PER_MIN_INR
+    tts_cost  = (tts_chars / 1000.0) * COST_SARVAM_PER_1K_CHARS_INR
+    llm_cost  = (input_tokens / 1000.0) * in_rate + (output_tokens / 1000.0) * out_rate
+    total     = call_cost + stt_cost + tts_cost + llm_cost
+
+    logger.info(
+        f"💰 COST BREAKDOWN | total=₹{total:.4f} | "
+        f"pulse=₹{call_cost:.4f} ({pulses} min) | "
+        f"STT=₹{stt_cost:.4f} | TTS=₹{tts_cost:.4f} | LLM=₹{llm_cost:.4f}"
+    )
+
+    return {
+        "total_inr": round(total, 4),
+        "breakdown": {
+            "call_pulse": {
+                "pulses": pulses,
+                "rate_per_pulse_inr": COST_CALL_PULSE_INR,
+                "cost_inr": round(call_cost, 4),
+                "note": f"{pulses} pulse(s) × ₹{COST_CALL_PULSE_INR} (ceil-minute billing)",
+            },
+            "stt_deepgram": {
+                "provider": "Deepgram Nova-2",
+                "duration_seconds": call_duration_secs,
+                "duration_mins": round(duration_mins, 2),
+                "rate_per_min_inr": COST_DEEPGRAM_PER_MIN_INR,
+                "cost_inr": round(stt_cost, 4),
+            },
+            "tts_sarvam": {
+                "provider": "Sarvam Bulbul",
+                "characters": tts_chars,
+                "rate_per_1k_chars_inr": COST_SARVAM_PER_1K_CHARS_INR,
+                "cost_inr": round(tts_cost, 4),
+            },
+            "llm": {
+                "provider": llm_label,
+                "model": llm_model,
+                "estimated_input_tokens": input_tokens,
+                "estimated_output_tokens": output_tokens,
+                "rate_input_per_1k_inr": in_rate,
+                "rate_output_per_1k_inr": out_rate,
+                "cost_inr": round(llm_cost, 4),
+                "note": "Token counts are estimates (~3.5 chars/token for mixed Hindi-English)",
+            },
+        },
+    }
+
+
+# ---------------------------------------------------------------------------
+# Main agent entrypoint
+# ---------------------------------------------------------------------------
 
 async def entrypoint(ctx: agents.JobContext):
-    """
-    Main entrypoint for the agent.
-    """
     await ctx.connect()
     logger.info(f"Connecting to room: {ctx.room.name}")
-    
+
     phone_number = None
-    config_dict = {}
-    
-    # Check Job Metadata (Legacy/Dispatch)
+    config_dict  = {}
+    call_start   = time.time()
+
+    # Parse job metadata (legacy / dispatch)
     try:
         if ctx.job.metadata:
             data = json.loads(ctx.job.metadata)
             phone_number = data.get("phone_number")
-            config_dict = data
+            config_dict  = data
     except Exception:
         pass
-        
-    # Check Room Metadata (Dashboard/Route.ts) - Overrides Job Metadata if present
+
+    # Parse room metadata — overrides job metadata
     try:
         if ctx.room.metadata:
             data = json.loads(ctx.room.metadata)
             if data.get("phone_number"):
-                phone_number = data.get("phone_number")
-            config_dict.update(data) # Merge configs
+                phone_number = data["phone_number"]
+            config_dict.update(data)
     except Exception:
-        logger.warning("No valid JSON metadata found in Room.")
+        logger.warning("No valid JSON metadata in room.")
 
-    # Initialize function context
     fnc_ctx = TransferFunctions(ctx, phone_number)
 
-    # === DIAGNOSTIC: show exactly what will be used for this call ===
-    resolved_prompt = config_dict.get("user_prompt") or config.SYSTEM_PROMPT
-    resolved_voice  = config_dict.get("voice_id") or config.DEFAULT_TTS_VOICE
-    logger.info(f"=== CALL CONFIG === room={ctx.room.name}")
-    logger.info(f"=== CALL CONFIG === job_meta={ctx.job.metadata[:120] if ctx.job.metadata else 'EMPTY'}")
-    logger.info(f"=== CALL CONFIG === room_meta={ctx.room.metadata[:120] if ctx.room.metadata else 'EMPTY'}")
-    logger.info(f"=== CALL CONFIG === voice={resolved_voice!r}  prompt_src={'metadata' if config_dict.get('user_prompt') else 'config.py'}")
-    logger.info(f"=== CALL CONFIG === prompt_start={resolved_prompt[:80]!r}")
+    # Resolved config for this call
+    resolved_prompt   = config_dict.get("user_prompt") or config.SYSTEM_PROMPT
+    resolved_voice    = config_dict.get("voice_id") or config.DEFAULT_TTS_VOICE
+    resolved_provider = config_dict.get("model_provider", os.getenv("LLM_PROVIDER", config.DEFAULT_LLM_PROVIDER)).lower()
+    resolved_model    = os.getenv("GROQ_MODEL", config.GROQ_MODEL) if resolved_provider == "groq" else os.getenv("GEMINI_LLM_MODEL", "gemini-2.0-flash")
+    call_id           = config_dict.get("call_id")
 
-    model_provider = config_dict.get("model_provider", "groq").lower()
-    
-    if model_provider == "gemini":
+    logger.info(f"=== CALL CONFIG === room={ctx.room.name} | call_id={call_id}")
+    logger.info(f"=== CALL CONFIG === voice={resolved_voice!r} | provider={resolved_provider} | model={resolved_model}")
+    logger.info(f"=== CALL CONFIG === prompt_src={'metadata' if config_dict.get('user_prompt') else 'config.py'}")
+
+    if resolved_provider == "gemini":
+        # ---- Gemini Multimodal Live API path ----
         logger.info("Using Native Gemini Multimodal Live API")
-        
+
         voice_id = config_dict.get("voice_id", "Aoede")
         valid_gemini_voices = ["Puck", "Charon", "Kore", "Fenrir", "Aoede", "Puma"]
-        
-        if voice_id.capitalize() not in valid_gemini_voices:
-            voice_id = "Aoede"
-        else:
-            voice_id = voice_id.capitalize()
+        voice_id = voice_id.capitalize() if voice_id.capitalize() in valid_gemini_voices else "Aoede"
 
         model = google.beta.realtime.RealtimeModel(
             model=os.getenv("GEMINI_LIVE_MODEL", "gemini-2.0-flash-exp"),
             api_key=os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY"),
-            instructions=config_dict.get("user_prompt") or config.SYSTEM_PROMPT,
+            instructions=resolved_prompt,
             voice=voice_id,
             temperature=0.8,
         )
 
-        session = AgentSession(
-            llm=model,
-        )
-        
+        session = AgentSession(llm=model)
+
         use_nc = os.getenv("ENABLE_NOISE_CANCELLATION", "false").lower() == "true"
+        nc_plugin = None
         if use_nc:
             from livekit.plugins import noise_cancellation as _nc
             nc_plugin = _nc.BVCTelephony()
-        else:
-            nc_plugin = None
+
         await session.start(
             room=ctx.room,
-            agent=OutboundAssistant(
-                tools=list(fnc_ctx.function_tools.values()),
-                system_prompt=config_dict.get("user_prompt")
-            ),
-            room_input_options=RoomInputOptions(
-                noise_cancellation=nc_plugin,
-                close_on_disconnect=True,
-            ),
+            agent=OutboundAssistant(tools=list(fnc_ctx.function_tools.values()), system_prompt=resolved_prompt),
+            room_input_options=RoomInputOptions(noise_cancellation=nc_plugin, close_on_disconnect=True),
         )
-        logger.info("Gemini Multimodal Agent started in room")
-        
+        logger.info("Gemini Multimodal Agent started")
+
         if phone_number:
-            logger.info("Outbound call mode — waiting for SIP participant to join room...")
             sip_joined = False
             for _ in range(30):
                 for p in ctx.room.remote_participants.values():
@@ -437,74 +530,65 @@ async def entrypoint(ctx: agents.JobContext):
                 if sip_joined:
                     break
                 await asyncio.sleep(1)
-
             if sip_joined:
-                logger.info("SIP participant joined. Prompting Gemini to greet...")
                 try:
-                    await session.generate_reply(instructions="The user just joined the call. Please greet them warmly.")
+                    await session.generate_reply(instructions="The user just joined. Please greet them warmly.")
                 except Exception as e:
-                    logger.warning(f"Could not nudge Gemini: {e}")
+                    logger.warning(f"Gemini greeting failed: {e}")
             else:
-                logger.warning("SIP participant never joined within 30s. Room will close.")
+                logger.warning("SIP participant never joined within 30s.")
         else:
-            logger.info("Web/dashboard session. Prompting Gemini to greet...")
             await asyncio.sleep(1)
             try:
                 await session.generate_reply(instructions="The user just opened the web app. Please greet them warmly.")
-            except Exception as e:
+            except Exception:
                 pass
 
     else:
-        # Build TTS instance (kept as a reference so we can update language later)
+        # ---- Groq/OpenAI + Sarvam/Deepgram path (standard pipeline) ----
+
         tts_instance = _build_tts(config_dict.get("tts_provider"), config_dict.get("voice_id"))
 
-        # Build STT with multilingual support
-        stt_language = os.getenv("STT_LANGUAGE", config.STT_LANGUAGE)
-        stt_model = os.getenv("STT_MODEL", config.STT_MODEL)
-        
         stt_instance = deepgram.STT(
-            model=stt_model,
-            language=stt_language,
+            model=os.getenv("STT_MODEL", config.STT_MODEL),
+            language="multi",   # Auto-detect any language — Nova-2 supports 30+ languages
         )
 
-        # Initialize the Agent Session with plugins
-        # vad omitted intentionally — AgentSession uses bundled Silero VAD by default.
-        # Passing vad=None explicitly disables VAD and crashes the TurnDetector on first audio.
-        session = AgentSession(
-            stt=stt_instance,
-            llm=_build_llm(config_dict.get("model_provider")),
-            tts=tts_instance,
-        )
+        try:
+            session = AgentSession(
+                stt=stt_instance,
+                llm=_build_llm(config_dict.get("model_provider")),
+                tts=tts_instance,
+                min_endpointing_delay=0.4,   # Respond 400ms after speech ends (vs default 500ms)
+                allow_interruptions=True,     # User can interrupt agent mid-response
+            )
+        except TypeError:
+            # Older livekit-agents without min_endpointing_delay param
+            session = AgentSession(
+                stt=stt_instance,
+                llm=_build_llm(config_dict.get("model_provider")),
+                tts=tts_instance,
+            )
 
-        # Setup multilingual auto-switching BEFORE starting the session
         _setup_language_auto_switch(session, tts_instance)
 
-        # Start the session
         use_nc = os.getenv("ENABLE_NOISE_CANCELLATION", "false").lower() == "true"
+        nc_plugin = None
         if use_nc:
             from livekit.plugins import noise_cancellation as _nc
             nc_plugin = _nc.BVCTelephony()
-        else:
-            nc_plugin = None
+
         await session.start(
             room=ctx.room,
-            agent=OutboundAssistant(
-                tools=list(fnc_ctx.function_tools.values()),
-                system_prompt=config_dict.get("user_prompt")
-            ),
-            room_input_options=RoomInputOptions(
-                noise_cancellation=nc_plugin,
-                close_on_disconnect=True,
-            ),
+            agent=OutboundAssistant(tools=list(fnc_ctx.function_tools.values()), system_prompt=resolved_prompt),
+            room_input_options=RoomInputOptions(noise_cancellation=nc_plugin, close_on_disconnect=True),
         )
 
         is_inbound = config_dict.get("inbound", False)
 
         if phone_number or is_inbound:
-            if phone_number:
-                logger.info(f"Outbound call mode — waiting for SIP participant to join room...")
-            else:
-                logger.info(f"Inbound call mode — waiting for SIP caller to join room...")
+            mode = "Outbound" if phone_number else "Inbound"
+            logger.info(f"{mode} call mode — waiting for SIP participant...")
 
             sip_joined = False
             for _ in range(30):
@@ -517,14 +601,13 @@ async def entrypoint(ctx: agents.JobContext):
                 await asyncio.sleep(1)
 
             if sip_joined:
-                greeting = config.INITIAL_GREETING if phone_number else "The user has called in. Answer the call warmly and ask how you can help them today."
-                logger.info(f"SIP participant joined. Generating greeting ({('outbound' if phone_number else 'inbound')})...")
+                greeting = config.INITIAL_GREETING if phone_number else "The caller just joined. Greet them warmly."
                 try:
                     await session.generate_reply(instructions=greeting)
                 except Exception as e:
                     logger.error(f"Greeting failed: {e}")
             else:
-                logger.warning("SIP participant never joined within 30s. Room will close.")
+                logger.warning("SIP participant never joined within 30s.")
         else:
             logger.info("Web/dashboard session. Greeting immediately...")
             await asyncio.sleep(1)
@@ -533,10 +616,18 @@ async def entrypoint(ctx: agents.JobContext):
             except Exception as e:
                 logger.error(f"Web greeting failed: {e}")
 
+    # ---- On disconnect: build transcript, calculate costs, send webhook ----
+
     @ctx.room.on("disconnected")
     def on_disconnect(reason):
         logger.info(f"Room disconnected: {reason}")
-        # Build transcript from session history
+
+        call_duration_secs = int(time.time() - call_start)
+        logger.info(f"📞 Call duration: {call_duration_secs}s")
+
+        # Extract transcript from session history
+        messages = []
+        transcript_text = ""
         try:
             history = session.history
             if callable(history):
@@ -547,71 +638,74 @@ async def entrypoint(ctx: agents.JobContext):
             messages = list(raw) if raw else []
             parts = []
             for m in messages:
-                content = m.content
-                if callable(content):
-                    content = content()
-                if isinstance(content, list) and content:
-                    text = getattr(content[0], "text", None) or str(content[0])
-                elif isinstance(content, str):
-                    text = content
-                else:
-                    continue
-                parts.append(f"{m.role}: {text}")
+                text = _get_message_text(m)
+                if text:
+                    parts.append(f"{m.role}: {text}")
             transcript_text = "\n".join(parts)
         except Exception as e:
             logger.warning(f"Could not extract transcript: {e}")
-            transcript_text = ""
-        
-        logger.info(f"Transcript length: {len(transcript_text)}")
-        
-        # Send to Webhook async
+
+        # Calculate API costs
+        try:
+            cost_data = _calculate_costs(messages, call_duration_secs, resolved_provider, resolved_model)
+        except Exception as e:
+            logger.warning(f"Cost calculation failed: {e}")
+            cost_data = {"total_inr": 0, "breakdown": {}}
+
         async def send_webhook():
             try:
                 import aiohttp
-                webhook_url = os.getenv("WEBHOOK_URL", "http://localhost:3000/api/hooks/transcript")
-                
+                webhook_url = os.getenv("WEBHOOK_URL", "http://localhost:3000/api/voice/transcript")
+
                 payload = {
-                    "call_id": config_dict.get("call_id"),
-                    "phone": phone_number,
-                    "transcript": transcript_text,
-                    "status": "COMPLETED",
-                    "duration": 0
+                    "call_id":           call_id,
+                    "phone":             phone_number,
+                    "transcript":        transcript_text,
+                    "status":            "COMPLETED",
+                    "duration_seconds":  call_duration_secs,
+                    "cost_breakdown":    cost_data,
                 }
-                
+
+                logger.info(f"📤 Sending webhook to {webhook_url} | call_id={call_id}")
                 async with aiohttp.ClientSession() as http_session:
-                    async with http_session.post(webhook_url, json=payload) as resp:
-                        logger.info(f"Webhook sent: {resp.status}")
-                        
+                    async with http_session.post(webhook_url, json=payload, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                        logger.info(f"Webhook response: {resp.status}")
             except Exception as e:
                 logger.error(f"Failed to send webhook: {e}")
 
         asyncio.create_task(send_webhook())
 
+
+# ---------------------------------------------------------------------------
+# Health check HTTP server
+# ---------------------------------------------------------------------------
+
 class _HealthHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
         self.end_headers()
-        self.wfile.write(b"Server is running")
-        
+        self.wfile.write(b"OK")
+
     def do_HEAD(self):
         self.send_response(200)
         self.end_headers()
-        
+
     def log_message(self, format, *args):
-        pass # Suppress logging
+        pass
+
 
 def _start_health_server():
     port = int(os.environ.get("PORT", 8080))
     server = HTTPServer(('0.0.0.0', port), _HealthHandler)
-    logger.info(f"Healthcheck server running on port {port}")
+    logger.info(f"Healthcheck server on port {port}")
     server.serve_forever()
 
+
 if __name__ == "__main__":
-    # Start health server in a background thread
     threading.Thread(target=_start_health_server, daemon=True).start()
 
-    logger.info(f"=== AGENT BOOT === system_prompt starts with: {config.SYSTEM_PROMPT[:60].strip()!r}")
-    logger.info(f"=== AGENT BOOT === default_voice: {config.DEFAULT_TTS_VOICE}, default_llm: {config.DEFAULT_LLM_PROVIDER}")
+    logger.info(f"=== AGENT BOOT === prompt_start: {config.SYSTEM_PROMPT[:60].strip()!r}")
+    logger.info(f"=== AGENT BOOT === default_voice={config.DEFAULT_TTS_VOICE} | llm={config.DEFAULT_LLM_PROVIDER}")
 
     try:
         config.load_dynamic_config()
@@ -621,6 +715,6 @@ if __name__ == "__main__":
     agents.cli.run_app(
         agents.WorkerOptions(
             entrypoint_fnc=entrypoint,
-            agent_name="outbound-caller", 
+            agent_name="outbound-caller",
         )
     )

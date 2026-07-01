@@ -41,6 +41,7 @@ export interface DialOptions {
   agentType: "livekit" | "gemini";
   voiceId?: string;
   systemPrompt?: string;
+  callId?: string;
 }
 
 export async function dialSip(opts: DialOptions) {
@@ -52,6 +53,7 @@ export async function dialSip(opts: DialOptions) {
   const metadata = JSON.stringify({
     phone_number: opts.toNumber,
     user_id: opts.userId,
+    call_id: opts.callId || null,
     agent_type: opts.agentType,
     voice_id: opts.voiceId || "anushka",
     user_prompt: opts.systemPrompt || "",
@@ -97,6 +99,7 @@ export async function startEgressRecording(roomName: string, callRecordId: strin
     });
 
     const egress = await egressClient.startRoomCompositeEgress(roomName, {
+      audio_only: true,
       file: fileOutput,
     });
     return egress.egressId;

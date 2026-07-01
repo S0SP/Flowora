@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
       .from("voice_calls")
       .insert({
         user_id: user.id,
-        phone_number: toNumber,
+        to_number: toNumber,
         agent_type: agentType,
         voice_id: voiceId,
         status: "initiated",
@@ -40,6 +40,7 @@ export async function POST(req: NextRequest) {
       agentType,
       voiceId,
       systemPrompt,
+      callId: callRecord.id,
     });
 
     // Update call record with LiveKit details
