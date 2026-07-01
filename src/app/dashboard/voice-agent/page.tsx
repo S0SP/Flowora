@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import {
   Phone, PhoneOff, Mic, Brain, Play, Loader2, Check,
   Volume2, ChevronRight, Sparkles, Clock, Radio, Edit3,
-  ChevronDown, ChevronUp, Zap,
+  ChevronDown, ChevronUp, Zap, Trash2, AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -127,6 +127,8 @@ export default function VoiceAgentPage() {
   const [playingVoice, setPlayingVoice] = useState<string | null>(null);
   const [systemPrompt, setSystemPrompt] = useState(DEFAULT_PROMPT);
   const [promptOpen, setPromptOpen] = useState(false);
+  const [cleaning, setCleaning] = useState(false);
+  const [activeRooms, setActiveRooms] = useState<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const realtimeRef = useRef<ReturnType<typeof createClient> | null>(null);
   const channelRef = useRef<any>(null);
@@ -227,6 +229,33 @@ export default function VoiceAgentPage() {
     }
   }
 
+  async function handleCheckRooms() {
+    try {
+      const res = await fetch("/api/voice/cleanup");
+      const data = await res.json();
+      setActiveRooms(data.active_rooms ?? 0);
+      if (data.active_rooms === 0) toast.success("No stuck rooms — SIP trunk is clear");
+      else toast.warning(`${data.active_rooms} stuck room(s) found — click Kill to free channels`);
+    } catch {
+      toast.error("Could not check rooms");
+    }
+  }
+
+  async function handleKillAll() {
+    setCleaning(true);
+    try {
+      const res = await fetch("/api/voice/cleanup", { method: "POST" });
+      const data = await res.json();
+      setActiveRooms(0);
+      setCallStatus("idle");
+      toast.success(`Killed ${data.rooms_killed} room(s) — SIP channels freed`);
+    } catch {
+      toast.error("Cleanup failed");
+    } finally {
+      setCleaning(false);
+    }
+  }
+
   const statusColors: Record<CallStatus, string> = {
     idle: "bg-muted-foreground/40",
     calling: "bg-primary animate-pulse",
@@ -255,10 +284,33 @@ export default function VoiceAgentPage() {
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">AI-powered outbound calls with multilingual support</p>
         </div>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted px-3 py-1.5 rounded-full">
-          <span className={cn("w-2 h-2 rounded-full", statusColors[callStatus])} />
-          {statusLabel[callStatus]}
-          {callStatus === "active" && <span className="font-mono font-bold text-foreground ml-1">{callTimer}</span>}
+        <div className="flex items-center gap-2">
+          {/* SIP channel inspector + kill button */}
+          {activeRooms !== null && activeRooms > 0 && (
+            <button
+              onClick={handleKillAll}
+              disabled={cleaning}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-destructive/10 text-destructive text-xs font-medium hover:bg-destructive/20 transition-colors disabled:opacity-50"
+            >
+              {cleaning
+                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                : <Trash2  className="w-3.5 h-3.5" />}
+              Kill {activeRooms} stuck room{activeRooms !== 1 ? "s" : ""}
+            </button>
+          )}
+          <button
+            onClick={handleCheckRooms}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-muted text-muted-foreground text-xs hover:bg-muted/80 transition-colors"
+            title="Check for stuck SIP channels"
+          >
+            <AlertTriangle className="w-3.5 h-3.5" />
+            Check channels
+          </button>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted px-3 py-1.5 rounded-full">
+            <span className={cn("w-2 h-2 rounded-full", statusColors[callStatus])} />
+            {statusLabel[callStatus]}
+            {callStatus === "active" && <span className="font-mono font-bold text-foreground ml-1">{callTimer}</span>}
+          </div>
         </div>
       </div>
 
