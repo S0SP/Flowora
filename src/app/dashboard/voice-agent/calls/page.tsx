@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { Phone, Play, Pause, ChevronDown, ChevronUp, Clock, Mic, Brain, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { PageShell } from "@/components/ui";
 
 interface VoiceCall {
   id: string;
@@ -18,10 +19,10 @@ interface VoiceCall {
 }
 
 const STATUS_STYLES: Record<string, string> = {
-  initiated: "bg-yellow-500/15 text-yellow-400",
+  initiated: "bg-primary/15 text-primary",
   ringing:   "bg-blue-500/15 text-blue-400",
-  active:    "bg-green-500/15 text-green-400",
-  completed: "bg-primary/15 text-primary",
+  active:    "bg-emerald-500/15 text-emerald-400",
+  completed: "bg-emerald-500/15 text-emerald-400",
   failed:    "bg-destructive/15 text-destructive",
 };
 
@@ -152,10 +153,10 @@ export default function CallHistoryPage() {
   useEffect(() => { fetchCalls(page); }, [page]);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <PageShell size="medium">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Call History</h1>
+          <h1 className="text-lg font-bold text-foreground">Call History</h1>
           <p className="text-sm text-muted-foreground mt-1">{total} calls total</p>
         </div>
         <a
@@ -214,6 +215,6 @@ export default function CallHistoryPage() {
           )}
         </>
       )}
-    </div>
+    </PageShell>
   );
 }

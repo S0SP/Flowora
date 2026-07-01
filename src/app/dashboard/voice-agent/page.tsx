@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { SARVAM_VOICES, GEMINI_VOICES } from "@/lib/voices";
 import { createClient } from "@/lib/supabase/client";
+import { PageShell, PageHeader } from "@/components/ui";
 
 type AgentType = "livekit" | "gemini";
 type CallStatus = "idle" | "calling" | "ringing" | "active" | "ended";
@@ -228,9 +229,9 @@ export default function VoiceAgentPage() {
 
   const statusColors: Record<CallStatus, string> = {
     idle: "bg-muted-foreground/40",
-    calling: "bg-yellow-500 animate-pulse",
-    ringing: "bg-orange-500 animate-pulse",
-    active: "bg-green-500 animate-pulse",
+    calling: "bg-primary animate-pulse",
+    ringing: "bg-amber-500 animate-pulse",
+    active: "bg-emerald-500 animate-pulse",
     ended: "bg-blue-500",
   };
 
@@ -243,13 +244,13 @@ export default function VoiceAgentPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <PageShell size="wide">
 
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <Zap className="w-6 h-6 text-primary" />
+          <h1 className="text-lg font-bold text-foreground flex items-center gap-2">
+            <Zap className="w-5 h-5 text-primary" />
             Voice Agent
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">AI-powered outbound calls with multilingual support</p>
@@ -266,17 +267,17 @@ export default function VoiceAgentPage() {
         <div className={cn(
           "rounded-2xl border p-4 flex items-center justify-between transition-all",
           callStatus === "active"
-            ? "border-green-500/40 bg-green-500/5"
-            : "border-orange-500/30 bg-orange-500/5"
+            ? "border-emerald-500/40 bg-emerald-500/5"
+            : "border-primary/30 bg-primary/5"
         )}>
           <div className="flex items-center gap-4">
             <div className={cn(
               "w-10 h-10 rounded-full flex items-center justify-center",
-              callStatus === "active" ? "bg-green-500/20" : "bg-orange-500/20"
+              callStatus === "active" ? "bg-emerald-500/20" : "bg-primary/20"
             )}>
               {callStatus === "active"
-                ? <Radio className="w-5 h-5 text-green-500" />
-                : <Loader2 className="w-5 h-5 text-orange-500 animate-spin" />
+                ? <Radio className="w-5 h-5 text-emerald-500" />
+                : <Loader2 className="w-5 h-5 text-primary animate-spin" />
               }
             </div>
             <div>
@@ -289,7 +290,7 @@ export default function VoiceAgentPage() {
           </div>
           <div className="flex items-center gap-3">
             {callStatus === "active" && (
-              <span className="text-xl font-mono font-bold text-green-500">{callTimer}</span>
+              <span className="text-xl font-mono font-bold text-emerald-500">{callTimer}</span>
             )}
             <button
               onClick={handleHangup}
@@ -368,7 +369,7 @@ export default function VoiceAgentPage() {
                 callStatus === "idle" && "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20",
                 callStatus === "calling" && "bg-primary/70 text-primary-foreground cursor-not-allowed",
                 (callStatus === "ringing" || callStatus === "active") && "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-                callStatus === "ended" && "bg-green-600 text-white cursor-default",
+                callStatus === "ended" && "bg-emerald-600 text-white cursor-default",
               )}
             >
               {callStatus === "idle" && <><Phone className="w-4 h-4" /> Place Call</>}
@@ -526,6 +527,6 @@ export default function VoiceAgentPage() {
           </div>
         </div>
       </div>
-    </div>
+    </PageShell>
   );
 }

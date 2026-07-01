@@ -2,9 +2,11 @@ import { createClient } from "@/lib/supabase/server";
 import { StatCard } from "@/components/analytics/stat-card";
 import {
   MessageSquare, Users, Megaphone, TrendingUp, CheckCheck, XCircle, Activity,
+  Zap
 } from "lucide-react";
 import { formatPercent } from "@/lib/utils";
 import { RecentCampaigns } from "@/components/campaign/recent-campaigns";
+import { PageShell, PageHeader } from "@/components/ui";
 
 async function getOverviewStats() {
   const supabase = await createClient();
@@ -44,7 +46,7 @@ export default async function DashboardPage() {
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
   return (
-    <div className="space-y-6">
+    <PageShell>
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
@@ -52,7 +54,7 @@ export default async function DashboardPage() {
           <p className="text-sm text-muted-foreground mt-0.5">Here&apos;s what&apos;s happening with your campaigns today.</p>
         </div>
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-card border border-border px-3 py-1.5 rounded-full">
-          <Activity className="w-3.5 h-3.5 text-emerald-500" />
+          <Activity className="w-3.5 h-3.5 text-primary" />
           <span>System Operational</span>
         </div>
       </div>
@@ -101,6 +103,6 @@ export default async function DashboardPage() {
 
       {/* Recent Campaigns */}
       <RecentCampaigns />
-    </div>
+    </PageShell>
   );
 }

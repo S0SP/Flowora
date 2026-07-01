@@ -2,76 +2,118 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * ═══════════════════════════════════════════════════════
+ *  FLOWORA — Deel-Inspired Brand Color System
+ *
+ *  Primary:   Kournikova   #FFE27C  hsl(47 100% 74%)
+ *  Neutral:   Cod Gray     #1B1B1B  hsl(0 0% 11%)
+ *  Surface:   White / Linen
+ *  Accent A:  Perfume      #C4B1F9  hsl(256 86% 84%) — lavender
+ *  Accent B:  French Pass  #B1D8FC  hsl(209 93% 84%) — sky blue
+ *
+ *  Yellow is used for primary actions & active states.
+ *  Pastels provide category tinting (email, voice, etc).
+ *  Cod Gray carries structure; warm grays carry layout.
+ * ═══════════════════════════════════════════════════════
+ */
+
 @layer base {
   :root {
-    --background: 0 0% 98%;
-    --foreground: 224 71% 4%;
-    --card: 0 0% 100%;
-    --card-foreground: 224 71% 4%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 224 71% 4%;
-    --primary: 142 76% 36%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222 47% 11%;
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 142 76% 36%;
-    --radius: 0.75rem;
-    --chart-1: 142 76% 36%;
-    --chart-2: 217 91% 60%;
-    --chart-3: 38 92% 50%;
-    --chart-4: 0 72% 51%;
-    --chart-5: 271 76% 53%;
-    --sidebar-background: 224 71% 4%;
-    --sidebar-foreground: 210 40% 90%;
-    --sidebar-primary: 142 76% 36%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 224 50% 10%;
-    --sidebar-accent-foreground: 210 40% 96%;
-    --sidebar-border: 224 50% 12%;
-    --sidebar-ring: 142 76% 36%;
+    /* — surfaces (warm-tinted) — */
+    --background:              38 100% 99%;           /* Linen #FFFBF4 */
+    --foreground:              0 0% 11%;              /* Cod Gray #1B1B1B */
+    --card:                    0 0% 100%;             /* White */
+    --card-foreground:         0 0% 11%;
+    --popover:                 0 0% 100%;
+    --popover-foreground:      0 0% 11%;
+
+    /* — brand primary: Kournikova yellow — */
+    --primary:                 47 100% 74%;
+    --primary-foreground:      0 0% 11%;             /* Dark text on yellow */
+
+    /* — secondary / muted (warm grays) — */
+    --secondary:               38 20% 96%;
+    --secondary-foreground:    0 0% 15%;
+    --muted:                   38 15% 95%;
+    --muted-foreground:        0 0% 46%;
+    --accent:                  47 70% 95%;            /* Very pale yellow tint */
+    --accent-foreground:       47 100% 30%;
+
+    /* — destructive: coral red — */
+    --destructive:             4 78% 58%;
+    --destructive-foreground:  0 0% 100%;
+
+    /* — borders / inputs (warm) — */
+    --border:                  38 15% 90%;
+    --input:                   38 15% 90%;
+    --ring:                    47 100% 74%;
+    --radius:                  0.75rem;
+
+    /* — charts — */
+    --chart-1: 47 100% 74%;   /* Kournikova */
+    --chart-2: 256 86% 84%;   /* Perfume */
+    --chart-3: 209 93% 84%;   /* French Pass */
+    --chart-4: 148 60% 50%;   /* Success green */
+    --chart-5: 4 78% 58%;     /* Destructive red */
+
+    /* — sidebar: Cod Gray — */
+    --sidebar-background:          0 0% 9%;
+    --sidebar-foreground:          38 10% 85%;
+    --sidebar-primary:             47 100% 74%;
+    --sidebar-primary-foreground:  0 0% 11%;
+    --sidebar-accent:              0 0% 13%;
+    --sidebar-accent-foreground:   38 10% 95%;
+    --sidebar-border:              0 0% 15%;
+    --sidebar-ring:                47 100% 74%;
   }
 
   .dark {
-    --background: 224 71% 4%;
-    --foreground: 210 40% 98%;
-    --card: 224 50% 7%;
-    --card-foreground: 210 40% 98%;
-    --popover: 224 50% 7%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 142 76% 36%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 224 50% 12%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 224 50% 10%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 224 50% 12%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62% 50%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 224 50% 14%;
-    --input: 224 50% 14%;
-    --ring: 142 76% 36%;
-    --chart-1: 142 76% 50%;
-    --chart-2: 217 91% 70%;
-    --chart-3: 38 92% 60%;
-    --chart-4: 0 72% 61%;
-    --chart-5: 271 76% 63%;
-    --sidebar-background: 224 71% 3%;
-    --sidebar-foreground: 210 40% 90%;
-    --sidebar-primary: 142 76% 36%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 224 50% 8%;
-    --sidebar-accent-foreground: 210 40% 96%;
-    --sidebar-border: 224 50% 10%;
-    --sidebar-ring: 142 76% 36%;
+    /* — surfaces — */
+    --background:              0 0% 6%;
+    --foreground:              38 15% 95%;
+    --card:                    0 0% 9%;
+    --card-foreground:         38 15% 95%;
+    --popover:                 0 0% 9%;
+    --popover-foreground:      38 15% 95%;
+
+    /* — primary: slightly brighter — */
+    --primary:                 47 100% 76%;
+    --primary-foreground:      0 0% 11%;
+
+    /* — secondary / muted — */
+    --secondary:               0 0% 14%;
+    --secondary-foreground:    38 15% 92%;
+    --muted:                   0 0% 12%;
+    --muted-foreground:        38 10% 55%;
+    --accent:                  47 40% 15%;
+    --accent-foreground:       47 100% 80%;
+
+    /* — destructive — */
+    --destructive:             4 68% 55%;
+    --destructive-foreground:  0 0% 98%;
+
+    /* — borders / inputs — */
+    --border:                  0 0% 16%;
+    --input:                   0 0% 16%;
+    --ring:                    47 100% 76%;
+
+    /* — charts — */
+    --chart-1: 47 100% 78%;
+    --chart-2: 256 86% 86%;
+    --chart-3: 209 93% 86%;
+    --chart-4: 148 60% 55%;
+    --chart-5: 4 78% 60%;
+
+    /* — sidebar — */
+    --sidebar-background:          0 0% 5%;
+    --sidebar-foreground:          38 10% 82%;
+    --sidebar-primary:             47 100% 76%;
+    --sidebar-primary-foreground:  0 0% 11%;
+    --sidebar-accent:              0 0% 10%;
+    --sidebar-accent-foreground:   38 10% 92%;
+    --sidebar-border:              0 0% 12%;
+    --sidebar-ring:                47 100% 76%;
   }
 }
 
@@ -112,4 +154,10 @@
     background-size: 200% 100%;
     animation: shimmer 2s linear infinite;
   }
+
+  /* Category accent tints (used for channel chips, section badges) */
+  .accent-lavender   { background: hsl(256 86% 95%); color: hsl(256 60% 50%); }
+  .accent-sky        { background: hsl(209 93% 95%); color: hsl(209 60% 45%); }
+  .accent-lemon      { background: hsl(47 100% 93%);  color: hsl(47 80% 35%); }
+  .accent-mint       { background: hsl(148 60% 94%);  color: hsl(148 50% 35%); }
 }

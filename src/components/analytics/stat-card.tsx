@@ -21,16 +21,16 @@ const variants = {
     border: "border-emerald-500/20",
   },
   info: {
-    icon: "bg-blue-500/10 text-blue-500",
+    icon: "bg-[hsl(209,93%,90%)] text-blue-500",
     border: "border-blue-500/20",
   },
   danger: {
-    icon: "bg-red-500/10 text-red-500",
-    border: "border-red-500/20",
+    icon: "bg-destructive/10 text-destructive",
+    border: "border-destructive/20",
   },
   warning: {
-    icon: "bg-amber-500/10 text-amber-500",
-    border: "border-amber-500/20",
+    icon: "bg-primary/10 text-primary",
+    border: "border-primary/20",
   },
 };
 

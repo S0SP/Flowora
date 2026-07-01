@@ -1,5 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { ContactsTable } from "@/components/contacts/contacts-table";
+import { PageShell, PageHeader } from "@/components/ui";
+import { Users } from "lucide-react";
 
 export default async function ContactsPage() {
   const supabase = await createClient();
@@ -9,13 +11,14 @@ export default async function ContactsPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div>
-        <h2 className="text-lg font-semibold text-foreground">Contacts</h2>
-        <p className="text-sm text-muted-foreground mt-0.5">{count ?? 0} total contacts</p>
-      </div>
+    <PageShell>
+      <PageHeader
+        icon={Users}
+        title="Contacts"
+        description={`${count ?? 0} total contacts`}
+      />
 
       <ContactsTable contacts={contacts ?? []} />
-    </div>
+    </PageShell>
   );
 }

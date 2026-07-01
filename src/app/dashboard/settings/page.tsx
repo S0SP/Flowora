@@ -6,6 +6,7 @@ import {
   Loader2, Save, MessageSquare, Phone, Mic, Brain,
   ShieldCheck, ExternalLink, Eye, EyeOff, CheckCircle2,
 } from "lucide-react";
+import { PageShell, PageHeader } from "@/components/ui";
 
 interface FieldDef {
   name: string;
@@ -31,7 +32,7 @@ const SECTIONS: SectionDef[] = [
     title: "Meta & WhatsApp",
     description: "Connect your WhatsApp Business account via Meta's Cloud API.",
     icon: MessageSquare,
-    iconColor: "text-green-500 bg-green-500/10",
+    iconColor: "text-primary bg-primary/10",
     badge: "Required",
     fields: [
       { name: "meta_access_token", label: "Access Token", placeholder: "EAAO2iUY...", type: "password", hint: "Permanent token from Meta Business Suite → System Users" },
@@ -82,7 +83,7 @@ function KeyField({ field, value, onChange }: {
           {field.label}
         </label>
         {hasValue && (
-          <span className="flex items-center gap-1 text-[10px] text-emerald-500 font-medium">
+          <span className="flex items-center gap-1 text-[10px] text-primary font-medium">
             <CheckCircle2 className="w-3 h-3" /> Configured
           </span>
         )}
@@ -159,29 +160,25 @@ export default function SettingsPage() {
     );
   }
 
+
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-primary" />
-            API Configuration
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Bring Your Own Keys (BYOK) — credentials are encrypted and stored per account.
-          </p>
-        </div>
-        <a
-          href="https://docs.flowora.ai/settings"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ExternalLink className="w-3.5 h-3.5" />
-          Docs
-        </a>
-      </div>
+    <PageShell size="narrow">
+      <PageHeader
+        icon={ShieldCheck}
+        title="API Configuration"
+        description="Bring Your Own Keys (BYOK) — credentials are encrypted and stored per account."
+        action={
+          <a
+            href="https://docs.flowora.ai/settings"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            Docs
+          </a>
+        }
+      />
 
       <form onSubmit={handleSave} className="space-y-4">
         {SECTIONS.map(section => {
@@ -241,6 +238,6 @@ export default function SettingsPage() {
           </button>
         </div>
       </form>
-    </div>
+    </PageShell>
   );
 }

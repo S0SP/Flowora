@@ -3,6 +3,7 @@ import { AnalyticsCharts } from "@/components/analytics/analytics-charts";
 import { StatCard } from "@/components/analytics/stat-card";
 import { MessageSquare, Users, Megaphone, CheckCheck, BookOpen, XCircle } from "lucide-react";
 import { formatPercent } from "@/lib/utils";
+import { PageShell, PageHeader } from "@/components/ui";
 
 async function getAnalytics() {
   const supabase = await createClient();
@@ -46,11 +47,12 @@ export default async function AnalyticsPage() {
   const data = await getAnalytics();
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div>
-        <h2 className="text-lg font-semibold text-foreground">Analytics</h2>
-        <p className="text-sm text-muted-foreground mt-0.5">Message performance and campaign insights</p>
-      </div>
+    <PageShell>
+      <PageHeader
+        icon={BookOpen}
+        title="Analytics"
+        description="Message performance and campaign insights"
+      />
 
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <StatCard label="Total Messages" value={data.totalMessages.toLocaleString()} icon={MessageSquare} className="col-span-2 xl:col-span-1" />
@@ -62,6 +64,6 @@ export default async function AnalyticsPage() {
       </div>
 
       <AnalyticsCharts dailyMessages={data.dailyMessages} campaignPerf={data.campaignPerf} />
-    </div>
+    </PageShell>
   );
 }

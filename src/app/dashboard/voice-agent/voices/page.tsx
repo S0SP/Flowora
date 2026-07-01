@@ -5,6 +5,7 @@ import { Play, Pause, Check, Search } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { SARVAM_VOICES } from "@/lib/voices";
+import { PageShell } from "@/components/ui";
 
 type VoiceFilter = "all" | "Female" | "Male";
 type ModelFilter = "all" | "bulbul:v2" | "bulbul:v3-beta";
@@ -59,7 +60,7 @@ export default function VoicesPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <PageShell size="medium">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-foreground">Voice Library</h1>
@@ -231,6 +232,6 @@ export default function VoicesPage() {
           </div>
         </div>
       )}
-    </div>
+    </PageShell>
   );
 }

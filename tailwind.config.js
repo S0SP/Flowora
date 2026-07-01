@@ -10,6 +10,8 @@ module.exports = {
     extend: {
       fontFamily: {
         sans: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
+        // Opt-in legible face for dense numeric/tabular UI (e.g. log tables)
+        data: ["var(--font-inter)", "ui-sans-serif", "system-ui", "sans-serif"],
       },
       colors: {
         background: "hsl(var(--background))",

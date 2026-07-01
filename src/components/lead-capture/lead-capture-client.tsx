@@ -98,6 +98,30 @@ interface ActivityEntry {
   message: string;
 }
 
+// Voice catalogs — kept in sync with the voice worker (voice-worker/agent.py).
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+const SARVAM_VOICES = [
+  {
+    label: "Sarvam v2 (classic)",
+    voices: ["anushka", "manisha", "vidya", "arya", "abhilash", "karun", "hitesh"].map((id) => ({ id, name: cap(id) })),
+  },
+  {
+    label: "Sarvam v3 (newest, most natural)",
+    voices: [
+      "ritu", "pooja", "simran", "kavya", "ishita", "shreya", "priya",
+      "shubh", "rahul", "amit", "ratan", "rohan", "dev", "manan", "sumit",
+      "aditya", "kabir", "neha", "varun", "roopa", "aayan", "ashutosh", "advait",
+      "amelia", "sophia",
+    ].map((id) => ({ id, name: cap(id) })),
+  },
+];
+const GEMINI_VOICES = [
+  {
+    label: "Gemini Live voices",
+    voices: ["Puck", "Charon", "Kore", "Fenrir", "Aoede", "Puma"].map((id) => ({ id, name: id })),
+  },
+];
+
 // 6 Premade templates mirrored locally for client state prefilling and preview compilation
 const PREMADE_EMAIL_TEMPLATES = [
   {
@@ -1272,12 +1296,26 @@ export function LeadCaptureClient() {
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-[10px] font-semibold text-muted-foreground uppercase">Voice ID</label>
-                        <input
+                        <label className="text-[10px] font-semibold text-muted-foreground uppercase">Voice</label>
+                        <select
                           {...register("voice_id")}
-                          placeholder="e.g. anushka, Zephyr, etc."
                           className="w-full px-3 py-2.5 bg-background border border-input rounded-xl text-sm"
-                        />
+                        >
+                          {(voiceAgentType === "gemini" ? GEMINI_VOICES : SARVAM_VOICES).map((group) => (
+                            <optgroup key={group.label} label={group.label}>
+                              {group.voices.map((v) => (
+                                <option key={v.id} value={v.id}>
+                                  {v.name}
+                                </option>
+                              ))}
+                            </optgroup>
+                          ))}
+                        </select>
+                        <p className="text-[10px] text-muted-foreground">
+                          {voiceAgentType === "gemini"
+                            ? "Gemini Live multilingual voices."
+                            : "Sarvam TTS voices (Hindi + English). v3 voices are the newest & most natural."}
+                        </p>
                       </div>
 
                       <div className="space-y-1.5">

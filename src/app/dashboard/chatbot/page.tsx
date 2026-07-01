@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
+import { PageShell, PageHeader } from "@/components/ui";
 import { 
   Bot, 
   Settings2, 
@@ -222,13 +223,12 @@ export default function ChatbotPage() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div>
-        <h2 className="text-lg font-semibold text-foreground">AI Chatbot Agent</h2>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          Train and deploy a smart conversation agent to automatically reply to inbound customer questions on WhatsApp.
-        </p>
-      </div>
+    <PageShell size="wide">
+      <PageHeader
+        icon={Bot}
+        title="AI Chatbot Agent"
+        description="Train and deploy a smart conversation agent to automatically reply to inbound customer questions on WhatsApp."
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
@@ -548,6 +548,6 @@ export default function ChatbotPage() {
 
       </div>
 
-    </div>
+    </PageShell>
   );
 }
