@@ -818,145 +818,239 @@ export function LeadCaptureClient() {
           </button>
         </div>
 
-        <div className="relative flex flex-col md:flex-row items-center justify-between gap-8 md:gap-4 py-6 px-2 min-h-[160px]">
-          
-          {/* SVG Connection Lines overlay (Desktop only, rendered under elements) */}
-          <div className="absolute inset-0 hidden md:block pointer-events-none z-0">
-            <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-              {/* Line 1: Sheet -> Timer */}
-              <path
-                d="M 230,80 L 375,80"
-                fill="none"
-                stroke={isActive ? "#FFE27C" : "#cbd5e1"}
-                strokeWidth={2}
-                className={isActive ? "flowing-wire" : ""}
-              />
+        <div className="relative py-6 px-2">
 
-              {/* Line 2: Timer -> WhatsApp (Branch Top) */}
-              {whatsappEnabled !== false && (
-                <path
-                  d="M 495,80 Q 560,80 560,45 L 610,45"
-                  fill="none"
-                  stroke={isActive ? "#25D366" : "#cbd5e1"}
-                  strokeWidth={2}
-                  className={isActive ? "flowing-wire" : ""}
-                />
-              )}
+          {/* Desktop: horizontal flow with CSS connectors */}
+          <div className="hidden md:grid md:grid-cols-[auto_auto_1fr] items-center gap-4">
 
-              {/* Line 3: Timer -> Email (Branch Middle) */}
-              {emailEnabled && (
-                <path
-                  d="M 495,80 Q 560,80 560,115 L 610,115"
-                  fill="none"
-                  stroke={isActive ? "#B1D8FC" : "#cbd5e1"}
-                  strokeWidth={2}
-                  className={isActive ? "flowing-wire" : ""}
-                />
-              )}
-
-              {/* Line 4: Timer -> Voice (Branch Bottom) */}
-              {voiceEnabled && (
-                <path
-                  d="M 495,80 Q 560,80 560,185 L 610,185"
-                  fill="none"
-                  stroke={isActive ? "#C4B1F9" : "#cbd5e1"}
-                  strokeWidth={2}
-                  className={isActive ? "flowing-wire" : ""}
-                />
-              )}
-            </svg>
-          </div>
-
-          {/* Node 1: Google Sheet Source */}
-          <div className={`w-full md:w-56 bg-background border rounded-xl p-3.5 z-10 flex items-start gap-3 transition-all ${
-            isActive ? "border-primary/40 shadow-sm shadow-primary/5 ring-1 ring-primary/10" : "border-border"
-          }`}>
-            <div className={`p-2.5 rounded-lg shrink-0 ${isActive ? "bg-primary/10 text-primary animate-pulse" : "bg-muted text-muted-foreground"}`}>
-              <FileSpreadsheet className="w-5 h-5" />
-            </div>
-            <div className="overflow-hidden min-w-0">
-              <h4 className="text-xs font-semibold text-foreground">1. Google Sheet Source</h4>
-              <p className="text-[10px] text-muted-foreground truncate mt-0.5" title={sheetUrl || "Paste Sheet Link"}>
-                {sheetUrl ? sheetUrl.replace(/https:\/\/(docs\.)?google\.com\/spreadsheets\/d\//, "").slice(0, 15) + "..." : "Setup Sheet Link"}
-              </p>
-              <span className={`inline-block mt-1 text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${
-                isActive ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
-              }`}>
-                {isActive ? "Active Listening" : "Paused"}
-              </span>
-            </div>
-          </div>
-
-          {/* Node 2: Delay Timer */}
-          <div className={`w-full md:w-44 bg-background border rounded-xl p-3.5 z-10 flex items-start gap-3 transition-all ${
-            isActive ? "border-amber-500/40 shadow-sm" : "border-border"
-          }`}>
-            <div className={`p-2.5 rounded-lg shrink-0 ${isActive ? "bg-amber-500/10 text-amber-500" : "bg-muted text-muted-foreground"}`}>
-              <Clock className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-xs font-semibold text-foreground">2. Queue Delay</h4>
-              <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">
-                {Number(delayMinutes) > 0 ? `Wait ${delayMinutes} minutes` : "Trigger Instantly"}
-              </p>
-              <span className="text-[9px] text-muted-foreground/60 block mt-1">Deduplication active</span>
-            </div>
-          </div>
-
-          {/* Channels block (Desktop splits, Mobile stack) */}
-          <div className="flex flex-col gap-3 w-full md:w-60 z-10">
-            {/* Node 3: WhatsApp */}
-            <div className={`bg-background border rounded-xl p-3 flex items-start gap-3 transition-all ${
-              whatsappEnabled !== false ? (isActive ? "border-emerald-500/40 shadow-sm text-foreground" : "border-border") : "opacity-40 border-dashed"
+            {/* Node 1: Google Sheet Source */}
+            <div className={`bg-background border rounded-xl p-3.5 flex items-start gap-3 transition-all w-56 ${
+              isActive ? "border-primary/40 shadow-sm shadow-primary/5 ring-1 ring-primary/10" : "border-border"
             }`}>
-              <div className={`p-2 rounded-lg shrink-0 ${
-                whatsappEnabled !== false ? (isActive ? "bg-emerald-500/10 text-emerald-500" : "bg-muted text-muted-foreground") : "bg-muted text-muted-foreground"
-              }`}>
-                <MessageSquare className="w-4 h-4" />
+              <div className={`p-2.5 rounded-lg shrink-0 ${isActive ? "bg-primary/10 text-primary animate-pulse" : "bg-muted text-muted-foreground"}`}>
+                <FileSpreadsheet className="w-5 h-5" />
               </div>
-              <div className="min-w-0 overflow-hidden">
-                <h4 className="text-xs font-semibold">WhatsApp channel</h4>
-                <p className="text-[9px] text-muted-foreground truncate mt-0.5">
-                  {whatsappEnabled !== false ? (templateName ? `Template: ${templateName}` : "Setup Template") : "Disabled"}
+              <div className="overflow-hidden min-w-0">
+                <h4 className="text-xs font-semibold text-foreground">1. Google Sheet Source</h4>
+                <p className="text-[10px] text-muted-foreground truncate mt-0.5" title={sheetUrl || "Paste Sheet Link"}>
+                  {sheetUrl ? sheetUrl.replace(/https:\/\/(docs\.)?google\.com\/spreadsheets\/d\//, "").slice(0, 15) + "..." : "Setup Sheet Link"}
                 </p>
+                <span className={`inline-block mt-1 text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${
+                  isActive ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
+                }`}>
+                  {isActive ? "Active Listening" : "Paused"}
+                </span>
               </div>
             </div>
 
-            {/* Node 4: SMTP Email */}
-            <div className={`bg-background border rounded-xl p-3 flex items-start gap-3 transition-all ${
-              emailEnabled ? (isActive ? "border-sky-400/40 shadow-sm text-foreground" : "border-border") : "opacity-40 border-dashed"
-            }`}>
-              <div className={`p-2 rounded-lg shrink-0 ${
-                emailEnabled ? (isActive ? "bg-sky-400/10 text-sky-500 animate-pulse" : "bg-muted text-muted-foreground") : "bg-muted text-muted-foreground"
-              }`}>
-                <Mail className="w-4 h-4" />
-              </div>
-              <div className="min-w-0 overflow-hidden">
-                <h4 className="text-xs font-semibold">SMTP Email channel</h4>
-                <p className="text-[9px] text-muted-foreground truncate mt-0.5">
-                  {emailEnabled ? `Preset: ${selectedEmailTemplateId}` : "Disabled"}
-                </p>
-              </div>
+            {/* Arrow connector 1 */}
+            <div className="flex items-center justify-center w-8">
+              <div className="flex-1 h-0.5" style={{
+                background: isActive
+                  ? "linear-gradient(90deg, hsl(47,100%,74%), hsl(47,100%,60%))"
+                  : "hsl(0,0%,85%)"
+              }} />
+              <svg width="8" height="12" viewBox="0 0 8 12" className="shrink-0">
+                <path d="M1 1L6 6L1 11" stroke={isActive ? "hsl(47,100%,65%)" : "hsl(0,0%,80%)"} strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
             </div>
 
-            {/* Node 5: Voice Call */}
-            <div className={`bg-background border rounded-xl p-3 flex items-start gap-3 transition-all ${
-              voiceEnabled ? (isActive ? "border-purple-400/40 shadow-sm text-foreground" : "border-border") : "opacity-40 border-dashed"
-            }`}>
-              <div className={`p-2 rounded-lg shrink-0 ${
-                voiceEnabled ? (isActive ? "bg-purple-400/10 text-purple-400 animate-pulse" : "bg-muted text-muted-foreground") : "bg-muted text-muted-foreground"
+            {/* Center column: Timer + branches */}
+            <div className="flex flex-col gap-3">
+              {/* Node 2: Delay Timer */}
+              <div className={`bg-background border rounded-xl p-3.5 flex items-start gap-3 transition-all w-44 ${
+                isActive ? "border-primary/30 shadow-sm" : "border-border"
               }`}>
-                <Headphones className="w-4 h-4" />
+                <div className={`p-2.5 rounded-lg shrink-0 ${isActive ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+                  <Clock className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-semibold text-foreground">2. Queue Delay</h4>
+                  <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">
+                    {Number(delayMinutes) > 0 ? `Wait ${delayMinutes} minutes` : "Trigger Instantly"}
+                  </p>
+                  <span className="text-[9px] text-muted-foreground/60 block mt-1">Deduplication active</span>
+                </div>
               </div>
-              <div className="min-w-0 overflow-hidden">
-                <h4 className="text-xs font-semibold">Voice Agent channel</h4>
-                <p className="text-[9px] text-muted-foreground truncate mt-0.5">
-                  {voiceEnabled ? `Engine: ${voiceAgentType === "gemini" ? "Gemini" : "LiveKit"}` : "Disabled"}
-                </p>
+
+              {/* Branch connectors (vertical lines from timer to channels) */}
+              <div className="flex gap-3 pl-6">
+                {/* Vertical connector from center */}
+                <div className="flex flex-col items-center">
+                  <div className="w-0.5 h-3" style={{
+                    background: isActive ? "hsl(47,100%,70%)" : "hsl(0,0%,85%)"
+                  }} />
+                </div>
+              </div>
+
+              {/* Channel nodes */}
+              <div className="flex flex-col gap-2.5">
+                {/* Node 3: WhatsApp */}
+                <div className={`bg-background border rounded-xl p-3 flex items-start gap-3 transition-all ${
+                  whatsappEnabled !== false ? (isActive ? "border-emerald-500/40 shadow-sm text-foreground" : "border-border") : "opacity-40 border-dashed"
+                }`}>
+                  <div className={`p-2 rounded-lg shrink-0 ${
+                    whatsappEnabled !== false ? (isActive ? "bg-emerald-500/10 text-emerald-500" : "bg-muted text-muted-foreground") : "bg-muted text-muted-foreground"
+                  }`}>
+                    <MessageSquare className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0 overflow-hidden">
+                    <h4 className="text-xs font-semibold">WhatsApp channel</h4>
+                    <p className="text-[9px] text-muted-foreground truncate mt-0.5">
+                      {whatsappEnabled !== false ? (templateName ? `Template: ${templateName}` : "Setup Template") : "Disabled"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Node 4: SMTP Email */}
+                <div className={`bg-background border rounded-xl p-3 flex items-start gap-3 transition-all ${
+                  emailEnabled ? (isActive ? "border-sky-400/40 shadow-sm text-foreground" : "border-border") : "opacity-40 border-dashed"
+                }`}>
+                  <div className={`p-2 rounded-lg shrink-0 ${
+                    emailEnabled ? (isActive ? "bg-sky-400/10 text-sky-500 animate-pulse" : "bg-muted text-muted-foreground") : "bg-muted text-muted-foreground"
+                  }`}>
+                    <Mail className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0 overflow-hidden">
+                    <h4 className="text-xs font-semibold">SMTP Email channel</h4>
+                    <p className="text-[9px] text-muted-foreground truncate mt-0.5">
+                      {emailEnabled ? `Preset: ${selectedEmailTemplateId}` : "Disabled"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Node 5: Voice Call */}
+                <div className={`bg-background border rounded-xl p-3 flex items-start gap-3 transition-all ${
+                  voiceEnabled ? (isActive ? "border-purple-400/40 shadow-sm text-foreground" : "border-border") : "opacity-40 border-dashed"
+                }`}>
+                  <div className={`p-2 rounded-lg shrink-0 ${
+                    voiceEnabled ? (isActive ? "bg-purple-400/10 text-purple-400 animate-pulse" : "bg-muted text-muted-foreground") : "bg-muted text-muted-foreground"
+                  }`}>
+                    <Headphones className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0 overflow-hidden">
+                    <h4 className="text-xs font-semibold">Voice Agent channel</h4>
+                    <p className="text-[9px] text-muted-foreground truncate mt-0.5">
+                      {voiceEnabled ? `Engine: ${voiceAgentType === "gemini" ? "Gemini" : "LiveKit"}` : "Disabled"}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-          
+
+          {/* Mobile: vertical stacked flow */}
+          <div className="flex flex-col md:hidden gap-3">
+            {/* Node 1: Google Sheet Source */}
+            <div className={`bg-background border rounded-xl p-3.5 flex items-start gap-3 transition-all ${
+              isActive ? "border-primary/40 shadow-sm shadow-primary/5 ring-1 ring-primary/10" : "border-border"
+            }`}>
+              <div className={`p-2.5 rounded-lg shrink-0 ${isActive ? "bg-primary/10 text-primary animate-pulse" : "bg-muted text-muted-foreground"}`}>
+                <FileSpreadsheet className="w-5 h-5" />
+              </div>
+              <div className="overflow-hidden min-w-0">
+                <h4 className="text-xs font-semibold text-foreground">1. Google Sheet Source</h4>
+                <p className="text-[10px] text-muted-foreground truncate mt-0.5">
+                  {sheetUrl ? sheetUrl.replace(/https:\/\/(docs\.)?google\.com\/spreadsheets\/d\//, "").slice(0, 15) + "..." : "Setup Sheet Link"}
+                </p>
+                <span className={`inline-block mt-1 text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${
+                  isActive ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
+                }`}>
+                  {isActive ? "Active Listening" : "Paused"}
+                </span>
+              </div>
+            </div>
+
+            {/* Mobile connector arrow */}
+            <div className="flex justify-center">
+              <div className="flex flex-col items-center">
+                <div className="w-0.5 h-4" style={{ background: isActive ? "hsl(47,100%,70%)" : "hsl(0,0%,85%)" }} />
+                <svg width="12" height="8" viewBox="0 0 12 8">
+                  <path d="M1 1L6 6L11 1" stroke={isActive ? "hsl(47,100%,65%)" : "hsl(0,0%,80%)"} strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </div>
+
+            {/* Node 2: Delay Timer */}
+            <div className={`bg-background border rounded-xl p-3.5 flex items-start gap-3 transition-all ${
+              isActive ? "border-primary/30 shadow-sm" : "border-border"
+            }`}>
+              <div className={`p-2.5 rounded-lg shrink-0 ${isActive ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+                <Clock className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-xs font-semibold text-foreground">2. Queue Delay</h4>
+                <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">
+                  {Number(delayMinutes) > 0 ? `Wait ${delayMinutes} minutes` : "Trigger Instantly"}
+                </p>
+                <span className="text-[9px] text-muted-foreground/60 block mt-1">Deduplication active</span>
+              </div>
+            </div>
+
+            {/* Mobile connector */}
+            <div className="flex justify-center">
+              <div className="flex flex-col items-center">
+                <div className="w-0.5 h-4" style={{ background: isActive ? "hsl(47,100%,70%)" : "hsl(0,0%,85%)" }} />
+                <svg width="12" height="8" viewBox="0 0 12 8">
+                  <path d="M1 1L6 6L11 1" stroke={isActive ? "hsl(47,100%,65%)" : "hsl(0,0%,80%)"} strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </div>
+
+            {/* Channel nodes */}
+            <div className="flex flex-col gap-2.5">
+              {/* WhatsApp */}
+              <div className={`bg-background border rounded-xl p-3 flex items-start gap-3 transition-all ${
+                whatsappEnabled !== false ? (isActive ? "border-emerald-500/40 shadow-sm text-foreground" : "border-border") : "opacity-40 border-dashed"
+              }`}>
+                <div className={`p-2 rounded-lg shrink-0 ${
+                  whatsappEnabled !== false ? (isActive ? "bg-emerald-500/10 text-emerald-500" : "bg-muted text-muted-foreground") : "bg-muted text-muted-foreground"
+                }`}>
+                  <MessageSquare className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 overflow-hidden">
+                  <h4 className="text-xs font-semibold">WhatsApp channel</h4>
+                  <p className="text-[9px] text-muted-foreground truncate mt-0.5">
+                    {whatsappEnabled !== false ? (templateName ? `Template: ${templateName}` : "Setup Template") : "Disabled"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Email */}
+              <div className={`bg-background border rounded-xl p-3 flex items-start gap-3 transition-all ${
+                emailEnabled ? (isActive ? "border-sky-400/40 shadow-sm text-foreground" : "border-border") : "opacity-40 border-dashed"
+              }`}>
+                <div className={`p-2 rounded-lg shrink-0 ${
+                  emailEnabled ? (isActive ? "bg-sky-400/10 text-sky-500" : "bg-muted text-muted-foreground") : "bg-muted text-muted-foreground"
+                }`}>
+                  <Mail className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 overflow-hidden">
+                  <h4 className="text-xs font-semibold">SMTP Email channel</h4>
+                  <p className="text-[9px] text-muted-foreground truncate mt-0.5">
+                    {emailEnabled ? `Preset: ${selectedEmailTemplateId}` : "Disabled"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Voice */}
+              <div className={`bg-background border rounded-xl p-3 flex items-start gap-3 transition-all ${
+                voiceEnabled ? (isActive ? "border-purple-400/40 shadow-sm text-foreground" : "border-border") : "opacity-40 border-dashed"
+              }`}>
+                <div className={`p-2 rounded-lg shrink-0 ${
+                  voiceEnabled ? (isActive ? "bg-purple-400/10 text-purple-400" : "bg-muted text-muted-foreground") : "bg-muted text-muted-foreground"
+                }`}>
+                  <Headphones className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 overflow-hidden">
+                  <h4 className="text-xs font-semibold">Voice Agent channel</h4>
+                  <p className="text-[9px] text-muted-foreground truncate mt-0.5">
+                    {voiceEnabled ? `Engine: ${voiceAgentType === "gemini" ? "Gemini" : "LiveKit"}` : "Disabled"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
