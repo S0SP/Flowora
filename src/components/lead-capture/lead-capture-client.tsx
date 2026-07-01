@@ -34,6 +34,7 @@ import { formatDate } from "@/lib/utils";
 
 // Zod schema matching database migrations
 const schema = z.object({
+  name: z.string().optional().default("Untitled Workflow"),
   sheet_url: z.string().url("Must be a valid URL (e.g. https://docs.google.com/spreadsheets/...)"),
   phone_column: z.string().min(1, "Phone column name is required"),
   name_column: z.string().optional().nullable(),
@@ -89,6 +90,7 @@ interface Lead {
   processed_at: string | null;
   error_message: string | null;
   channel_status: ChannelStatus | null;
+  lead_capture_settings_id: string;
   created_at: string;
 }
 
@@ -271,6 +273,7 @@ export function LeadCaptureClient() {
   const [saving, setSaving] = useState(false);
   const [toggling, setToggling] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [activeTab, setActiveTab] = useState<"sheet" | "whatsapp" | "smtp" | "email_template" | "voice">("sheet");
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">("desktop");
 
@@ -278,6 +281,11 @@ export function LeadCaptureClient() {
   const [loadingTemplates, setLoadingTemplates] = useState(false);
   const [capturedLeads, setCapturedLeads] = useState<Lead[]>([]);
   const [settingsId, setSettingsId] = useState<string | null>(null);
+
+  // Multi-workflow state
+  interface WorkflowSummary { id: string; name: string; is_active: boolean; }
+  const [workflows, setWorkflows] = useState<WorkflowSummary[]>([]);
+  const [selectedWorkflowId, setSelectedWorkflowId] = useState<string | null>(null);
 
   // Live activity feed (derived from polling the leads queue)
   const [activity, setActivity] = useState<ActivityEntry[]>([]);
@@ -351,7 +359,7 @@ export function LeadCaptureClient() {
     }
   };
 
-  // Fetch settings & lead history logs
+  // Fetch settings & lead history logs — now returns an array of workflows
   const fetchSettingsAndLeads = async (showToast = false) => {
     if (showToast) setRefreshing(true);
     try {
@@ -359,41 +367,60 @@ export function LeadCaptureClient() {
       if (!res.ok) throw new Error("Failed to load settings");
       const { settings, leads } = await res.json();
 
-      if (settings) {
-        setSettingsId(settings.id);
+      // Multi-workflow: settings is now an array
+      const workflowsList: WorkflowSummary[] = (settings || []).map((s: any) => ({
+        id: s.id,
+        name: s.name || "Untitled Workflow",
+        is_active: s.is_active,
+      }));
+      setWorkflows(workflowsList);
+
+      // Auto-select the first workflow if none is selected
+      const targetId = selectedWorkflowId || workflowsList[0]?.id;
+      if (targetId && targetId !== selectedWorkflowId) {
+        setSelectedWorkflowId(targetId);
+      }
+
+      // Find and populate the selected workflow's settings
+      const selected = (settings || []).find((s: any) => s.id === (targetId || selectedWorkflowId));
+      if (selected) {
+        setSettingsId(selected.id);
         reset({
-          sheet_url: settings.sheet_url,
-          phone_column: settings.phone_column,
-          name_column: settings.name_column,
-          email_column: settings.email_column,
-          template_name: settings.template_name,
-          template_language: settings.template_language,
-          delay_minutes: settings.delay_minutes,
-          is_active: settings.is_active,
-          whatsapp_enabled: settings.whatsapp_enabled !== false,
-          email_enabled: !!settings.email_enabled,
-          smtp_host: settings.smtp_host,
-          smtp_port: settings.smtp_port || 587,
-          smtp_user: settings.smtp_user,
-          smtp_password: settings.smtp_password,
-          email_from_name: settings.email_from_name,
-          email_from: settings.email_from,
-          email_subject: settings.email_subject,
-          email_template_id: settings.email_template_id || "welcome",
-          email_logo_url: settings.email_logo_url,
-          email_brand_name: settings.email_brand_name || "My Agency",
-          email_title: settings.email_title,
-          email_body: settings.email_body,
-          email_button_text: settings.email_button_text,
-          email_button_url: settings.email_button_url,
-          email_footer: settings.email_footer,
-          voice_enabled: !!settings.voice_enabled,
-          voice_agent_type: settings.voice_agent_type || "livekit",
-          voice_id: settings.voice_id || "anushka",
-          voice_prompt: settings.voice_prompt,
+          sheet_url: selected.sheet_url,
+          phone_column: selected.phone_column,
+          name_column: selected.name_column,
+          email_column: selected.email_column,
+          template_name: selected.template_name,
+          template_language: selected.template_language,
+          delay_minutes: selected.delay_minutes,
+          is_active: selected.is_active,
+          whatsapp_enabled: selected.whatsapp_enabled !== false,
+          email_enabled: !!selected.email_enabled,
+          smtp_host: selected.smtp_host,
+          smtp_port: selected.smtp_port || 587,
+          smtp_user: selected.smtp_user,
+          smtp_password: selected.smtp_password,
+          email_from_name: selected.email_from_name,
+          email_from: selected.email_from,
+          email_subject: selected.email_subject,
+          email_template_id: selected.email_template_id || "welcome",
+          email_logo_url: selected.email_logo_url,
+          email_brand_name: selected.email_brand_name || "My Agency",
+          email_title: selected.email_title,
+          email_body: selected.email_body,
+          email_button_text: selected.email_button_text,
+          email_button_url: selected.email_button_url,
+          email_footer: selected.email_footer,
+          voice_enabled: !!selected.voice_enabled,
+          voice_agent_type: selected.voice_agent_type || "livekit",
+          voice_id: selected.voice_id || "anushka",
+          voice_prompt: selected.voice_prompt,
         });
       }
-      const freshLeads: Lead[] = leads || [];
+
+      const freshLeads: Lead[] = (leads || []).filter(
+        (l: Lead) => !targetId || l.lead_capture_settings_id === targetId
+      );
 
       // Diff against the previous poll to build a live activity feed.
       const now = new Date();
@@ -444,6 +471,58 @@ export function LeadCaptureClient() {
     fetchTemplates();
     fetchSettingsAndLeads();
   }, []);
+
+  // When user selects a different workflow, reload its settings
+  useEffect(() => {
+    if (selectedWorkflowId && workflows.length > 0) {
+      fetchSettingsAndLeads();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedWorkflowId]);
+
+  // Create a new blank workflow
+  const handleNewWorkflow = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/lead-capture", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: `Workflow ${workflows.length + 1}`,
+          sheet_url: "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID",
+          phone_column: "phone",
+          is_active: false,
+          whatsapp_enabled: true,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to create workflow");
+      const data = await res.json();
+      setSelectedWorkflowId(data.settings.id);
+      toast.success("New workflow created");
+      fetchSettingsAndLeads();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to create workflow");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Delete a workflow
+  const handleDeleteWorkflow = async (id: string) => {
+    if (!confirm("Delete this workflow? This cannot be undone.")) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/lead-capture?id=${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete workflow");
+      if (selectedWorkflowId === id) setSelectedWorkflowId(null);
+      toast.success("Workflow deleted");
+      fetchSettingsAndLeads();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to delete workflow");
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   // Live polling: while the page is open, kick the queue processor and then
   // refresh, every 10s — so progress shows in near real time without waiting
@@ -654,6 +733,56 @@ export function LeadCaptureClient() {
           box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
         }
       `}</style>
+
+      {/* WORKFLOW SELECTOR */}
+      <div className="bg-card border border-border rounded-2xl p-4 shadow-sm">
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <div className="flex items-center gap-2">
+            <Layout className="w-4 h-4 text-primary" />
+            <span className="text-sm font-semibold text-foreground">Workflows</span>
+            <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+              {workflows.length}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={handleNewWorkflow}
+            disabled={saving}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-all disabled:opacity-50"
+          >
+            <Play className="w-3 h-3 fill-primary-foreground" />
+            New Workflow
+          </button>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {workflows.map((wf) => (
+            <div
+              key={wf.id}
+              onClick={() => setSelectedWorkflowId(wf.id)}
+              className={`flex items-center gap-2 px-3 py-2 rounded-xl border cursor-pointer transition-all group ${
+                selectedWorkflowId === wf.id
+                  ? "border-primary bg-primary/10 text-foreground"
+                  : "border-border hover:border-primary/30 text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <span className={`w-2 h-2 rounded-full ${wf.is_active ? "bg-emerald-500 animate-pulse" : "bg-muted-foreground/30"}`} />
+              <span className="text-xs font-medium truncate max-w-[140px]">{wf.name}</span>
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); handleDeleteWorkflow(wf.id); }}
+                disabled={deleting}
+                className="opacity-0 group-hover:opacity-100 ml-1 text-muted-foreground hover:text-destructive transition-all"
+                title="Delete workflow"
+              >
+                <XCircle className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ))}
+          {workflows.length === 0 && (
+            <p className="text-xs text-muted-foreground py-2">No workflows yet. Create one to get started.</p>
+          )}
+        </div>
+      </div>
 
       {/* SECTION 1: INTERACTIVE WORKFLOW VISUALIZATION */}
       <div className="bg-card border border-border rounded-2xl p-6 shadow-sm overflow-hidden">
@@ -901,6 +1030,17 @@ export function LeadCaptureClient() {
               {/* TAB 1: Google Sheet configurations */}
               {activeTab === "sheet" && (
                 <div className="space-y-4 animate-fade-in">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      Workflow Name
+                    </label>
+                    <input
+                      {...register("name")}
+                      placeholder="e.g. Summer Campaign Leads"
+                      className="w-full px-3 py-2.5 bg-background border border-input rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    />
+                  </div>
+
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                       Google Sheet URL

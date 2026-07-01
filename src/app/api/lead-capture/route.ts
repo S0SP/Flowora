@@ -6,25 +6,24 @@ export async function GET() {
   try {
     const supabase = await createAdminClient();
 
-    // 1. Get the lead capture settings (should be only one row)
+    // Return ALL settings (multi-workflow support)
     const { data: settingsList, error: settingsError } = await supabase
       .from("lead_capture_settings")
       .select("*")
-      .limit(1);
+      .order("created_at", { ascending: true });
 
     if (settingsError) throw settingsError;
-    const settings = settingsList?.[0] || null;
 
-    // 2. Get captured leads history
+    // Get captured leads history
     const { data: leads, error: leadsError } = await supabase
       .from("lead_capture_leads")
       .select("*")
       .order("created_at", { ascending: false })
-      .limit(100);
+      .limit(200);
 
     if (leadsError) throw leadsError;
 
-    return NextResponse.json({ settings, leads });
+    return NextResponse.json({ settings: settingsList ?? [], leads: leads ?? [] });
   } catch (err) {
     console.error("LeadCapture API GET Error:", err);
     return NextResponse.json(
@@ -39,6 +38,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const {
       id,
+      name,
       sheet_url,
       phone_column,
       name_column,
@@ -87,8 +87,9 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = await createAdminClient();
-    
+
     const settingsPayload = {
+      name: name || "Untitled Workflow",
       sheet_url,
       phone_column,
       name_column: name_column || null,
@@ -124,38 +125,21 @@ export async function POST(req: NextRequest) {
     let result;
 
     if (id) {
-      // Upsert by ID
+      // Update existing workflow
       result = await supabase
         .from("lead_capture_settings")
-        .upsert({
-          id,
-          ...settingsPayload,
-        })
+        .update(settingsPayload)
+        .eq("id", id)
         .select()
         .single();
     } else {
-      // If no ID passed, check if any settings row already exists
-      const { data: existing } = await supabase
+      // Create new workflow
+      const { updated_at, ...insertPayload } = settingsPayload;
+      result = await supabase
         .from("lead_capture_settings")
-        .select("id")
-        .limit(1);
-
-      if (existing && existing.length > 0) {
-        result = await supabase
-          .from("lead_capture_settings")
-          .update(settingsPayload)
-          .eq("id", existing[0].id)
-          .select()
-          .single();
-      } else {
-        // Remove updated_at for pure insert default
-        const { updated_at, ...insertPayload } = settingsPayload;
-        result = await supabase
-          .from("lead_capture_settings")
-          .insert(insertPayload)
-          .select()
-          .single();
-      }
+        .insert(insertPayload)
+        .select()
+        .single();
     }
 
     if (result.error) {
@@ -174,6 +158,32 @@ export async function POST(req: NextRequest) {
     console.error("LeadCapture API POST Error:", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Failed to save settings" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+    if (!id) {
+      return NextResponse.json({ error: "Workflow ID is required" }, { status: 400 });
+    }
+
+    const supabase = await createAdminClient();
+    const { error } = await supabase
+      .from("lead_capture_settings")
+      .delete()
+      .eq("id", id);
+
+    if (error) throw error;
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("LeadCapture API DELETE Error:", err);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Failed to delete workflow" },
       { status: 500 }
     );
   }
