@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       const { data: calls } = await supabase
         .from("voice_calls")
         .select("id")
-        .eq("to_number", phone)
+        .eq("phone_number", phone)
         .order("created_at", { ascending: false })
         .limit(1);
 

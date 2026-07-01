@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
       .from("voice_calls")
       .insert({
         user_id: user.id,
-        to_number: toNumber,
+        phone_number: toNumber,
         agent_type: agentType,
         voice_id: voiceId,
         status: "initiated",

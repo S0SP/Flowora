@@ -47,7 +47,7 @@ interface CostBreakdown {
 
 interface VoiceCall {
   id: string;
-  to_number: string;
+  phone_number: string;
   agent_type: string;
   voice_id: string;
   status: string;
@@ -257,7 +257,7 @@ function CallRow({ call }: { call: VoiceCall }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-mono font-semibold text-sm text-foreground">
-              +91 {call.to_number || "—"}
+              +91 {call.phone_number || "—"}
             </span>
             <span className={cn(
               "text-[10px] px-2 py-0.5 rounded-full font-medium",
