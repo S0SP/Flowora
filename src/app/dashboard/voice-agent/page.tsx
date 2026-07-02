@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Phone, PhoneOff, Mic, Brain, Play, Loader2, Check,
   Volume2, ChevronRight, Sparkles, Clock, Radio, Edit3,
@@ -118,9 +119,26 @@ function WaveformBars({ active }: { active: boolean }) {
   );
 }
 
+// Inner component reads the ?voice= URL param (requires Suspense boundary)
+function VoiceAgentPageInner() {
+  const searchParams = useSearchParams();
+  const urlVoice = searchParams.get("voice") ?? "";
+  const allVoices = [...SARVAM_VOICES, ...GEMINI_VOICES];
+  const initialVoice = allVoices.some(v => v.id === urlVoice) ? urlVoice : "anushka";
+  return <VoiceAgentPageContent initialVoice={initialVoice} />;
+}
+
 export default function VoiceAgentPage() {
+  return (
+    <Suspense fallback={null}>
+      <VoiceAgentPageInner />
+    </Suspense>
+  );
+}
+
+function VoiceAgentPageContent({ initialVoice }: { initialVoice: string }) {
   const [agentType, setAgentType] = useState<AgentType>("livekit");
-  const [selectedVoice, setSelectedVoice] = useState("anushka");
+  const [selectedVoice, setSelectedVoice] = useState(initialVoice);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [callStatus, setCallStatus] = useState<CallStatus>("idle");
   const [currentCallId, setCurrentCallId] = useState<string | null>(null);

@@ -224,7 +224,7 @@ export default function VoicesPage() {
               Selected: <span className="text-primary">{SARVAM_VOICES.find(v => v.id === selectedVoice)?.name}</span>
             </span>
             <a
-              href="/dashboard/voice-agent"
+              href={`/dashboard/voice-agent?voice=${selectedVoice}`}
               className="ml-2 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors"
             >
               Use This Voice →

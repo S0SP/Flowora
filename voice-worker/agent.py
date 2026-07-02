@@ -320,7 +320,19 @@ def _setup_language_auto_switch(session: AgentSession, tts_instance) -> None:
         if not transcript:
             return
 
-        detected = _detect_language(transcript)
+        # Only switch TTS language when the user is actually writing in a non-Latin Indian
+        # script (Devanagari, Tamil, Telugu, etc.).  Hinglish in Roman letters is detected
+        # as "hi-IN" by keyword matching, but the LLM is instructed to reply in Roman script,
+        # and bulbul:v3-beta rejects plain ASCII text when target_language_code is "hi-IN".
+        # Keep the TTS language at "en-IN" for all Roman-script input.
+        detected_script_lang = None
+        for pattern, lang_code in _SCRIPT_TO_LANG:
+            if pattern.search(transcript):
+                detected_script_lang = lang_code
+                break
+
+        detected = detected_script_lang or "en-IN"
+
         if detected == current_language["code"]:
             return
 
@@ -547,7 +559,7 @@ async def entrypoint(ctx: agents.JobContext):
     else:
         # ---- Groq/OpenAI + Sarvam/Deepgram path (standard pipeline) ----
 
-        tts_instance = _build_tts(config_dict.get("tts_provider"), config_dict.get("voice_id"))
+        tts_instance = _build_tts(config_dict.get("tts_provider"), resolved_voice)
 
         stt_instance = deepgram.STT(
             model=os.getenv("STT_MODEL", config.STT_MODEL),
@@ -584,7 +596,8 @@ async def entrypoint(ctx: agents.JobContext):
             room_input_options=RoomInputOptions(noise_cancellation=nc_plugin, close_on_disconnect=True),
         )
 
-        is_inbound = config_dict.get("inbound", False)
+        # Detect inbound SIP calls by room name even when dispatch-rule metadata is stale
+        is_inbound = config_dict.get("inbound", False) or ctx.room.name.startswith("inbound-")
 
         if phone_number or is_inbound:
             mode = "Outbound" if phone_number else "Inbound"
