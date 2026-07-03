@@ -103,6 +103,21 @@ SARVAM_V3_VOICES = {
 SARVAM_ALL_VOICES = SARVAM_V2_VOICES | SARVAM_V3_VOICES
 
 
+_MD_STRIP = re.compile(
+    r'\*{1,3}([^*]+)\*{1,3}'   # *italic*, **bold**, ***both***
+    r'|`[^`]+`'                 # `inline code`
+    r'|#{1,6}\s+'               # ## heading prefix
+    r'|^[-*+]\s+'               # - bullet / * bullet
+    r'|\[([^\]]+)\]\([^)]+\)',  # [link text](url)
+    re.MULTILINE,
+)
+
+def _strip_markdown(text: str) -> str:
+    """Remove markdown formatting so Sarvam TTS only receives plain text."""
+    cleaned = _MD_STRIP.sub(lambda m: m.group(1) or m.group(2) or "", text)
+    return cleaned.strip()
+
+
 def _build_tts(config_provider: str = None, config_voice: str = None):
     """Configure Text-to-Speech provider from env vars or dynamic config."""
     provider = (config_provider or os.getenv("TTS_PROVIDER", config.DEFAULT_TTS_PROVIDER)).lower()
@@ -233,7 +248,7 @@ class TransferFunctions(llm.ToolContext):
         self.phone_number = phone_number
 
     @llm.function_tool(description="Look up user details by phone number.")
-    def lookup_user(self, phone: str):
+    async def lookup_user(self, phone: str):
         logger.info(f"Looking up user: {phone}")
         return f"User found: Active customer. Welcome back."
 
@@ -350,6 +365,27 @@ def _setup_language_auto_switch(session: AgentSession, tts_instance) -> None:
             logger.info(f"TTS provider does not support dynamic language switching. User lang: {detected}")
 
     session.on("user_speech_committed", on_user_speech_committed)
+
+    # Strip markdown formatting from every agent reply before Sarvam synthesises
+    # it.  Sarvam bulbul rejects text containing only punctuation/symbols (e.g.
+    # "**Hi**") with a 422 "no valid language characters" error.
+    if isinstance(tts_instance, sarvam.TTS):
+        def on_before_tts(ev):
+            raw = getattr(ev, "text", "") or ""
+            clean = _strip_markdown(raw)
+            if clean != raw:
+                logger.debug(f"Stripped markdown for TTS: {raw!r} → {clean!r}")
+            if hasattr(ev, "text"):
+                try:
+                    ev.text = clean or "."   # Sarvam needs at least one character
+                except AttributeError:
+                    pass  # read-only event — nothing we can do
+
+        try:
+            session.on("before_tts_synthesize", on_before_tts)
+        except Exception:
+            pass  # older SDK versions may not have this event
+
     logger.info("🌐 Multilingual auto-switch enabled (10 Indian languages + English)")
 
 
