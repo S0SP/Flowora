@@ -374,7 +374,8 @@ def _setup_language_auto_switch(session: AgentSession, tts_instance) -> None:
             raw = getattr(ev, "text", "") or ""
             clean = _strip_markdown(raw)
             if clean != raw:
-                logger.debug(f"Stripped markdown for TTS: {raw!r} → {clean!r}")
+                logger.info(f"🧹 Stripped markdown before TTS: {raw!r} → {clean!r}")
+            logger.info(f"🔊 TTS input ({len(clean)} chars): {clean[:120]!r}")
             if hasattr(ev, "text"):
                 try:
                     ev.text = clean or "."   # Sarvam needs at least one character
@@ -673,18 +674,24 @@ async def entrypoint(ctx: agents.JobContext):
                 room_input_options=RoomInputOptions(noise_cancellation=nc_plugin, close_on_disconnect=True),
             )
 
+        # Hard-coded plain-text greeting spoken directly via TTS, bypassing the LLM.
+        # generate_reply(instructions=...) routes through the LLM which can produce
+        # markdown (**bold**) or guess the wrong language — both cause Sarvam 422.
+        # session.say() sends the exact string to TTS with zero LLM involvement.
+        GREETING_TEXT = "Hi, this is Aria from UnboundYou! How can I help you today?"
+
         if phone_number or is_inbound:
             # SIP participant already confirmed present — greet immediately
-            greeting = config.INITIAL_GREETING if phone_number else "The caller just joined. Greet them warmly."
+            logger.info("SIP participant joined — speaking greeting directly via TTS")
             try:
-                await session.generate_reply(instructions=greeting)
+                await session.say(GREETING_TEXT, allow_interruptions=True)
             except Exception as e:
                 logger.error(f"Greeting failed: {e}")
         else:
             logger.info("Web/dashboard session. Greeting immediately...")
             await asyncio.sleep(1)
             try:
-                await session.generate_reply(instructions=config.WEB_GREETING)
+                await session.say(config.WEB_GREETING, allow_interruptions=True)
             except Exception as e:
                 logger.error(f"Web greeting failed: {e}")
 
