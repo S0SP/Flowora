@@ -559,6 +559,31 @@ async def entrypoint(ctx: agents.JobContext):
     else:
         # ---- Groq/OpenAI + Sarvam/Deepgram path (standard pipeline) ----
 
+        # Detect inbound SIP calls by room name even when dispatch-rule metadata is stale.
+        is_inbound = config_dict.get("inbound", False) or ctx.room.name.startswith("inbound-")
+
+        # Wait for the SIP participant BEFORE building the AgentSession / opening the
+        # Deepgram WebSocket.  Deepgram closes the connection with code 1011 if it does
+        # not receive audio data within its idle-timeout window (~10 s), which happens
+        # when the session starts before the caller has joined the room.
+        sip_joined = False
+        if phone_number or is_inbound:
+            mode = "Outbound" if phone_number else "Inbound"
+            logger.info(f"{mode} call mode — waiting for SIP participant...")
+
+            for _ in range(60):          # wait up to 60 s (SIP setup can be slow)
+                for p in ctx.room.remote_participants.values():
+                    if "sip_" in p.identity:
+                        sip_joined = True
+                        break
+                if sip_joined:
+                    break
+                await asyncio.sleep(1)
+
+            if not sip_joined:
+                logger.warning("SIP participant never joined within 60 s — aborting session.")
+                return                   # nothing to do; avoid opening idle STT connections
+
         tts_instance = _build_tts(config_dict.get("tts_provider"), resolved_voice)
 
         stt_instance = deepgram.STT(
@@ -566,20 +591,26 @@ async def entrypoint(ctx: agents.JobContext):
             language="multi",   # Auto-detect any language — Nova-2 supports 30+ languages
         )
 
+        # Use TurnHandlingOptions (livekit-agents ≥ 2.0); fall back to the deprecated
+        # keyword arguments for older installs that do not have that class yet.
         try:
+            from livekit.agents import TurnHandlingOptions
             session = AgentSession(
                 stt=stt_instance,
                 llm=_build_llm(config_dict.get("model_provider")),
                 tts=tts_instance,
-                min_endpointing_delay=0.4,   # Respond 400ms after speech ends (vs default 500ms)
-                allow_interruptions=True,     # User can interrupt agent mid-response
+                turn_handling=TurnHandlingOptions(
+                    min_endpointing_delay=0.4,   # respond 400 ms after speech ends
+                    allow_interruptions=True,    # user can interrupt mid-response
+                ),
             )
-        except TypeError:
-            # Older livekit-agents without min_endpointing_delay param
+        except (ImportError, TypeError):
             session = AgentSession(
                 stt=stt_instance,
                 llm=_build_llm(config_dict.get("model_provider")),
                 tts=tts_instance,
+                min_endpointing_delay=0.4,
+                allow_interruptions=True,
             )
 
         _setup_language_auto_switch(session, tts_instance)
@@ -590,37 +621,29 @@ async def entrypoint(ctx: agents.JobContext):
             from livekit.plugins import noise_cancellation as _nc
             nc_plugin = _nc.BVCTelephony()
 
-        await session.start(
-            room=ctx.room,
-            agent=OutboundAssistant(tools=list(fnc_ctx.function_tools.values()), system_prompt=resolved_prompt),
-            room_input_options=RoomInputOptions(noise_cancellation=nc_plugin, close_on_disconnect=True),
-        )
-
-        # Detect inbound SIP calls by room name even when dispatch-rule metadata is stale
-        is_inbound = config_dict.get("inbound", False) or ctx.room.name.startswith("inbound-")
+        # Use RoomOptions (livekit-agents ≥ 2.0); fall back to RoomInputOptions for
+        # older installs.
+        try:
+            from livekit.agents import RoomOptions
+            await session.start(
+                room=ctx.room,
+                agent=OutboundAssistant(tools=list(fnc_ctx.function_tools.values()), system_prompt=resolved_prompt),
+                room_options=RoomOptions(noise_cancellation=nc_plugin, close_on_disconnect=True),
+            )
+        except (ImportError, TypeError):
+            await session.start(
+                room=ctx.room,
+                agent=OutboundAssistant(tools=list(fnc_ctx.function_tools.values()), system_prompt=resolved_prompt),
+                room_input_options=RoomInputOptions(noise_cancellation=nc_plugin, close_on_disconnect=True),
+            )
 
         if phone_number or is_inbound:
-            mode = "Outbound" if phone_number else "Inbound"
-            logger.info(f"{mode} call mode — waiting for SIP participant...")
-
-            sip_joined = False
-            for _ in range(30):
-                for p in ctx.room.remote_participants.values():
-                    if "sip_" in p.identity:
-                        sip_joined = True
-                        break
-                if sip_joined:
-                    break
-                await asyncio.sleep(1)
-
-            if sip_joined:
-                greeting = config.INITIAL_GREETING if phone_number else "The caller just joined. Greet them warmly."
-                try:
-                    await session.generate_reply(instructions=greeting)
-                except Exception as e:
-                    logger.error(f"Greeting failed: {e}")
-            else:
-                logger.warning("SIP participant never joined within 30s.")
+            # SIP participant already confirmed present — greet immediately
+            greeting = config.INITIAL_GREETING if phone_number else "The caller just joined. Greet them warmly."
+            try:
+                await session.generate_reply(instructions=greeting)
+            except Exception as e:
+                logger.error(f"Greeting failed: {e}")
         else:
             logger.info("Web/dashboard session. Greeting immediately...")
             await asyncio.sleep(1)
@@ -729,5 +752,10 @@ if __name__ == "__main__":
         agents.WorkerOptions(
             entrypoint_fnc=entrypoint,
             agent_name="outbound-caller",
+            # Do not pre-spawn idle worker processes.  Each process loads models and
+            # opens connections, which wastes memory in containers and pushes the
+            # worker over its memory limit when two concurrent calls arrive (causing
+            # the SIGKILL / exit code -9 seen in the logs).
+            num_idle_processes=0,
         )
     )
