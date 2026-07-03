@@ -366,16 +366,33 @@ def _setup_language_auto_switch(session: AgentSession, tts_instance) -> None:
 
     session.on("user_speech_committed", on_user_speech_committed)
 
-    # Strip markdown formatting from every agent reply before Sarvam synthesises
-    # it.  Sarvam bulbul rejects text containing only punctuation/symbols (e.g.
-    # "**Hi**") with a 422 "no valid language characters" error.
+    # Before every Sarvam TTS synthesis:
+    #   1. Strip markdown (** bold **, # headings, etc.) — Sarvam 422 on symbol-only text
+    #   2. Auto-detect the OUTPUT language from the LLM reply and update target_language_code
+    #      so Hindi/Tamil/etc. replies are spoken in the right language, not rejected.
     if isinstance(tts_instance, sarvam.TTS):
         def on_before_tts(ev):
             raw = getattr(ev, "text", "") or ""
             clean = _strip_markdown(raw)
             if clean != raw:
                 logger.info(f"🧹 Stripped markdown before TTS: {raw!r} → {clean!r}")
-            logger.info(f"🔊 TTS input ({len(clean)} chars): {clean[:120]!r}")
+
+            # Detect the script of the LLM reply and update TTS language accordingly.
+            # This handles the case where the LLM replies in Devanagari/Tamil/etc.
+            # even when the user wrote in Roman script (Hinglish).
+            output_lang = "en-IN"
+            for pattern, lang_code in _SCRIPT_TO_LANG:
+                if pattern.search(clean):
+                    output_lang = lang_code
+                    break
+
+            try:
+                tts_instance.update_options(target_language_code=output_lang)
+            except Exception:
+                pass
+
+            logger.info(f"🔊 TTS → lang={output_lang} | {len(clean)} chars: {clean[:100]!r}")
+
             if hasattr(ev, "text"):
                 try:
                     ev.text = clean or "."   # Sarvam needs at least one character
@@ -409,7 +426,7 @@ def _get_message_text(m) -> str:
     return ""
 
 
-def _calculate_costs(messages: list, call_duration_secs: int, llm_provider: str, llm_model: str) -> dict:
+def _calculate_costs(messages: list, call_duration_secs: int, llm_provider: str, llm_model: str, extra_tts_chars: int = 0) -> dict:
     """
     Estimate per-call API costs in INR from transcript and call duration.
     Uses rough token estimation (1 token ≈ 3.5 chars for mixed Hindi/English).
@@ -428,7 +445,7 @@ def _calculate_costs(messages: list, call_duration_secs: int, llm_provider: str,
 
     input_tokens  = max(1, int(len(full_context) / CHARS_PER_TOKEN))
     output_tokens = max(1, int(len(assistant_text) / CHARS_PER_TOKEN))
-    tts_chars     = len(assistant_text.strip())
+    tts_chars     = len(assistant_text.strip()) + extra_tts_chars   # includes session.say() chars
     duration_mins = call_duration_secs / 60.0
 
     # Pulse billing: ceiling per started minute
@@ -502,9 +519,10 @@ async def entrypoint(ctx: agents.JobContext):
     await ctx.connect()
     logger.info(f"Connecting to room: {ctx.room.name}")
 
-    phone_number = None
-    config_dict  = {}
-    call_start   = time.time()
+    phone_number    = None
+    config_dict     = {}
+    call_start      = time.time()
+    extra_tts_chars = [0]   # tracks session.say() char counts for cost calculation
 
     # Parse job metadata (legacy / dispatch)
     try:
@@ -685,6 +703,7 @@ async def entrypoint(ctx: agents.JobContext):
             logger.info("SIP participant joined — speaking greeting directly via TTS")
             try:
                 await session.say(GREETING_TEXT, allow_interruptions=True)
+                extra_tts_chars[0] += len(GREETING_TEXT)
             except Exception as e:
                 logger.error(f"Greeting failed: {e}")
         else:
@@ -692,67 +711,81 @@ async def entrypoint(ctx: agents.JobContext):
             await asyncio.sleep(1)
             try:
                 await session.say(config.WEB_GREETING, allow_interruptions=True)
+                extra_tts_chars[0] += len(config.WEB_GREETING)
             except Exception as e:
                 logger.error(f"Web greeting failed: {e}")
 
-    # ---- On disconnect: build transcript, calculate costs, send webhook ----
+    # ---- Wait for room to disconnect, then send transcript webhook ----
+    # Using an async wait loop instead of @ctx.room.on("disconnected") callback
+    # because the callback fires synchronously and asyncio.create_task() lets the
+    # process exit before the HTTP POST completes — causing the frontend to never
+    # receive transcript, cost, or recording data.
+
+    disconnect_event = asyncio.Event()
 
     @ctx.room.on("disconnected")
     def on_disconnect(reason):
         logger.info(f"Room disconnected: {reason}")
+        disconnect_event.set()
 
-        call_duration_secs = int(time.time() - call_start)
-        logger.info(f"📞 Call duration: {call_duration_secs}s")
+    await disconnect_event.wait()
 
-        # Extract transcript from session history
-        messages = []
-        transcript_text = ""
-        try:
-            history = session.history
-            if callable(history):
-                history = history()
-            raw = getattr(history, "messages", None)
-            if callable(raw):
-                raw = raw()
-            messages = list(raw) if raw else []
-            parts = []
-            for m in messages:
-                text = _get_message_text(m)
-                if text:
-                    parts.append(f"{m.role}: {text}")
-            transcript_text = "\n".join(parts)
-        except Exception as e:
-            logger.warning(f"Could not extract transcript: {e}")
+    call_duration_secs = int(time.time() - call_start)
+    logger.info(f"📞 Call duration: {call_duration_secs}s")
 
-        # Calculate API costs
-        try:
-            cost_data = _calculate_costs(messages, call_duration_secs, resolved_provider, resolved_model)
-        except Exception as e:
-            logger.warning(f"Cost calculation failed: {e}")
-            cost_data = {"total_inr": 0, "breakdown": {}}
+    # Extract transcript from session history
+    messages = []
+    transcript_text = ""
+    try:
+        history = session.history
+        if callable(history):
+            history = history()
+        raw = getattr(history, "messages", None)
+        if callable(raw):
+            raw = raw()
+        messages = list(raw) if raw else []
+        parts = []
+        for m in messages:
+            text = _get_message_text(m)
+            if text:
+                parts.append(f"{getattr(m, 'role', 'unknown')}: {text}")
+        transcript_text = "\n".join(parts)
+        logger.info(f"📝 Transcript: {len(messages)} messages, {len(transcript_text)} chars")
+    except Exception as e:
+        logger.warning(f"Could not extract transcript: {e}")
 
-        async def send_webhook():
-            try:
-                import aiohttp
-                webhook_url = os.getenv("WEBHOOK_URL", "http://localhost:3000/api/voice/transcript")
+    # Calculate API costs
+    try:
+        cost_data = _calculate_costs(messages, call_duration_secs, resolved_provider, resolved_model,
+                                     extra_tts_chars=extra_tts_chars[0])
+    except Exception as e:
+        logger.warning(f"Cost calculation failed: {e}")
+        cost_data = {"total_inr": 0, "breakdown": {}}
 
-                payload = {
-                    "call_id":           call_id,
-                    "phone":             phone_number,
-                    "transcript":        transcript_text,
-                    "status":            "COMPLETED",
-                    "duration_seconds":  call_duration_secs,
-                    "cost_breakdown":    cost_data,
-                }
+    # Send webhook — awaited directly so the process doesn't exit prematurely
+    try:
+        import aiohttp
+        webhook_url = os.getenv("WEBHOOK_URL", "http://localhost:3000/api/voice/transcript")
 
-                logger.info(f"📤 Sending webhook to {webhook_url} | call_id={call_id}")
-                async with aiohttp.ClientSession() as http_session:
-                    async with http_session.post(webhook_url, json=payload, timeout=aiohttp.ClientTimeout(total=10)) as resp:
-                        logger.info(f"Webhook response: {resp.status}")
-            except Exception as e:
-                logger.error(f"Failed to send webhook: {e}")
+        payload = {
+            "call_id":          call_id,
+            "phone":            phone_number,
+            "transcript":       transcript_text,
+            "status":           "COMPLETED",
+            "duration_seconds": call_duration_secs,
+            "cost_breakdown":   cost_data,
+        }
 
-        asyncio.create_task(send_webhook())
+        logger.info(f"📤 Sending webhook to {webhook_url} | call_id={call_id}")
+        async with aiohttp.ClientSession() as http_session:
+            async with http_session.post(
+                webhook_url, json=payload,
+                timeout=aiohttp.ClientTimeout(total=15)
+            ) as resp:
+                body = await resp.text()
+                logger.info(f"✅ Webhook response: {resp.status} — {body[:200]}")
+    except Exception as e:
+        logger.error(f"Failed to send webhook: {e}")
 
 
 # ---------------------------------------------------------------------------
