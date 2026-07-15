@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { Ticket as TicketIcon, Loader2, Circle, ChevronRight, Plus } from "lucide-react";
+import { Ticket as TicketIcon, Loader2, Circle, ChevronRight, Plus, X } from "lucide-react";
 import { formatRelativeTime } from "@/lib/utils";
 import type { TicketSeverity, TicketStatus } from "@/services/tickets";
 
@@ -50,6 +50,17 @@ export default function TicketsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
 
+  // New ticket modal states
+  const [isNewTicketModalOpen, setIsNewTicketModalOpen] = useState(false);
+  const [ticketSubject, setTicketSubject] = useState("");
+  const [ticketDescription, setTicketDescription] = useState("");
+  const [ticketSeverity, setTicketSeverity] = useState<TicketSeverity>("medium");
+  const [selectedContactId, setSelectedContactId] = useState("");
+  const [contactSearchQuery, setContactSearchQuery] = useState("");
+  const [contactsList, setContactsList] = useState<{ id: string; full_name: string | null; phone: string; email: string | null }[]>([]);
+  const [loadingContacts, setLoadingContacts] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
   const load = useCallback((f: string) => {
     setLoading(true);
     const params = FILTERS.find((x) => x.key === f)?.params ?? "";
@@ -61,6 +72,66 @@ export default function TicketsPage() {
   }, []);
 
   useEffect(() => { load(filter); }, [filter, load]);
+
+  // Debounced contact search
+  useEffect(() => {
+    if (!contactSearchQuery.trim()) {
+      setContactsList([]);
+      return;
+    }
+    // Don't search if it matches the selected contact name/phone
+    const selected = contactsList.find(c => c.id === selectedContactId);
+    if (selected && (selected.full_name === contactSearchQuery || selected.phone === contactSearchQuery)) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setLoadingContacts(true);
+      fetch(`/api/contacts?limit=10&search=${encodeURIComponent(contactSearchQuery)}`)
+        .then((r) => r.json())
+        .then((d) => setContactsList(d.contacts ?? []))
+        .catch(() => toast.error("Failed to search contacts"))
+        .finally(() => setLoadingContacts(false));
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [contactSearchQuery, selectedContactId]);
+
+  const handleCreateTicketSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedContactId) {
+      toast.error("Please select a contact");
+      return;
+    }
+    if (!ticketSubject.trim()) {
+      toast.error("Subject is required");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/tickets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contact_id: selectedContactId,
+          subject: ticketSubject.trim(),
+          description: ticketDescription.trim() || null,
+          severity: ticketSeverity,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed to create ticket");
+
+      toast.success("Ticket created successfully");
+      setIsNewTicketModalOpen(false);
+      load(filter);
+    } catch (err: any) {
+      toast.error(err.message ?? "Failed to create ticket");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
@@ -74,12 +145,20 @@ export default function TicketsPage() {
             Conversations escalated from the AI chatbot or opened manually.
           </p>
         </div>
-        <Link
-          href="/dashboard/contacts"
+        <button
+          onClick={() => {
+            setIsNewTicketModalOpen(true);
+            setContactSearchQuery("");
+            setContactsList([]);
+            setSelectedContactId("");
+            setTicketSubject("");
+            setTicketDescription("");
+            setTicketSeverity("medium");
+          }}
           className="flex items-center gap-1.5 px-3 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
         >
           <Plus className="w-4 h-4" /> New ticket
-        </Link>
+        </button>
       </div>
 
       {/* Filter tabs */}
@@ -166,6 +245,146 @@ export default function TicketsPage() {
               <ChevronRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-foreground shrink-0" />
             </Link>
           ))}
+        </div>
+      )}
+
+      {/* New Ticket Modal */}
+      {isNewTicketModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-card border border-border w-[460px] rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 p-6 flex flex-col gap-4">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <h2 className="text-base font-bold text-foreground">Create Support Ticket</h2>
+              <button 
+                onClick={() => setIsNewTicketModalOpen(false)} 
+                className="p-1 hover:bg-muted rounded-full text-muted-foreground transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateTicketSubmit} className="space-y-4 text-sm">
+              {/* Contact Search Field */}
+              <div>
+                <label className="block text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                  Contact (WhatsApp User) *
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    required
+                    placeholder="Search contact by name or number..."
+                    value={contactSearchQuery}
+                    onChange={(e) => {
+                      setContactSearchQuery(e.target.value);
+                      if (!e.target.value.trim()) setSelectedContactId("");
+                    }}
+                    className="w-full px-3 py-2 border border-input rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
+                  />
+                  {loadingContacts && (
+                    <Loader2 className="absolute right-3 top-2.5 w-4 h-4 animate-spin text-muted-foreground" />
+                  )}
+                  {/* Dropdown list */}
+                  {contactsList.length > 0 && (
+                    <div className="absolute left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-card border border-border rounded-xl shadow-lg z-50 p-1 divide-y divide-border/40">
+                      {contactsList.map((c) => (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedContactId(c.id);
+                            setContactSearchQuery(c.full_name || c.phone);
+                            setContactsList([]);
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded-lg text-xs hover:bg-muted transition-colors flex justify-between items-center ${
+                            selectedContactId === c.id ? "bg-muted font-semibold" : ""
+                          }`}
+                        >
+                          <div>
+                            <p className="font-semibold text-foreground truncate max-w-[200px]">
+                              {c.full_name || "Unknown Name"}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground">{c.phone}</p>
+                          </div>
+                          {c.email && (
+                            <span className="text-[10px] text-muted-foreground/80 truncate max-w-[120px]">
+                              {c.email}
+                            </span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {selectedContactId && (
+                  <p className="text-[10px] text-emerald-600 mt-1 font-medium">✓ Contact selected</p>
+                )}
+              </div>
+
+              {/* Subject */}
+              <div>
+                <label className="block text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                  Subject *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Issue with payment verification"
+                  value={ticketSubject}
+                  onChange={(e) => setTicketSubject(e.target.value)}
+                  className="w-full px-3 py-2 border border-input rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                  Description
+                </label>
+                <textarea
+                  placeholder="Provide details about the customer's request..."
+                  value={ticketDescription}
+                  onChange={(e) => setTicketDescription(e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-input rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground resize-none"
+                />
+              </div>
+
+              {/* Severity */}
+              <div>
+                <label className="block text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                  Severity
+                </label>
+                <select
+                  value={ticketSeverity}
+                  onChange={(e) => setTicketSeverity(e.target.value as TicketSeverity)}
+                  className="w-full px-3 py-2 border border-input rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground cursor-pointer"
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                  <option value="critical">Critical</option>
+                </select>
+              </div>
+
+              <div className="pt-3 border-t border-border flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsNewTicketModalOpen(false)}
+                  className="px-4 py-2 border border-border rounded-xl text-xs font-semibold hover:bg-muted text-muted-foreground bg-card"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-xs font-semibold hover:bg-primary/90 transition-all shadow-sm flex items-center gap-1.5"
+                >
+                  {submitting && <Loader2 className="w-3 h-3 animate-spin" />}
+                  Create Ticket
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

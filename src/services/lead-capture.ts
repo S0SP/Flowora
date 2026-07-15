@@ -12,6 +12,32 @@ export function getSpreadsheetId(url: string): string | null {
   return match ? match[1] : null;
 }
 
+// Helper to replace placeholders like {Interest} or {{Interest}} dynamically from custom variables
+export function interpolateCustomFields(text: string, customFields: Record<string, any> = {}, lead: any): string {
+  if (!text) return "";
+  let result = text
+    .replace(/\{\{lead_name\}\}/g, lead.name || "friend")
+    .replace(/\{\{lead_email\}\}/g, lead.email || "")
+    .replace(/\{\{lead_phone\}\}/g, lead.phone || "")
+    .replace(/\{lead_name\}/g, lead.name || "friend")
+    .replace(/\{lead_email\}/g, lead.email || "")
+    .replace(/\{lead_phone\}/g, lead.phone || "");
+
+  Object.entries(customFields).forEach(([key, value]) => {
+    const cleanValue = value !== undefined && value !== null ? String(value) : "";
+    
+    // Replace {{key}}
+    const regexDouble = new RegExp(`\\{\\{${key}\\}\\}`, "gi");
+    result = result.replace(regexDouble, cleanValue);
+
+    // Replace {key}
+    const regexSingle = new RegExp(`\\{${key}\\}`, "gi");
+    result = result.replace(regexSingle, cleanValue);
+  });
+
+  return result;
+}
+
 // Fetches Google Sheet as CSV and parses it
 export async function fetchGoogleSheetRows(url: string): Promise<Record<string, string>[]> {
   const spreadsheetId = getSpreadsheetId(url);
@@ -80,6 +106,20 @@ export async function syncActiveSheets() {
           const name = setting.name_column ? row[setting.name_column]?.trim() : null;
           const email = setting.email_column ? row[setting.email_column]?.trim() : null;
 
+          // Extract all custom variables (any columns other than name, phone, email columns)
+          const customFields: Record<string, any> = {};
+          const standardCols = [
+            setting.phone_column?.toLowerCase(), 
+            setting.name_column?.toLowerCase(), 
+            setting.email_column?.toLowerCase()
+          ].filter(Boolean);
+
+          Object.entries(row).forEach(([key, val]) => {
+            if (!standardCols.includes(key.toLowerCase())) {
+              customFields[key] = val?.trim();
+            }
+          });
+
           // Generate unique row hash for deduplication
           const rowHashSource = `${phone}_${name || ""}_${email || ""}_${i}`;
           const rowHash = crypto.createHash("md5").update(rowHashSource).digest("hex");
@@ -95,6 +135,9 @@ export async function syncActiveSheets() {
             row_hash: rowHash,
             status: "pending",
             scheduled_for: scheduledFor,
+            channel_status: {
+              custom_fields: customFields
+            }
           });
         }
 
@@ -183,10 +226,18 @@ export async function sendPendingLeads() {
 
       try {
         // 1. Upsert contact
+        const customFields = lead.channel_status?.custom_fields || {};
         const { data: upsertedContact, error: contactError } = await supabase
           .from("contacts")
           .upsert(
-            { phone: lead.phone, name: lead.name, email: lead.email, last_message_at: new Date().toISOString() },
+            { 
+              phone: lead.phone, 
+              name: lead.name, 
+              full_name: lead.name, 
+              email: lead.email, 
+              custom_fields: customFields,
+              last_message_at: new Date().toISOString() 
+            },
             { onConflict: "phone" }
           )
           .select("id")
@@ -298,11 +349,11 @@ export async function sendPendingLeads() {
               {
                 brand_name: setting.email_brand_name,
                 logo_url: setting.email_logo_url,
-                title: setting.email_title,
-                body: setting.email_body,
+                title: interpolateCustomFields(setting.email_title || "", customFields, lead),
+                body: interpolateCustomFields(setting.email_body || "", customFields, lead),
                 button_text: setting.email_button_text,
                 button_url: setting.email_button_url,
-                footer: setting.email_footer,
+                footer: interpolateCustomFields(setting.email_footer || "", customFields, lead),
               },
               {
                 name: lead.name,
@@ -363,16 +414,8 @@ export async function sendPendingLeads() {
           try {
             // Replace placeholders in the voice prompt
             const brandName = setting.email_brand_name || "My Agency";
-            const replacePlaceholders = (text: string) => {
-              return text
-                .replace(/\{\{lead_name\}\}/g, lead.name || "friend")
-                .replace(/\{\{lead_email\}\}/g, lead.email || "")
-                .replace(/\{\{lead_phone\}\}/g, lead.phone)
-                .replace(/\{\{brand_name\}\}/g, brandName);
-            };
-
             const systemPrompt = setting.voice_prompt
-              ? replacePlaceholders(setting.voice_prompt)
+              ? interpolateCustomFields(setting.voice_prompt, customFields, lead)
               : `You are an AI assistant for ${brandName}. You are calling a new lead named ${lead.name || "friend"}. Be helpful and answer their questions.`;
 
             const agentType: "livekit" | "gemini" =

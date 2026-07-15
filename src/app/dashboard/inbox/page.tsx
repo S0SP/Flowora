@@ -12,6 +12,7 @@ import {
   Bot as BotIcon, StickyNote, Image as ImageIcon, FileText, Music,
   Video, X, Plus, Ticket, ExternalLink, AlertTriangle, MoreHorizontal,
   SlidersHorizontal, Calendar, StickyNote as NoteIcon, Upload,
+  PanelRightOpen, PanelRightClose
 } from "lucide-react"
 import { cn, formatRelativeTime } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
@@ -237,6 +238,7 @@ export default function InboxPage() {
   const [activeTicket, setActiveTicket] = useState<ActiveTicket>(null)
   const [loadingThreads, setLoadingThreads] = useState(true)
   const [loadingMessages, setLoadingMessages] = useState(false)
+  const [isSmartCardsCollapsed, setIsSmartCardsCollapsed] = useState(false)
   const [composerMode, setComposerMode] = useState<"message" | "note" | "template">("message")
   const [sending, setSending] = useState(false)
   const [uploadingMedia, setUploadingMedia] = useState(false)
@@ -280,6 +282,7 @@ export default function InboxPage() {
   const [activeCallId, setActiveCallId] = useState<string | null>(null)
 
   const [search, setSearch] = useState("")
+  const [searchInput, setSearchInput] = useState("")
   const [tabFilter, setTabFilter] = useState<"all" | "open" | "bot" | "assigned">("all")
   const [showAssignMenu, setShowAssignMenu] = useState(false)
   const [assigningThread, setAssigningThread] = useState(false)
@@ -288,6 +291,23 @@ export default function InboxPage() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const selectedThreadRef = useRef<Thread | null>(null)
+  useEffect(() => {
+    selectedThreadRef.current = selectedThread
+  }, [selectedThread])
+
+  const threadsRef = useRef<Thread[]>([])
+  useEffect(() => {
+    threadsRef.current = threads
+  }, [threads])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearch(searchInput)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchInput])
 
   const threadStats = useMemo(() => {
     return {
@@ -397,8 +417,10 @@ export default function InboxPage() {
     }
   }, [activeCallId, supabase])
 
-  const fetchThreads = useCallback(async (resetSelection = false) => {
-    setLoadingThreads(true)
+  const fetchThreads = useCallback(async (resetSelection = false, showLoading = false) => {
+    if (showLoading || threadsRef.current.length === 0) {
+      setLoadingThreads(true)
+    }
     try {
       const params = new URLSearchParams({ limit: "50" })
       if (tabFilter === "open") { params.set("status", "open") }
@@ -431,11 +453,12 @@ export default function InboxPage() {
       const data = await res.json()
       const list: Thread[] = data.threads ?? []
       setThreads(list)
-      if (resetSelection || !selectedThread) {
+      const currentSelected = selectedThreadRef.current
+      if (resetSelection || !currentSelected) {
         setSelectedThread(list[0] ?? null)
       } else {
         // Re-sync the selected thread data in case status/ai_active changed
-        const updated = list.find(t => t.id === selectedThread?.id)
+        const updated = list.find(t => t.id === currentSelected.id)
         if (updated) setSelectedThread(updated)
       }
     } catch (e: any) {
@@ -443,7 +466,7 @@ export default function InboxPage() {
     } finally {
       setLoadingThreads(false)
     }
-  }, [tabFilter, selectedThread?.id, search, filterStatus, filterAssignedTo, filterTags, filterFollowups, filterDateOption, filterStartDate, filterEndDate])
+  }, [tabFilter, search, filterStatus, filterAssignedTo, filterTags, filterFollowups, filterDateOption, filterStartDate, filterEndDate])
 
   const fetchMetaTemplates = async () => {
     setLoadingTemplates(true)
@@ -850,7 +873,7 @@ export default function InboxPage() {
   };
   useEffect(() => {
     const timer = setTimeout(() => {
-      fetchThreads();
+      fetchThreads(false, true);
     }, 300);
     return () => clearTimeout(timer);
   }, [fetchThreads]);
@@ -1013,7 +1036,6 @@ export default function InboxPage() {
       }
 
       setMessages((prev) => [...prev, optimisticMsg])
-      setComposerText("")
       setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 20)
     }
 
@@ -1164,14 +1186,14 @@ export default function InboxPage() {
         <div className="p-3 border-b border-border space-y-2">
           <div className="flex items-center justify-between">
             <h2 className="text-[15px] font-bold text-foreground">Shared Inbox</h2>
-            <button onClick={() => fetchThreads()} className="p-1 rounded hover:bg-muted text-muted-foreground">
+            <button onClick={() => fetchThreads(false, true)} className="p-1 rounded hover:bg-muted text-muted-foreground">
               <RefreshCw className={cn("h-4 w-4", loadingThreads && "animate-spin")} />
             </button>
           </div>
           <div className="flex gap-1.5">
             <div className="relative flex-1">
               <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
-              <input type="text" value={search} onChange={e => setSearch(e.target.value)}
+              <input type="text" value={searchInput} onChange={e => setSearchInput(e.target.value)}
                 placeholder="Search conversations…"
                 className="w-full pl-8 pr-3 py-1.5 bg-muted rounded-lg text-[12px] outline-none focus:ring-1 focus:ring-primary" />
             </div>
@@ -1186,10 +1208,10 @@ export default function InboxPage() {
               <SlidersHorizontal className="h-4 w-4" />
             </button>
           </div>
-          <div className="flex gap-1 overflow-x-auto">
+          <div className="grid grid-cols-4 gap-1 w-full shrink-0">
             {(["all", "open", "bot", "assigned"] as const).map(tab => (
               <button key={tab} onClick={() => setTabFilter(tab)}
-                className={cn("shrink-0 px-2 py-1 rounded-md text-[11px] font-medium transition-colors",
+                className={cn("px-1 py-1 rounded-md text-[10px] font-semibold transition-all text-center truncate",
                   tabFilter === tab ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"
                 )}>
                 {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -1253,7 +1275,7 @@ export default function InboxPage() {
       {selectedThread ? (
         <div className="flex-1 flex flex-col min-w-0">
           {/* Chat Header */}
-          <div className="h-14 border-b border-border bg-white flex items-center justify-between px-4 shrink-0">
+          <div className="h-12 border-b border-border bg-white flex items-center justify-between px-4 shrink-0">
             <div className="flex items-center gap-3 min-w-0">
               {contact && <Avatar name={contact.full_name} phone={contact.phone} avatarUrl={contact.avatar_url} size={36} />}
               <div className="min-w-0">
@@ -1279,6 +1301,17 @@ export default function InboxPage() {
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => setIsSmartCardsCollapsed(!isSmartCardsCollapsed)}
+                className="p-1.5 hover:bg-muted text-muted-foreground hover:text-foreground rounded-lg transition-colors border border-border shadow-sm flex items-center justify-center bg-white"
+                title={isSmartCardsCollapsed ? "Expand Details" : "Collapse Details"}
+              >
+                {isSmartCardsCollapsed ? (
+                  <PanelRightOpen className="h-4 w-4" />
+                ) : (
+                  <PanelRightClose className="h-4 w-4" />
+                )}
+              </button>
             </div>
           </div>
 
@@ -1384,254 +1417,256 @@ export default function InboxPage() {
             </div>
 
             {/* ── Smart Cards Panel ─────────────────────────────────────── */}
-            <div className="w-[272px] shrink-0 border-l border-border bg-white flex flex-col overflow-y-auto">
+            {!isSmartCardsCollapsed && (
+              <div className="w-[272px] shrink-0 border-l border-border bg-white flex flex-col overflow-y-auto">
 
-              {/* Panel header */}
-              <div className="px-4 py-3 border-b border-border shrink-0">
-                <p className="text-[13px] font-bold text-foreground">Smart Cards</p>
-              </div>
-
-              {/* Contact card */}
-              <div className="p-4 border-b border-border">
-                <div className="flex items-center gap-3 mb-3">
-                  {contact && <Avatar name={contact.full_name} phone={contact.phone} avatarUrl={contact.avatar_url} size={40} />}
-                  <div className="min-w-0">
-                    <p className="text-[13px] font-bold text-foreground truncate">{contact?.full_name ?? "Unknown"}</p>
-                    <p className="text-[11px] text-muted-foreground truncate">{contact?.phone}</p>
-                  </div>
+                {/* Panel header */}
+                <div className="px-4 py-3 border-b border-border shrink-0">
+                  <p className="text-[13px] font-bold text-foreground">Smart Cards</p>
                 </div>
-                {/* Removed Message / Call action buttons */}
-              </div>
 
-              {/* Active Ticket */}
-              <div className="p-4 border-b border-border">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-[11px] font-bold text-foreground">Active Ticket</p>
-                  {activeTicket && (
-                    <button onClick={() => router.push(`/dashboard/tickets/${activeTicket.id}`)} className="text-[10px] text-primary font-semibold hover:opacity-70 flex items-center gap-0.5">
-                      View <ExternalLink className="h-3 w-3" />
-                    </button>
-                  )}
-                </div>
-                {activeTicket ? (
-                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
-                    <p className="text-[11px] font-bold text-amber-800 mb-1">
-                      TKT-{activeTicket.ref.toString(16).toUpperCase().padStart(8, "0")}
-                    </p>
-                    <p className="text-[12px] font-semibold text-foreground mb-2 leading-snug">{activeTicket.subject}</p>
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className={cn("px-2 py-0.5 rounded-md text-[10px] font-bold", STATUS_COLOR[activeTicket.status] ?? "bg-muted text-foreground")}>
-                        {activeTicket.status}
-                      </span>
-                      <span className={cn("px-2 py-0.5 rounded-md text-[10px] font-bold", SEVERITY_COLOR[activeTicket.severity] ?? "bg-muted text-foreground")}>
-                        {activeTicket.severity}
-                      </span>
+                {/* Contact card */}
+                <div className="p-4 border-b border-border">
+                  <div className="flex items-center gap-3 mb-3">
+                    {contact && <Avatar name={contact.full_name} phone={contact.phone} avatarUrl={contact.avatar_url} size={40} />}
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-bold text-foreground truncate">{contact?.full_name ?? "Unknown"}</p>
+                      <p className="text-[11px] text-muted-foreground truncate">{contact?.phone}</p>
                     </div>
                   </div>
-                ) : (
-                  <button
-                    onClick={createTicketFromThread}
-                    disabled={creatingTicket}
-                    className="w-full py-2 text-[11px] font-semibold border border-dashed border-border rounded-xl hover:bg-muted transition-colors text-muted-foreground flex items-center justify-center gap-1.5">
-                    {creatingTicket ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Ticket className="h-3.5 w-3.5" />}
-                    Create Ticket
-                  </button>
-                )}
-              </div>
-
-              {/* AI Auto-Reply */}
-              <div className="p-4 border-b border-border">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <BotIcon className="h-4 w-4 text-muted-foreground" />
-                    <p className="text-[12px] font-bold text-foreground">AI Auto-Reply</p>
-                  </div>
-                  {/* Toggle */}
-                  <button
-                    onClick={() => handleAssign(null, selectedThread.ai_active ? "disable_ai" : "enable_ai")}
-                    className={cn(
-                      "relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none",
-                      selectedThread.ai_active ? "bg-primary" : "bg-muted-foreground/30"
-                    )}>
-                    <span className={cn(
-                      "inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform",
-                      selectedThread.ai_active ? "translate-x-4" : "translate-x-0.5"
-                    )} />
-                  </button>
+                  {/* Removed Message / Call action buttons */}
                 </div>
-                <p className="text-[10px] text-muted-foreground mt-1 ml-6">
-                  {selectedThread.ai_active ? "AI is handling replies." : "Human agent in control."}
-                </p>
-              </div>
 
-              {/* Assigned To */}
-              <div className="p-4 border-b border-border">
-                <div className="flex items-center gap-2 mb-1">
-                  <User className="h-3.5 w-3.5 text-muted-foreground" />
-                  <p className="text-[12px] font-bold text-foreground">Assigned To</p>
-                </div>
-                <div className="relative">
-                  <button
-                    onClick={() => setShowAssignMenu(p => !p)}
-                    className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg border border-border bg-white hover:bg-muted transition-colors text-[12px] font-semibold text-foreground">
-                    <span className={cn(!assignedMember && "text-muted-foreground font-normal")}>
-                      {assignedMember?.full_name ?? assignedMember?.email ?? "Unassigned"}
-                    </span>
-                    <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-                  </button>
-                  {showAssignMenu && (
-                    <div className="absolute left-0 top-full mt-1 w-full bg-white border border-border rounded-xl shadow-lg z-30 overflow-hidden">
-                      <button onClick={() => handleAssign(null, "assign")} className="w-full text-left px-3 py-2 text-[12px] hover:bg-muted text-muted-foreground">
-                        Unassigned
+                {/* Active Ticket */}
+                <div className="p-4 border-b border-border">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-[11px] font-bold text-foreground">Active Ticket</p>
+                    {activeTicket && (
+                      <button onClick={() => router.push(`/dashboard/tickets/${activeTicket.id}`)} className="text-[10px] text-primary font-semibold hover:opacity-70 flex items-center gap-0.5">
+                        View <ExternalLink className="h-3 w-3" />
                       </button>
-                      {teamMembers.map(m => (
-                        <button key={m.id} onClick={() => handleAssign(m.user_id, "assign")}
-                          className="w-full text-left px-3 py-2 text-[12px] hover:bg-muted flex items-center gap-2">
-                          <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-[9px] font-bold text-primary shrink-0">
-                            {(m.full_name || m.email || "?").charAt(0).toUpperCase()}
-                          </div>
-                          {m.full_name || m.email}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Tags */}
-              <div className="p-4 border-b border-border">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Tag className="h-3.5 w-3.5 text-muted-foreground" />
-                    <p className="text-[12px] font-bold text-foreground">Tags</p>
+                    )}
                   </div>
-                  <button onClick={() => setEditingTags(p => !p)} className="text-[10px] text-primary font-semibold hover:opacity-70">
-                    {editingTags ? "Done" : "Edit"}
-                  </button>
-                </div>
-                <div className="flex flex-wrap gap-1 mb-2">
-                  {(selectedThread.tags ?? []).map((tag, i) => (
-                    <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary rounded-full text-[10px] font-semibold">
-                      {tag}
-                      {editingTags && (
-                        <button onClick={() => {
-                          const newTags = (selectedThread.tags ?? []).filter((_, idx) => idx !== i)
-                          saveThreadTags(newTags)
-                        }} className="hover:text-red-500 ml-0.5"><X className="h-2.5 w-2.5" /></button>
-                      )}
-                    </span>
-                  ))}
-                </div>
-                <div className="flex gap-1">
-                  <input
-                    type="text"
-                    value={tagInput}
-                    onChange={e => setTagInput(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === "Enter" && tagInput.trim()) {
-                        e.preventDefault()
-                        const newTags = [...(selectedThread.tags ?? []), tagInput.trim().toLowerCase()]
-                        saveThreadTags(newTags)
-                        setTagInput("")
-                      }
-                    }}
-                    placeholder="+ Add tag"
-                    className="flex-1 text-[11px] text-muted-foreground placeholder:text-muted-foreground/60 bg-transparent outline-none"
-                  />
-                  {tagInput.trim() && (
+                  {activeTicket ? (
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+                      <p className="text-[11px] font-bold text-amber-800 mb-1">
+                        TKT-{activeTicket.ref.toString(16).toUpperCase().padStart(8, "0")}
+                      </p>
+                      <p className="text-[12px] font-semibold text-foreground mb-2 leading-snug">{activeTicket.subject}</p>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className={cn("px-2 py-0.5 rounded-md text-[10px] font-bold", STATUS_COLOR[activeTicket.status] ?? "bg-muted text-foreground")}>
+                          {activeTicket.status}
+                        </span>
+                        <span className={cn("px-2 py-0.5 rounded-md text-[10px] font-bold", SEVERITY_COLOR[activeTicket.severity] ?? "bg-muted text-foreground")}>
+                          {activeTicket.severity}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
                     <button
-                      onClick={() => {
-                        const newTags = [...(selectedThread.tags ?? []), tagInput.trim().toLowerCase()]
-                        saveThreadTags(newTags)
-                        setTagInput("")
-                      }}
-                      className="text-[10px] text-primary font-bold hover:opacity-70">
-                      Add
+                      onClick={createTicketFromThread}
+                      disabled={creatingTicket}
+                      className="w-full py-2 text-[11px] font-semibold border border-dashed border-border rounded-xl hover:bg-muted transition-colors text-muted-foreground flex items-center justify-center gap-1.5">
+                      {creatingTicket ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Ticket className="h-3.5 w-3.5" />}
+                      Create Ticket
                     </button>
                   )}
                 </div>
-              </div>
 
-              {/* Lead Stage */}
-              <div className="p-4 border-b border-border">
-                <p className="text-[12px] font-bold text-foreground mb-2">Lead Stage</p>
-                <select
-                  value={leadStatus ?? ""}
-                  onChange={e => handleUpdateLeadStatus(e.target.value)}
-                  className="w-full border border-border rounded-lg px-2.5 py-1.5 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-primary font-semibold cursor-pointer">
-                  <option value="">Not a Lead</option>
-                  <option value="new">New Lead</option>
-                  <option value="contacted">Contacted</option>
-                  <option value="qualified">Qualified</option>
-                  <option value="proposal">Proposal Sent</option>
-                  <option value="won">Won</option>
-                  <option value="lost">Lost</option>
-                </select>
-              </div>
-
-              {/* Thread Info */}
-              <div className="p-4 border-b border-border">
-                <p className="text-[12px] font-bold text-foreground mb-3">Thread Info</p>
-                <div className="space-y-2">
-                  {[
-                    { label: "Messages", value: threadStats.total },
-                    { label: "Bot replies", value: threadStats.bot },
-                    { label: "Notes", value: threadStats.notes },
-                    { label: "Status", value: selectedThread.status.charAt(0).toUpperCase() + selectedThread.status.slice(1) },
-                    { label: "Priority", value: (selectedThread.priority ?? "normal").charAt(0).toUpperCase() + (selectedThread.priority ?? "normal").slice(1) },
-                  ].map(({ label, value }) => (
-                    <div key={label} className="flex items-center justify-between text-[12px]">
-                      <span className="text-muted-foreground">{label}</span>
-                      <span className="font-semibold text-foreground">{value}</span>
+                {/* AI Auto-Reply */}
+                <div className="p-4 border-b border-border">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <BotIcon className="h-4 w-4 text-muted-foreground" />
+                      <p className="text-[12px] font-bold text-foreground">AI Auto-Reply</p>
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Notes & Follow-ups */}
-              <div className="p-4 flex-1">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-[12px] font-bold text-foreground">Notes & Follow-ups</p>
-                  <button
-                    onClick={() => { setNoteText(""); setFollowupDate(""); setIsAddNoteModalOpen(true) }}
-                    className="text-[10px] text-primary font-semibold hover:opacity-70 flex items-center gap-0.5">
-                    <Plus className="h-3 w-3" /> Add
-                  </button>
-                </div>
-                <div className="space-y-2">
-                  {threadStats.recentNotes.map(m => (
-                      <div key={m.id} className={cn(
-                        "p-2 rounded-lg border text-[10px]",
-                        m.metadata?.followup_completed
-                          ? "bg-muted/20 border-border/40 opacity-60"
-                          : "bg-amber-50 border-amber-200"
+                    {/* Toggle */}
+                    <button
+                      onClick={() => handleAssign(null, selectedThread.ai_active ? "disable_ai" : "enable_ai")}
+                      className={cn(
+                        "relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none",
+                        selectedThread.ai_active ? "bg-primary" : "bg-muted-foreground/30"
                       )}>
-                        <p className="font-medium text-foreground line-clamp-3 leading-relaxed mb-1">{m.content}</p>
-                        {m.metadata?.followup_date && (
-                          <div className="flex items-center justify-between">
-                            <span className={cn("text-[9px] font-semibold px-1.5 py-0.5 rounded flex items-center gap-1", m.metadata?.followup_completed ? "bg-emerald-50 text-emerald-700" : "bg-blue-50 text-blue-700")}>
-                              <Calendar className="h-2.5 w-2.5 shrink-0" />
-                              {new Date(m.metadata.followup_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                              {m.metadata?.followup_completed ? " ✓" : ""}
-                            </span>
-                            {!m.metadata?.followup_completed && (
-                              <button
-                                onClick={() => markFollowupComplete(m.id, m.metadata)}
-                                className="text-[9px] text-emerald-600 hover:opacity-70 font-semibold">
-                                Mark done
-                              </button>
-                            )}
-                          </div>
-                        )}
+                      <span className={cn(
+                        "inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform",
+                        selectedThread.ai_active ? "translate-x-4" : "translate-x-0.5"
+                      )} />
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-1 ml-6">
+                    {selectedThread.ai_active ? "AI is handling replies." : "Human agent in control."}
+                  </p>
+                </div>
+
+                {/* Assigned To */}
+                <div className="p-4 border-b border-border">
+                  <div className="flex items-center gap-2 mb-1">
+                    <User className="h-3.5 w-3.5 text-muted-foreground" />
+                    <p className="text-[12px] font-bold text-foreground">Assigned To</p>
+                  </div>
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowAssignMenu(p => !p)}
+                      className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg border border-border bg-white hover:bg-muted transition-colors text-[12px] font-semibold text-foreground">
+                      <span className={cn(!assignedMember && "text-muted-foreground font-normal")}>
+                        {assignedMember?.full_name ?? assignedMember?.email ?? "Unassigned"}
+                      </span>
+                      <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                    </button>
+                    {showAssignMenu && (
+                      <div className="absolute left-0 top-full mt-1 w-full bg-white border border-border rounded-xl shadow-lg z-30 overflow-hidden">
+                        <button onClick={() => handleAssign(null, "assign")} className="w-full text-left px-3 py-2 text-[12px] hover:bg-muted text-muted-foreground">
+                          Unassigned
+                        </button>
+                        {teamMembers.map(m => (
+                          <button key={m.id} onClick={() => handleAssign(m.user_id, "assign")}
+                            className="w-full text-left px-3 py-2 text-[12px] hover:bg-muted flex items-center gap-2">
+                            <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-[9px] font-bold text-primary shrink-0">
+                              {(m.full_name || m.email || "?").charAt(0).toUpperCase()}
+                            </div>
+                            {m.full_name || m.email}
+                          </button>
+                        ))}
                       </div>
-                    ))
-                  }
-                  {threadStats.notes === 0 && (
-                    <p className="text-[11px] text-muted-foreground">No notes yet</p>
-                  )}
+                    )}
+                  </div>
+                </div>
+
+                {/* Tags */}
+                <div className="p-4 border-b border-border">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Tag className="h-3.5 w-3.5 text-muted-foreground" />
+                      <p className="text-[12px] font-bold text-foreground">Tags</p>
+                    </div>
+                    <button onClick={() => setEditingTags(p => !p)} className="text-[10px] text-primary font-semibold hover:opacity-70">
+                      {editingTags ? "Done" : "Edit"}
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {(selectedThread.tags ?? []).map((tag, i) => (
+                      <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary rounded-full text-[10px] font-semibold">
+                        {tag}
+                        {editingTags && (
+                          <button onClick={() => {
+                            const newTags = (selectedThread.tags ?? []).filter((_, idx) => idx !== i)
+                            saveThreadTags(newTags)
+                          }} className="hover:text-red-500 ml-0.5"><X className="h-2.5 w-2.5" /></button>
+                        )}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex gap-1">
+                    <input
+                      type="text"
+                      value={tagInput}
+                      onChange={e => setTagInput(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === "Enter" && tagInput.trim()) {
+                          e.preventDefault()
+                          const newTags = [...(selectedThread.tags ?? []), tagInput.trim().toLowerCase()]
+                          saveThreadTags(newTags)
+                          setTagInput("")
+                        }
+                      }}
+                      placeholder="+ Add tag"
+                      className="flex-1 text-[11px] text-muted-foreground placeholder:text-muted-foreground/60 bg-transparent outline-none"
+                    />
+                    {tagInput.trim() && (
+                      <button
+                        onClick={() => {
+                          const newTags = [...(selectedThread.tags ?? []), tagInput.trim().toLowerCase()]
+                          saveThreadTags(newTags)
+                          setTagInput("")
+                        }}
+                        className="text-[10px] text-primary font-bold hover:opacity-70">
+                        Add
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Lead Stage */}
+                <div className="p-4 border-b border-border">
+                  <p className="text-[12px] font-bold text-foreground mb-2">Lead Stage</p>
+                  <select
+                    value={leadStatus ?? ""}
+                    onChange={e => handleUpdateLeadStatus(e.target.value)}
+                    className="w-full border border-border rounded-lg px-2.5 py-1.5 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-primary font-semibold cursor-pointer">
+                    <option value="">Not a Lead</option>
+                    <option value="new">New Lead</option>
+                    <option value="contacted">Contacted</option>
+                    <option value="qualified">Qualified</option>
+                    <option value="proposal">Proposal Sent</option>
+                    <option value="won">Won</option>
+                    <option value="lost">Lost</option>
+                  </select>
+                </div>
+
+                {/* Thread Info */}
+                <div className="p-4 border-b border-border">
+                  <p className="text-[12px] font-bold text-foreground mb-3">Thread Info</p>
+                  <div className="space-y-2">
+                    {[
+                      { label: "Messages", value: threadStats.total },
+                      { label: "Bot replies", value: threadStats.bot },
+                      { label: "Notes", value: threadStats.notes },
+                      { label: "Status", value: selectedThread.status.charAt(0).toUpperCase() + selectedThread.status.slice(1) },
+                      { label: "Priority", value: (selectedThread.priority ?? "normal").charAt(0).toUpperCase() + (selectedThread.priority ?? "normal").slice(1) },
+                    ].map(({ label, value }) => (
+                      <div key={label} className="flex items-center justify-between text-[12px]">
+                        <span className="text-muted-foreground">{label}</span>
+                        <span className="font-semibold text-foreground">{value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Notes & Follow-ups */}
+                <div className="p-4 flex-1">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-[12px] font-bold text-foreground">Notes & Follow-ups</p>
+                    <button
+                      onClick={() => { setNoteText(""); setFollowupDate(""); setIsAddNoteModalOpen(true) }}
+                      className="text-[10px] text-primary font-semibold hover:opacity-70 flex items-center gap-0.5">
+                      <Plus className="h-3 w-3" /> Add
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    {threadStats.recentNotes.map(m => (
+                        <div key={m.id} className={cn(
+                          "p-2 rounded-lg border text-[10px]",
+                          m.metadata?.followup_completed
+                            ? "bg-muted/20 border-border/40 opacity-60"
+                            : "bg-amber-50 border-amber-200"
+                        )}>
+                          <p className="font-medium text-foreground line-clamp-3 leading-relaxed mb-1">{m.content}</p>
+                          {m.metadata?.followup_date && (
+                            <div className="flex items-center justify-between">
+                              <span className={cn("text-[9px] font-semibold px-1.5 py-0.5 rounded flex items-center gap-1", m.metadata?.followup_completed ? "bg-emerald-50 text-emerald-700" : "bg-blue-50 text-blue-700")}>
+                                <Calendar className="h-2.5 w-2.5 shrink-0" />
+                                {new Date(m.metadata.followup_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                                {m.metadata?.followup_completed ? " ✓" : ""}
+                              </span>
+                              {!m.metadata?.followup_completed && (
+                                <button
+                                  onClick={() => markFollowupComplete(m.id, m.metadata)}
+                                  className="text-[9px] text-emerald-600 hover:opacity-70 font-semibold">
+                                  Mark done
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    }
+                    {threadStats.notes === 0 && (
+                      <p className="text-[11px] text-muted-foreground">No notes yet</p>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       ) : (

@@ -260,14 +260,14 @@ export async function PATCH(req: NextRequest) {
     const { workspaceId } = await getTenant();
     const admin = await createAdminClient();
     const body = await req.json();
-    const { id, status, value, name, company } = body;
+    const { id, status, value, name, company, phone, email, customFields, custom_fields, note, followupDate } = body;
 
     if (!id) {
       return NextResponse.json({ error: "Lead ID is required" }, { status: 400 });
     }
 
     // 1. If we are updating the status (stage)
-    if (status !== undefined) {
+    if (status !== undefined && value === undefined && name === undefined && phone === undefined) {
       const stageNamesMap: Record<string, string> = {
         new: "New Lead",
         contacted: "Contacted",
@@ -303,8 +303,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ lead: updatedLead });
     }
 
-    // 2. If we are updating lead details (value, name, company)
-    // First, find the lead's contact_id
+    // 2. Full details update
     const { data: currentLead } = await admin
       .from("leads")
       .select("contact_id")
@@ -313,23 +312,95 @@ export async function PATCH(req: NextRequest) {
       .single();
 
     if (currentLead && currentLead.contact_id) {
-      // Update contact name & company
+      const contactUpdates: any = {};
+      if (name !== undefined) contactUpdates.full_name = name;
+      if (company !== undefined) contactUpdates.company = company || null;
+      if (phone !== undefined) contactUpdates.phone = phone || null;
+      if (email !== undefined) contactUpdates.email = email || null;
+      
+      const cf = customFields || custom_fields;
+      if (cf !== undefined) contactUpdates.custom_fields = cf || {};
+
       await admin
         .from("contacts")
-        .update({
-          full_name: name,
-          company: company || null,
-        })
+        .update(contactUpdates)
         .eq("id", currentLead.contact_id);
+
+      // Create note if provided
+      if (note && note.trim()) {
+        let threadId: string;
+        const { data: existingThread } = await admin
+          .from("threads")
+          .select("id")
+          .eq("workspace_id", workspaceId)
+          .eq("contact_id", currentLead.contact_id)
+          .maybeSingle();
+
+        if (existingThread) {
+          threadId = existingThread.id;
+        } else {
+          const { data: newThread } = await admin
+            .from("threads")
+            .insert({
+              workspace_id: workspaceId,
+              contact_id: currentLead.contact_id,
+              channel: "whatsapp",
+              status: "open",
+              unread_count: 0,
+              last_message_at: new Date().toISOString(),
+              last_message_preview: "Lead updated manually",
+            })
+            .select("id")
+            .single();
+          threadId = newThread?.id;
+        }
+
+        await admin.from("messages").insert({
+          workspace_id: workspaceId,
+          thread_id: threadId,
+          content: note.trim(),
+          sender_type: "system",
+          status: "delivered",
+          type: "text",
+          metadata: {
+            is_note: true,
+            ...(followupDate ? { followup_date: followupDate, followup_completed: false } : {}),
+          },
+        });
+      }
     }
 
-    // Update lead value
-    const numValue = value ? Number(String(value).replace(/[^0-9.]/g, "")) : 0;
+    // Update lead values
+    const leadUpdates: any = {};
+    if (value !== undefined) {
+      leadUpdates.value = value ? Number(String(value).replace(/[^0-9.]/g, "")) : 0;
+    }
+    if (status !== undefined) {
+      const stageNamesMap: Record<string, string> = {
+        new: "New Lead",
+        contacted: "Contacted",
+        qualified: "Qualified",
+        proposal: "Proposal Sent",
+        won: "Won",
+        lost: "Lost",
+      };
+      const targetStageName = stageNamesMap[status] || "New Lead";
+
+      const { data: stage } = await admin
+        .from("pipeline_stages")
+        .select("id")
+        .eq("workspace_id", workspaceId)
+        .eq("name", targetStageName)
+        .limit(1)
+        .single();
+      
+      leadUpdates.status = status;
+      leadUpdates.stage_id = stage?.id || null;
+    }
+
     const { data: updatedLead, error: leadErr } = await admin
       .from("leads")
-      .update({
-        value: numValue,
-      })
+      .update(leadUpdates)
       .eq("id", id)
       .eq("workspace_id", workspaceId)
       .select("*")

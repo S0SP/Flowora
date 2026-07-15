@@ -23,7 +23,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import { MoreHorizontal, Phone, Mail, FileText, CheckCircle2, MessageSquare, Zap, Mic, Plus, GripVertical } from "lucide-react"
+import { MoreHorizontal, Phone, Mail, FileText, CheckCircle2, MessageSquare, Zap, Mic, Plus, GripVertical, Calendar, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback } from "@/components/atoms/Avatar"
 import { Badge } from "@/components/atoms/Badge"
@@ -109,7 +109,7 @@ function LeadCardComponent({ item, onEdit }: { item: LeadCard, onEdit: () => voi
         <div className="flex items-center gap-1 shrink-0">
           <GripVertical className="h-3.5 w-3.5 text-muted-foreground/0 group-hover:text-muted-foreground/30 transition-colors" />
           <button onPointerDown={(e) => { e.stopPropagation(); onEdit() }} className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-            {item.type === "converted" ? <span className="text-xs">🎉</span> : <MoreHorizontal className="h-3.5 w-3.5" />}
+            {item.type === "converted" ? <Zap className="h-3.5 w-3.5 text-amber-500 fill-amber-500" /> : <MoreHorizontal className="h-3.5 w-3.5" />}
           </button>
         </div>
       </div>
@@ -142,8 +142,8 @@ function LeadCardComponent({ item, onEdit }: { item: LeadCard, onEdit: () => voi
           <span className="font-bold block text-[8px] text-amber-700 uppercase tracking-wider mb-0.5">Latest Note</span>
           <p className="line-clamp-2 italic leading-tight">"{item.latest_note}"</p>
           {item.followup_date && (
-            <span className={`inline-block text-[8px] font-bold px-1 py-0.5 rounded mt-1 ${item.followup_completed ? "bg-emerald-50 text-emerald-700" : "bg-blue-50 text-blue-700"}`}>
-              📅 {new Date(item.followup_date).toLocaleDateString()} {item.followup_completed ? "✓" : ""}
+            <span className={`inline-flex items-center gap-1 text-[8px] font-bold px-1.5 py-0.5 rounded mt-1 ${item.followup_completed ? "bg-emerald-50 text-emerald-700" : "bg-blue-50 text-blue-700"}`}>
+              <Calendar className="h-2.5 w-2.5" /> {new Date(item.followup_date).toLocaleDateString()} {item.followup_completed ? <Check className="h-2.5 w-2.5" /> : ""}
             </span>
           )}
         </div>
@@ -151,7 +151,7 @@ function LeadCardComponent({ item, onEdit }: { item: LeadCard, onEdit: () => voi
 
       {item.date && (
         <div className="bg-muted/50 rounded p-1 mb-2 flex flex-col gap-0.5 text-[10px]">
-          <span className="font-medium">📅 {item.date}</span>
+          <span className="font-medium flex items-center gap-1"><Calendar className="h-2.5 w-2.5" /> {item.date}</span>
           {item.voice && (
             <div className="flex items-center gap-1 text-[9px] text-primary font-medium">
               <Mic className="h-2.5 w-2.5" /> Voice call done

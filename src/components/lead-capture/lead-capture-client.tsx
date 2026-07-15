@@ -14,7 +14,8 @@ import {
   HelpCircle, 
   RefreshCw, 
   CheckCircle2, 
-  XCircle, 
+  XCircle,
+  X, 
   Clock, 
   Link as LinkIcon,
   Mail,
@@ -27,10 +28,12 @@ import {
   Mic,
   Brain,
   Headphones,
-  Activity
+  Activity,
+  Volume2,
+  Eye
 } from "lucide-react";
 import { WhatsAppTemplate } from "@/types";
-import { formatDate } from "@/lib/utils";
+import { formatDate, cn } from "@/lib/utils";
 
 // Zod schema matching database migrations
 const schema = z.object({
@@ -77,6 +80,7 @@ interface ChannelStatus {
   voice?: ChannelState;
   voice_error?: string | null;
   updated_at?: string;
+  custom_fields?: Record<string, any>;
 }
 
 interface Lead {
@@ -266,6 +270,35 @@ function compileEmailPreviewHtml(
   `.trim();
 }
 
+// Client-side helper to interpolate template placeholders
+export function clientInterpolate(text: string, lead: Lead, brandName?: string): string {
+  if (!text) return "";
+  const customFields = lead.channel_status?.custom_fields || {};
+  const currentEmailBrandName = brandName || "My Agency";
+  
+  let result = text
+    .replace(/\{\{lead_name\}\}/g, lead.name || "friend")
+    .replace(/\{\{lead_email\}\}/g, lead.email || "")
+    .replace(/\{\{lead_phone\}\}/g, lead.phone || "")
+    .replace(/\{lead_name\}/g, lead.name || "friend")
+    .replace(/\{lead_email\}/g, lead.email || "")
+    .replace(/\{lead_phone\}/g, lead.phone || "")
+    .replace(/\{\{brand_name\}\}/g, currentEmailBrandName)
+    .replace(/\{brand_name\}/g, currentEmailBrandName);
+
+  Object.entries(customFields).forEach(([key, value]) => {
+    const cleanValue = value !== undefined && value !== null ? String(value) : "";
+    
+    const regexDouble = new RegExp(`\\{\\{${key}\\}\\}`, "gi");
+    result = result.replace(regexDouble, cleanValue);
+
+    const regexSingle = new RegExp(`\\{${key}\\}`, "gi");
+    result = result.replace(regexSingle, cleanValue);
+  });
+
+  return result;
+}
+
 export function LeadCaptureClient() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -283,7 +316,43 @@ export function LeadCaptureClient() {
   const [activity, setActivity] = useState<ActivityEntry[]>([]);
   const [lastSynced, setLastSynced] = useState<Date | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [previewLead, setPreviewLead] = useState<Lead | null>(null);
+  const [previewTab, setPreviewTab] = useState<"whatsapp" | "email" | "voice">("whatsapp");
   const prevLeadsRef = useRef<Map<string, Lead> | null>(null);
+
+  // Play micro synth sound using Web Audio API
+  const playTestSound = () => {
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const now = ctx.currentTime;
+      
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = "sine";
+      osc1.frequency.setValueAtTime(587.33, now); // D5
+      osc1.frequency.exponentialRampToValueAtTime(880.00, now + 0.1); // A5
+      gain1.gain.setValueAtTime(0.15, now);
+      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      osc1.start(now);
+      osc1.stop(now + 0.15);
+
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = "sine";
+      osc2.frequency.setValueAtTime(880.00, now + 0.08); // A5
+      osc2.frequency.exponentialRampToValueAtTime(1174.66, now + 0.22); // D6
+      gain2.gain.setValueAtTime(0.15, now + 0.08);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.start(now + 0.08);
+      osc2.stop(now + 0.25);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const pushActivity = (entries: ActivityEntry[]) => {
     if (entries.length === 0) return;
@@ -757,6 +826,12 @@ export function LeadCaptureClient() {
                         className="col-span-2 px-2.5 py-1.5 bg-background border border-input rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-ring"
                       />
                     </div>
+                    
+                    <div className="border-t border-border/40 pt-2.5 mt-2">
+                      <span className="text-[10px] text-muted-foreground leading-relaxed block font-semibold">
+                        💡 Auto Custom Fields: All other spreadsheet columns (e.g. Interest, Budget, Location) are automatically captured. Use them in WhatsApp templates, Email templates or Voice prompts using variables like {"{Interest}"} or {"{{Budget}}"}.
+                      </span>
+                    </div>
                   </div>
 
                   <div className="space-y-1.5">
@@ -1210,7 +1285,7 @@ export function LeadCaptureClient() {
                 </button>
               </div>
 
-              <div className="overflow-x-auto flex-1 max-h-[600px] scrollbar-thin">
+              <div className="p-4 flex-1 max-h-[600px] overflow-y-auto space-y-3 pr-2 scrollbar-thin">
                 {capturedLeads.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-24 text-center">
                     <FileSpreadsheet className="w-10 h-10 text-muted-foreground/30 mb-3" />
@@ -1220,43 +1295,268 @@ export function LeadCaptureClient() {
                     </p>
                   </div>
                 ) : (
-                  <table className="w-full text-xs text-left">
-                    <thead>
-                      <tr className="border-b border-border bg-muted/30">
-                        <th className="px-3 py-2.5 text-muted-foreground font-semibold uppercase tracking-wider">Lead</th>
-                        <th className="px-3 py-2.5 text-muted-foreground font-semibold uppercase tracking-wider">Status</th>
-                        <th className="px-3 py-2.5 text-muted-foreground font-semibold uppercase tracking-wider">Outcome</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border">
-                      {capturedLeads.map((lead) => (
-                        <tr key={lead.id} className="hover:bg-muted/15 transition-all">
-                          <td className="px-3 py-2.5">
-                            <div>
-                              <p className="font-medium text-foreground">{lead.name ?? "—"}</p>
-                              <p className="text-[10px] text-muted-foreground font-mono">{lead.phone}</p>
-                            </div>
-                          </td>
-                          <td className="px-3 py-2.5">{getStatusBadge(lead.status)}</td>
-                          <td className="px-3 py-2.5 font-mono text-[9px]">
+                  capturedLeads.map((lead) => (
+                    <div 
+                      key={lead.id} 
+                      className="bg-white rounded-xl border border-border p-4 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-2 duration-200"
+                    >
+                      <div className="flex items-start gap-3 min-w-0">
+                        <div className="rounded-lg p-2 bg-primary/5 text-primary shrink-0 border border-primary/10">
+                          <FileSpreadsheet className="h-5 w-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="font-bold text-xs text-foreground flex flex-wrap items-center gap-1.5 leading-snug">
+                            <span>{lead.name || "Unknown Lead"}</span>
                             {lead.status === "failed" ? (
-                              <span className="text-destructive font-medium truncate max-w-[160px] block" title={lead.error_message || ""}>
-                                {lead.error_message || "Delivery failed"}
-                              </span>
+                              <span className="px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider bg-red-50 text-red-600 border border-red-200">Failed</span>
                             ) : lead.status === "sent" ? (
-                              <span className="text-primary font-medium">Successfully Sent</span>
+                              <span className="px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-200">Success</span>
                             ) : lead.status === "processing" ? (
-                              <span className="text-blue-500 animate-pulse">Running...</span>
+                              <span className="px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider bg-blue-50 text-blue-600 border border-blue-200 animate-pulse">Running</span>
                             ) : (
-                              <span className="text-muted-foreground">In Queue</span>
+                              <span className="px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider bg-muted text-muted-foreground border border-border">In Queue</span>
                             )}
-                            {renderChannelBreakdown(lead)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                          </h4>
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-muted-foreground mt-1 font-semibold">
+                            <span className="font-mono">{lead.phone}</span>
+                            {lead.email && <span>• {lead.email}</span>}
+                            <span>• Synced {formatDate(lead.created_at)}</span>
+                          </div>
+                          
+                          {/* Deliveries outcome breakdown */}
+                          {renderChannelBreakdown(lead)}
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          onClick={() => {
+                            playTestSound();
+                            setPreviewLead(lead);
+                            setPreviewTab("whatsapp");
+                          }}
+                          className="inline-flex items-center justify-center rounded-lg text-xs font-bold border border-border bg-white hover:bg-muted text-muted-foreground h-8 px-3 gap-1.5 transition-all shadow-xs"
+                          title="Preview Outreach Campaign Mockup"
+                        >
+                          <Eye className="h-3.5 w-3.5 text-primary" /> Test / Preview
+                        </button>
+                      </div>
+                    </div>
+                  ))
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Campaign Outreach Mockup Preview Modal */}
+        {previewLead && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 backdrop-blur-xs">
+            <div className="bg-white w-[540px] rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 border flex flex-col max-h-[85vh]">
+              {/* Header */}
+              <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Lead Campaign Preview</h3>
+                  <p className="text-[10px] text-muted-foreground mt-0.5 font-semibold">
+                    Simulating live variables substitution for {previewLead.name || "John Doe"}
+                  </p>
+                </div>
+                <button 
+                  onClick={() => setPreviewLead(null)} 
+                  className="p-1.5 hover:bg-muted rounded-full text-muted-foreground transition-all"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Lead detail & variables overview panel */}
+              <div className="bg-muted/30 px-5 py-4 border-b border-border shrink-0 text-xs">
+                <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                  <div>
+                    <span className="block text-[9px] uppercase font-bold text-muted-foreground tracking-wider">Full Name</span>
+                    <span className="font-semibold text-foreground">{previewLead.name || "—"}</span>
+                  </div>
+                  <div>
+                    <span className="block text-[9px] uppercase font-bold text-muted-foreground tracking-wider">Phone</span>
+                    <span className="font-semibold text-foreground font-mono">{previewLead.phone}</span>
+                  </div>
+                  {previewLead.email && (
+                    <div className="col-span-2">
+                      <span className="block text-[9px] uppercase font-bold text-muted-foreground tracking-wider">Email Address</span>
+                      <span className="font-semibold text-foreground">{previewLead.email}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Custom sheet variables */}
+                {previewLead.channel_status?.custom_fields && Object.keys(previewLead.channel_status.custom_fields).length > 0 && (
+                  <div className="mt-3 border-t border-border/40 pt-2.5">
+                    <span className="block text-[9px] uppercase font-bold text-muted-foreground tracking-widest mb-1.5">
+                      Spreadsheet Variables (Parsed)
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {Object.entries(previewLead.channel_status.custom_fields).map(([key, val]) => (
+                        <span 
+                          key={key} 
+                          className="inline-flex items-center gap-1 bg-white border border-border/60 rounded px-1.5 py-0.5 text-[9px] text-foreground font-mono shadow-2xs"
+                        >
+                          <span className="text-primary font-bold">{key}:</span>
+                          <span className="font-semibold">{String(val)}</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Channel Tabs */}
+              <div className="flex border-b text-xs bg-muted/10 shrink-0">
+                {[
+                  { id: "whatsapp", label: "WhatsApp Message", icon: MessageSquare },
+                  { id: "email", label: "Email Template", icon: Mail },
+                  { id: "voice", label: "Voice Agent Prompt", icon: Mic },
+                ].map(t => (
+                  <button
+                    key={t.id}
+                    onClick={() => setPreviewTab(t.id as any)}
+                    className={cn(
+                      "flex-1 flex items-center justify-center gap-1.5 py-2.5 font-bold transition-all border-b-2 outline-none",
+                      previewTab === t.id 
+                        ? "border-primary text-primary bg-white shadow-2xs" 
+                        : "border-transparent text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <t.icon className="h-3.5 w-3.5" />
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Preview Body */}
+              <div className="p-5 overflow-y-auto flex-1 bg-muted/5 min-h-[220px]">
+                {/* ── WhatsApp Bubble View ────────────────── */}
+                {previewTab === "whatsapp" && (
+                  <div className="bg-[#e5ddd5] rounded-xl p-4 border relative min-h-[160px] flex flex-col justify-between shadow-inner">
+                    <div className="space-y-2">
+                      <div className="bg-white rounded-lg p-3 max-w-[85%] text-xs shadow-xs text-foreground leading-relaxed relative">
+                        <div className="font-bold text-primary mb-1 flex items-center gap-1">
+                          <span>📢 Meta WhatsApp Template</span>
+                          <span className="px-1 py-0.5 rounded text-[8px] bg-primary/10 uppercase tracking-widest">
+                            {watch("template_language") || "en"}
+                          </span>
+                        </div>
+                        <p className="font-semibold mb-1 text-muted-foreground text-[10px]">
+                          Template Name: <span className="font-mono bg-muted px-1.5 py-0.5 rounded">{watch("template_name") || "hello_world"}</span>
+                        </p>
+                        <p className="text-foreground leading-relaxed mt-2 bg-muted/20 p-2 rounded-lg italic">
+                          "Meta templates are rendered dynamically on the recipient's phone with variables mapping names and numbers."
+                        </p>
+                        <span className="block text-[8px] text-muted-foreground/60 text-right mt-1.5">
+                          {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-[10px] text-muted-foreground/60 text-center font-semibold mt-4">
+                      Simulated WhatsApp Cloud API delivery block.
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Email Letterbox View ────────────────── */}
+                {previewTab === "email" && (
+                  <div className="bg-white border rounded-xl shadow-md p-5 text-xs space-y-4">
+                    <div className="space-y-1.5 pb-3 border-b border-border/60">
+                      <p className="text-muted-foreground font-semibold">
+                        Subject: <span className="text-foreground font-bold">{clientInterpolate(watch("email_subject") || "Outreach Campaign", previewLead)}</span>
+                      </p>
+                      <p className="text-muted-foreground font-semibold">
+                        From: <span className="text-foreground">{watch("email_from_name") || "Outreach"} &lt;{watch("email_from") || "noreply@company.com"}&gt;</span>
+                      </p>
+                    </div>
+
+                    <div className="bg-muted/10 p-4 border border-border/40 rounded-lg space-y-3 font-sans max-w-full overflow-hidden leading-relaxed">
+                      {watch("email_logo_url") && (
+                        <div className="text-center">
+                          <img src={watch("email_logo_url") || ""} alt="Logo" className="max-h-8 mx-auto" />
+                        </div>
+                      )}
+                      <h4 className="text-center font-bold text-sm text-foreground">
+                        {clientInterpolate(watch("email_title") || "Welcome", previewLead)}
+                      </h4>
+                      <p className="whitespace-pre-line text-muted-foreground">
+                        {clientInterpolate(watch("email_body") || "", previewLead)}
+                      </p>
+                      {watch("email_button_text") && (
+                        <div className="text-center py-2">
+                          <a 
+                            href={watch("email_button_url") || "#"} 
+                            target="_blank" 
+                            rel="noreferrer"
+                            className="inline-block bg-primary text-primary-foreground font-bold px-4 py-2 rounded-lg shadow-sm text-[10px] uppercase tracking-wider"
+                          >
+                            {watch("email_button_text")}
+                          </a>
+                        </div>
+                      )}
+                      <p className="text-center text-[10px] text-muted-foreground/50 border-t pt-2 mt-3 leading-snug">
+                        {clientInterpolate(watch("email_footer") || "", previewLead)}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Voice Waveform View ────────────────── */}
+                {previewTab === "voice" && (
+                  <div className="bg-slate-950 text-slate-100 rounded-xl p-5 border relative min-h-[160px] flex flex-col justify-between shadow-lg">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                        <div className="flex items-center gap-1.5">
+                          <Mic className="h-4 w-4 text-primary animate-pulse" />
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">LiveKit AI Voice Agent</span>
+                        </div>
+                        <span className="px-2 py-0.5 rounded text-[8px] bg-primary/20 text-primary font-bold uppercase tracking-widest">
+                          Voice ID: {watch("voice_id") || "anushka"} ({watch("voice_agent_type") || "livekit"})
+                        </span>
+                      </div>
+
+                      <div className="space-y-1">
+                        <span className="block text-[9px] uppercase font-bold text-slate-400 tracking-wider">Synthesized Agent Prompt</span>
+                        <p className="text-[11px] text-slate-200 bg-white/5 p-3 rounded-lg border border-white/5 whitespace-pre-line leading-relaxed italic">
+                          "{clientInterpolate(watch("voice_prompt") || "", previewLead)}"
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Interactive waveform simulation */}
+                    <div className="mt-4 flex items-center justify-between gap-4 pt-2 border-t border-white/10 shrink-0">
+                      <div className="flex items-end gap-0.5 h-6">
+                        {[4, 10, 16, 22, 14, 8, 16, 24, 20, 12, 18, 6].map((h, idx) => (
+                          <div 
+                            key={idx} 
+                            className="w-1 bg-primary rounded-full transition-all duration-300 animate-pulse"
+                            style={{ 
+                              height: `${h}px`,
+                              animationDelay: `${idx * 75}ms`,
+                              animationDuration: '900ms'
+                            }}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-[9px] text-slate-400 font-medium">Bouncing audio waveforms simulate voice dialog.</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="p-4 border-t border-border shrink-0 flex justify-end bg-muted/10">
+                <button
+                  type="button"
+                  onClick={() => setPreviewLead(null)}
+                  className="px-4 py-2 bg-foreground text-background font-bold text-xs rounded-xl shadow transition-all hover:bg-foreground/90"
+                >
+                  Close Preview
+                </button>
               </div>
             </div>
           </div>

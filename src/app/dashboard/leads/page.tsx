@@ -489,7 +489,7 @@ export default function LeadsKanbanPage() {
 
       {/* Add Lead Modal */}
       {isAddModalOpen && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-white w-[400px] rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between p-4 border-b">
               <h2 className="text-lg font-bold">Add New Lead</h2>
@@ -568,36 +568,72 @@ export default function LeadsKanbanPage() {
 
       {/* Edit Lead Modal */}
       {isEditModalOpen && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-white w-[400px] rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between p-4 border-b">
               <h2 className="text-lg font-bold">Edit Lead</h2>
               <button onClick={() => setIsEditModalOpen(false)} className="p-1 hover:bg-gray-100 rounded-full"><X className="h-5 w-5 text-gray-500" /></button>
             </div>
-            <form onSubmit={handleSaveEdit} className="p-4 space-y-4">
+            <form onSubmit={handleSaveEdit} className="p-4 space-y-4 max-h-[80vh] overflow-y-auto hide-scrollbar">
               <div>
                 <label className="block text-sm font-medium mb-1">Name</label>
                 <input required type="text" value={formData.name || ""} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold mb-1">Phone</label>
+                  <input type="text" value={formData.phone || ""} onChange={e => setFormData({ ...formData, phone: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white" placeholder="+919876543210" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold mb-1">Email</label>
+                  <input type="email" value={formData.email || ""} onChange={e => setFormData({ ...formData, email: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white" placeholder="john@example.com" />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Company</label>
                 <input type="text" value={formData.company || ""} onChange={e => setFormData({ ...formData, company: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
               </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold mb-1">Estimated Value</label>
+                  <input type="text" value={formData.value || ""} onChange={e => setFormData({ ...formData, value: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold mb-1">Status</label>
+                  <select value={formData.status || "new"} onChange={e => setFormData({ ...formData, status: e.target.value as Lead["status"] })} className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white">
+                    <option value="new">New Lead</option>
+                    <option value="contacted">Contacted</option>
+                    <option value="qualified">Qualified</option>
+                    <option value="proposal">Proposal</option>
+                    <option value="won">Won</option>
+                    <option value="lost">Lost</option>
+                  </select>
+                </div>
+              </div>
+
               <div>
-                <label className="block text-sm font-medium mb-1">Estimated Value</label>
-                <input type="text" value={formData.value || ""} onChange={e => setFormData({ ...formData, value: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                <label className="block text-sm font-medium mb-1">Internal Note</label>
+                <textarea rows={2} value={formData.note || ""} onChange={e => setFormData({ ...formData, note: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white resize-none" placeholder="Interested in WhatsApp automation..." />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Status</label>
-                <select value={formData.status || "new"} onChange={e => setFormData({ ...formData, status: e.target.value as Lead["status"] })} className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white">
-                  <option value="new">New Lead</option>
-                  <option value="contacted">Contacted</option>
-                  <option value="qualified">Qualified</option>
-                  <option value="proposal">Proposal</option>
-                  <option value="won">Won</option>
-                  <option value="lost">Lost</option>
-                </select>
+                <label className="block text-sm font-medium mb-1">Follow-up Date</label>
+                <DatePicker 
+                  selected={formData.followupDate ? new Date(formData.followupDate) : null}
+                  onChange={(date: Date | null) => setFormData({ ...formData, followupDate: date ? date.toISOString() : "" })}
+                  showTimeSelect
+                  timeFormat="HH:mm"
+                  timeIntervals={15}
+                  dateFormat="MMMM d, yyyy h:mm aa"
+                  className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white"
+                  placeholderText="Select date and time"
+                  isClearable
+                />
               </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Interest Attribute</label>
+                <input type="text" value={formData.customFields?.Interest || ""} onChange={e => setFormData({ ...formData, customFields: { ...formData.customFields, Interest: e.target.value } })} className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white" />
+              </div>
+
               <div className="pt-2 flex justify-end gap-2">
                 <button type="button" onClick={() => setIsEditModalOpen(false)} className="px-4 py-2 border rounded-lg text-sm font-medium hover:bg-gray-50">Cancel</button>
                 <button type="submit" disabled={editLeadMutation.isPending} className="px-4 py-2 bg-foreground text-white rounded-lg text-sm font-medium hover:bg-foreground/90">

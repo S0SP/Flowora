@@ -244,5 +244,4 @@ async function embedTexts(texts: string[], apiKey: string): Promise<number[][]> 
   return results;
 }
 
-// Export helpers for reuse in other routes
-export { embedTexts, scrapeWebsite, chunkText };
+

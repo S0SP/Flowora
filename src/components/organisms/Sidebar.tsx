@@ -106,7 +106,7 @@ export function Sidebar() {
       >
         {/* Logo / workspace */}
         <div className={cn(
-          "flex items-center h-14 border-b border-white/[0.06] flex-shrink-0 px-4 justify-between",
+          "flex items-center h-12 border-b border-white/[0.06] flex-shrink-0 px-4 justify-between",
           !isSidebarOpen && "px-0 justify-center"
         )}>
           {!isSidebarOpen ? (
