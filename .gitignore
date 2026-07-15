@@ -64,3 +64,6 @@ venv.bak/
 .idea/
 .vscode/
 voiceagent.code-workspace/
+*.zip
+design_spec/
+docs/
