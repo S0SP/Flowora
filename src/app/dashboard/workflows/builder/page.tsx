@@ -30,14 +30,13 @@ const templateIconMap: Record<string, React.ElementType> = {
 }
 
 const nodeLibrary = [
- {
- category: "TRIGGERS",
- nodes: [
- { id: "google_sheet", icon: Database, color: "text-emerald-600", label: "Google Sheet", sublabel: "New Row Added", bg: "bg-emerald-50", border: "border-emerald-200" },
- { id: "webhook", icon: Globe, color: "text-sky-600", label: "Webhook", sublabel: "HTTP POST Trigger", bg: "bg-sky-50", border: "border-sky-200" },
- { id: "form", icon: MessageSquare, color: "text-indigo-600", label: "Form Submit", sublabel: "Any form submission", bg: "bg-indigo-50", border: "border-indigo-200" },
- ]
- },
+  {
+    category: "TRIGGERS",
+    nodes: [
+      { id: "google_sheet", icon: Database, color: "text-emerald-600", label: "Google Sheet", sublabel: "New Row Added", bg: "bg-emerald-50", border: "border-emerald-200" },
+      { id: "webhook", icon: Globe, color: "text-sky-600", label: "Webhook", sublabel: "HTTP POST Trigger", bg: "bg-sky-50", border: "border-sky-200" },
+    ]
+  },
  {
  category: "ACTIONS",
  nodes: [
@@ -81,6 +80,20 @@ const selectCls = "w-full bg-[var(--node-bg)] border border-[var(--node-border)]
 // Variable Token Picker 
 const COMMON_VARS = ["{{phone}}", "{{name}}", "{{email}}", "{{order.id}}", "{{company}}", "{{city}}"]
 
+function getJsonKeys(obj: any, prefix = ""): string[] {
+  if (!obj || typeof obj !== "object") return []
+  let keys: string[] = []
+  Object.entries(obj).forEach(([key, val]) => {
+    const fullKey = prefix ? `${prefix}.${key}` : key
+    if (val && typeof val === "object" && !Array.isArray(val)) {
+      keys.push(...getJsonKeys(val, fullKey))
+    } else {
+      keys.push(fullKey)
+    }
+  })
+  return keys
+}
+
 function getVarsFromNode(node: any): string[] {
   const vars: string[] = []
   const typeKey = node.data?.subtype ?? node.data?.type ?? node.data?.id ?? "trigger"
@@ -90,8 +103,29 @@ function getVarsFromNode(node: any): string[] {
     if (d.phoneColumn) vars.push(`{{${d.phoneColumn}}}`)
     if (d.nameColumn) vars.push(`{{${d.nameColumn}}}`)
     if (d.emailColumn) vars.push(`{{${d.emailColumn}}}`)
+    if (d.customColumns) {
+      const cols = Array.isArray(d.customColumns)
+        ? d.customColumns
+        : String(d.customColumns).split(",").map(c => c.trim()).filter(Boolean)
+      cols.forEach(col => {
+        const placeholder = `{{${col}}}`
+        if (!vars.includes(placeholder)) vars.push(placeholder)
+      })
+    }
   } else if (typeKey === "webhook") {
-    vars.push("{{payload.field}}")
+    if (d.payloadFields && Array.isArray(d.payloadFields)) {
+      d.payloadFields.forEach((f: string) => vars.push(`{{${f}}}`))
+    } else if (d.sampleJson) {
+      try {
+        const obj = JSON.parse(d.sampleJson)
+        const keys = getJsonKeys(obj)
+        keys.forEach(k => vars.push(`{{${k}}}`))
+      } catch {}
+    }
+    // Always fallbacks if empty
+    if (vars.length === 0) {
+      vars.push("{{phone}}", "{{name}}", "{{email}}")
+    }
   } else if (typeKey === "form") {
     vars.push("{{name}}", "{{email}}", "{{phone}}", "{{company}}")
   } else if (typeKey === "trigger") {
@@ -156,251 +190,433 @@ function SectionHeader({ icon: Icon, title, subtitle, color }: {
 
 // Google Sheet
 function GoogleSheetPanel({ data, onSave }: { data: any; onSave: (d: any) => void }) {
- const [form, setForm] = useState({ sheetUrl: data.sheetUrl ?? "", sheetName: data.sheetName ?? "", phoneColumn: data.phoneColumn ?? "phone", nameColumn: data.nameColumn ?? "name", emailColumn: data.emailColumn ?? "email", triggerOn: data.triggerOn ?? "new", pollInterval: data.pollInterval ?? "60" })
- const f = (k: string) => (e: any) => setForm(p => ({ ...p, [k]: e.target.value }))
- return (
- <>
- <SectionHeader icon={Database} title="Google Sheet Trigger" subtitle="Fires when a new row is added" color="bg-emerald-600" />
- <div className="flex-1 overflow-y-auto p-4 space-y-4">
- <FieldWrap hint="Paste the full Google Sheets URL. Make sure it's set to 'Anyone with link can view'.">
- <Label required>Sheet URL</Label>
- <div className="flex gap-2">
- <input className={cn(inputCls, "flex-1")} placeholder="https://docs.google.com/spreadsheets/d/..." value={form.sheetUrl} onChange={f("sheetUrl")} />
- <button type="button" onClick={() => toast.success("URL validated!")} className="px-3 py-2 bg-emerald-600 text-white rounded-lg text-[12px] font-bold hover:bg-emerald-700 shrink-0">Test</button>
- </div>
- </FieldWrap>
- <FieldWrap>
- <Label>Sheet Tab Name</Label>
- <input className={inputCls} placeholder="Sheet1" value={form.sheetName} onChange={f("sheetName")} />
- </FieldWrap>
- <div className="grid grid-cols-2 gap-3">
- <FieldWrap>
- <Label required>Phone Column</Label>
- <input className={inputCls} placeholder="phone" value={form.phoneColumn} onChange={f("phoneColumn")} />
- </FieldWrap>
- <FieldWrap>
- <Label>Name Column</Label>
- <input className={inputCls} placeholder="name" value={form.nameColumn} onChange={f("nameColumn")} />
- </FieldWrap>
- </div>
- <FieldWrap>
- <Label>Email Column</Label>
- <input className={inputCls} placeholder="email" value={form.emailColumn} onChange={f("emailColumn")} />
- </FieldWrap>
- <FieldWrap>
- <Label>Trigger On</Label>
- <div className="grid grid-cols-2 gap-2">
- {[["new", "New Row Added"], ["updated", "Row Updated"]].map(([v, l]) => (
- <label key={v} className={cn("flex items-center gap-2 p-2.5 rounded-lg border-2 cursor-pointer transition-all", form.triggerOn === v ? "border-emerald-500 bg-emerald-50" : "border-border hover:border-emerald-200")}>
- <input type="radio" name="triggerOn" value={v} checked={form.triggerOn === v} onChange={f("triggerOn")} className="accent-emerald-600" />
- <span className="text-[12px] font-medium">{l}</span>
- </label>
- ))}
- </div>
- </FieldWrap>
- <FieldWrap>
- <Label>Polling Interval</Label>
- <select className={selectCls} value={form.pollInterval} onChange={f("pollInterval")}>
- <option value="30">Every 30 Seconds</option>
- <option value="60">Every 60 Seconds</option>
- <option value="300">Every 5 Minutes</option>
- <option value="900">Every 15 Minutes</option>
- </select>
- </FieldWrap>
- </div>
- <div className="p-4 border-t border-border bg-muted/20">
- <button onClick={() => onSave(form)} className="w-full py-2.5 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-colors text-[13px] shadow-sm">
- Save Trigger Config
- </button>
- </div>
- </>
- )
+  const initInterval = Number(data.pollInterval ?? "60")
+  let initValue = 60
+  let initUnit = "seconds"
+  if (initInterval % 3600 === 0) {
+    initValue = initInterval / 3600
+    initUnit = "hours"
+  } else if (initInterval % 60 === 0) {
+    initValue = initInterval / 60
+    initUnit = "minutes"
+  } else {
+    initValue = initInterval
+    initUnit = "seconds"
+  }
+
+  const [form, setForm] = useState({
+    sheetUrl: data.sheetUrl ?? "",
+    sheetName: data.sheetName ?? "",
+    phoneColumn: data.phoneColumn ?? "phone",
+    nameColumn: data.nameColumn ?? "name",
+    emailColumn: data.emailColumn ?? "email",
+    triggerOn: data.triggerOn ?? "new",
+    pollValue: initValue,
+    pollUnit: initUnit,
+    customColumns: data.customColumns ?? ""
+  })
+
+  const [fetchingHeaders, setFetchingHeaders] = useState(false)
+  const [detectedHeaders, setDetectedHeaders] = useState<string[]>(
+    data.customColumns 
+      ? (Array.isArray(data.customColumns) ? data.customColumns : String(data.customColumns).split(",").map((c: string) => c.trim()).filter(Boolean))
+      : []
+  )
+
+  const f = (k: string) => (e: any) => setForm(p => ({ ...p, [k]: e.target.value }))
+
+  const fetchHeaders = async () => {
+    if (!form.sheetUrl) {
+      toast.error("Please enter a Google Sheet URL first")
+      return
+    }
+    setFetchingHeaders(true)
+    try {
+      const res = await fetch(`/api/workflows/fetch-sheet-headers?url=${encodeURIComponent(form.sheetUrl)}`)
+      const d = await res.json()
+      if (!res.ok) throw new Error(d.error || "Failed to fetch columns")
+      
+      const cols = d.headers ?? []
+      setDetectedHeaders(cols)
+      
+      const lowerCols = cols.map((c: string) => c.toLowerCase())
+      const phoneIdx = lowerCols.findIndex((c: string) => c.includes("phone") || c.includes("mobile") || c.includes("whatsapp") || c.includes("number"))
+      const nameIdx = lowerCols.findIndex((c: string) => c.includes("name") || c.includes("full") || c.includes("lead"))
+      const emailIdx = lowerCols.findIndex((c: string) => c.includes("email") || c.includes("mail"))
+      
+      setForm(p => {
+        const next = { ...p }
+        if (phoneIdx !== -1) next.phoneColumn = cols[phoneIdx]
+        if (nameIdx !== -1) next.nameColumn = cols[nameIdx]
+        if (emailIdx !== -1) next.emailColumn = cols[emailIdx]
+        next.customColumns = cols.join(", ")
+        return next
+      })
+      
+      toast.success(`Successfully fetched ${cols.length} column headers!`)
+    } catch (err: any) {
+      toast.error(err.message || "An error occurred while fetching sheet headers")
+    } finally {
+      setFetchingHeaders(false)
+    }
+  }
+
+  const handleSaveClick = () => {
+    const seconds = form.pollUnit === "seconds" 
+      ? Number(form.pollValue) 
+      : form.pollUnit === "minutes" 
+        ? Number(form.pollValue) * 60 
+        : Number(form.pollValue) * 3600
+    
+    onSave({
+      sheetUrl: form.sheetUrl,
+      sheetName: form.sheetName,
+      phoneColumn: form.phoneColumn,
+      nameColumn: form.nameColumn,
+      emailColumn: form.emailColumn,
+      triggerOn: form.triggerOn,
+      pollInterval: String(seconds),
+      customColumns: form.customColumns
+    })
+  }
+
+  return (
+    <>
+      <SectionHeader icon={Database} title="Google Sheet Trigger" subtitle="Fires when a new row is added" color="bg-emerald-600" />
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 animate-fadeIn">
+        <FieldWrap hint="Paste the full Google Sheets URL. Make sure it's set to 'Anyone with link can view'.">
+          <Label required>Sheet URL</Label>
+          <div className="flex gap-2">
+            <input className={cn(inputCls, "flex-1")} placeholder="https://docs.google.com/spreadsheets/d/..." value={form.sheetUrl} onChange={f("sheetUrl")} />
+            <button type="button" onClick={fetchHeaders} disabled={fetchingHeaders} className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-lg text-[12px] font-bold shrink-0 flex items-center gap-1.5 transition-colors">
+              {fetchingHeaders ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Fetch Columns"}
+            </button>
+          </div>
+        </FieldWrap>
+
+        {detectedHeaders.length > 0 && (
+          <div className="space-y-1.5">
+            <Label>Detected Column Variables</Label>
+            <div className="flex flex-wrap gap-1.5 bg-muted/40 border border-border rounded-lg p-2.5 max-h-32 overflow-y-auto">
+              {detectedHeaders.map(h => (
+                <span key={h} className="text-[10px] font-semibold font-mono bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded">
+                  {`{{${h}}}`}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <FieldWrap>
+          <Label>Sheet Tab Name</Label>
+          <input className={inputCls} placeholder="Sheet1" value={form.sheetName} onChange={f("sheetName")} />
+        </FieldWrap>
+
+        <div className="grid grid-cols-2 gap-3">
+          <FieldWrap>
+            <Label required>Phone Column</Label>
+            <input className={inputCls} placeholder="phone" value={form.phoneColumn} onChange={f("phoneColumn")} />
+          </FieldWrap>
+          <FieldWrap>
+            <Label>Name Column</Label>
+            <input className={inputCls} placeholder="name" value={form.nameColumn} onChange={f("nameColumn")} />
+          </FieldWrap>
+        </div>
+
+        <FieldWrap>
+          <Label>Email Column</Label>
+          <input className={inputCls} placeholder="email" value={form.emailColumn} onChange={f("emailColumn")} />
+        </FieldWrap>
+
+        <FieldWrap hint="Additional column headers you want to use downstream (comma-separated)">
+          <Label>Custom Columns / Headers</Label>
+          <input className={inputCls} placeholder="Age, Budget, Status" value={form.customColumns} onChange={f("customColumns")} />
+        </FieldWrap>
+
+        <FieldWrap>
+          <Label>Trigger On</Label>
+          <div className="grid grid-cols-2 gap-2">
+            {[["new", "New Row Added"], ["updated", "Row Updated"]].map(([v, l]) => (
+              <label key={v} className={cn("flex items-center gap-2 p-2.5 rounded-lg border-2 cursor-pointer transition-all", form.triggerOn === v ? "border-emerald-500 bg-emerald-50" : "border-border hover:border-emerald-200")}>
+                <input type="radio" name="triggerOn" value={v} checked={form.triggerOn === v} onChange={f("triggerOn")} className="accent-emerald-600" />
+                <span className="text-[12px] font-medium">{l}</span>
+              </label>
+            ))}
+          </div>
+        </FieldWrap>
+
+        <div className="grid grid-cols-2 gap-3">
+          <FieldWrap>
+            <Label>Poll Interval Value</Label>
+            <input type="number" min={1} className={inputCls} value={form.pollValue} onChange={f("pollValue")} />
+          </FieldWrap>
+          <FieldWrap>
+            <Label>Poll Interval Unit</Label>
+            <select className={selectCls} value={form.pollUnit} onChange={f("pollUnit")}>
+              <option value="seconds">Seconds</option>
+              <option value="minutes">Minutes</option>
+              <option value="hours">Hours</option>
+            </select>
+          </FieldWrap>
+        </div>
+      </div>
+      <div className="p-4 border-t border-border bg-muted/20">
+        <button onClick={handleSaveClick} className="w-full py-2.5 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-colors text-[13px] shadow-sm">
+          Save Trigger Config
+        </button>
+      </div>
+    </>
+  )
 }
 
 // WhatsApp
 function WhatsAppPanel({ data, onSave, availableVars }: { data: any; onSave: (d: any) => void; availableVars?: string[] }) {
- const [mode, setMode] = useState<"template" | "custom">(data.mode ?? "template")
- const [templateName, setTemplateName] = useState(data.templateName ?? "")
- const [templateLanguage, setTemplateLang] = useState(data.templateLanguage ?? "en")
- const [message, setMessage] = useState(data.message ?? "")
- const [branches, setBranches] = useState<NodeBranch[]>(data.branches ?? [])
- const [templates, setTemplates] = useState<any[]>([])
- const [loadingTpls, setLoadingTpls] = useState(false)
- const [fallbackMode, setFallbackMode] = useState<"ai" | "message">(data.fallbackMode ?? "ai")
- const [fallbackMsg, setFallbackMsg] = useState(data.fallbackMessage ?? "")
- const msgRef = useRef<HTMLTextAreaElement>(null)
+  const [mode, setMode] = useState<"template" | "custom">(data.mode ?? "template")
+  const [templateName, setTemplateName] = useState(data.templateName ?? "")
+  const [templateLanguage, setTemplateLang] = useState(data.templateLanguage ?? "en")
+  const [message, setMessage] = useState(data.message ?? "")
+  const [branches, setBranches] = useState<NodeBranch[]>(data.branches ?? [])
+  const [templates, setTemplates] = useState<any[]>([])
+  const [loadingTpls, setLoadingTpls] = useState(false)
+  const [fallbackMode, setFallbackMode] = useState<"ai" | "message">(data.fallbackMode ?? "ai")
+  const [fallbackMsg, setFallbackMsg] = useState(data.fallbackMessage ?? "")
+  const [variables, setVariables] = useState<Record<string, string>>(data.variables ?? {})
+  const msgRef = useRef<HTMLTextAreaElement>(null)
 
- useEffect(() => {
- setLoadingTpls(true)
- fetch("/api/templates").then(r => r.json()).then(d => {
- setTemplates(Array.isArray(d) ? d : d.templates ?? [])
- }).catch(() => { }).finally(() => setLoadingTpls(false))
- }, [])
+  useEffect(() => {
+    setLoadingTpls(true)
+    fetch("/api/templates").then(r => r.json()).then(d => {
+      setTemplates(Array.isArray(d) ? d : d.templates ?? [])
+    }).catch(() => { }).finally(() => setLoadingTpls(false))
+  }, [])
 
- // When template changes, parse its buttons
- const onTemplateChange = (name: string) => {
- setTemplateName(name)
- const tpl = templates.find((t: any) => t.name === name)
- if (tpl?.components) {
- const buttonComp = tpl.components.find((c: any) => c.type === "BUTTONS")
- if (buttonComp?.buttons) {
- const newBranches: NodeBranch[] = buttonComp.buttons.map((b: any, i: number) => ({
- id: `btn_${i}_${b.text?.replace(/\s+/g, "_").toLowerCase()}`,
- label: b.text,
- type: "button"
- }))
- newBranches.push({ id: "fallback", label: "Any other reply", type: "fallback" })
- setBranches(newBranches)
- } else {
- setBranches([])
- }
- }
- }
+  const selectedTemplateText = useMemo(() => {
+    const tpl = templates.find((t: any) => t.name === templateName)
+    if (!tpl || !tpl.components) return ""
+    const bodyComp = tpl.components.find((c: any) => c.type === "BODY")
+    return bodyComp?.text || ""
+  }, [templates, templateName])
 
- const insertVar = (v: string) => {
- if (!msgRef.current) return
- const s = msgRef.current.selectionStart, e = msgRef.current.selectionEnd
- const val = message.slice(0, s) + v + message.slice(e)
- setMessage(val)
- setTimeout(() => { msgRef.current?.setSelectionRange(s + v.length, s + v.length); msgRef.current?.focus() }, 0)
- }
+  const templatePlaceholders = useMemo(() => {
+    const matches = selectedTemplateText.match(/\{\{(\d+)\}\}/g) || []
+    return Array.from(new Set(matches))
+      .map(m => m.replace(/\D/g, ""))
+      .sort((a, b) => parseInt(a) - parseInt(b))
+  }, [selectedTemplateText])
 
- const addCustomBranch = () => setBranches(p => [...p, { id: `custom_${Date.now()}`, label: "Custom Option", type: "custom" }])
- const removeBranch = (id: string) => setBranches(p => p.filter(b => b.id !== id))
- const updateBranch = (id: string, label: string) => setBranches(p => p.map(b => b.id === id ? { ...b, label } : b))
+  const onTemplateChange = (name: string) => {
+    setTemplateName(name)
+    const tpl = templates.find((t: any) => t.name === name)
+    if (tpl?.components) {
+      const buttonComp = tpl.components.find((c: any) => c.type === "BUTTONS")
+      if (buttonComp?.buttons) {
+        const newBranches: NodeBranch[] = buttonComp.buttons.map((b: any, i: number) => ({
+          id: `btn_${i}_${b.text?.replace(/\s+/g, "_").toLowerCase()}`,
+          label: b.text,
+          type: "button"
+        }))
+        newBranches.push({ id: "fallback", label: "Any other reply", type: "fallback" })
+        setBranches(newBranches)
+      } else {
+        setBranches([])
+      }
+    }
+  }
 
- const preview = useMemo(() =>
- message.replace(/\{\{([^}]+)\}\}/g, (_: string, p: string) => `[${p.split(".").pop()?.toUpperCase() ?? p}]`),
- [message]
- )
+  const insertVar = (v: string) => {
+    if (!msgRef.current) return
+    const s = msgRef.current.selectionStart, e = msgRef.current.selectionEnd
+    const val = message.slice(0, s) + v + message.slice(e)
+    setMessage(val)
+    setTimeout(() => { msgRef.current?.setSelectionRange(s + v.length, s + v.length); msgRef.current?.focus() }, 0)
+  }
 
- return (
- <>
- <SectionHeader icon={MessageSquare} title="WhatsApp Message" subtitle="Send a template or custom message" color="bg-green-500" />
- <div className="flex-1 overflow-y-auto p-4 space-y-4">
- {/* Mode toggle */}
- <div className="flex rounded-xl overflow-hidden border border-border">
- {(["template", "custom"] as const).map(m => (
- <button key={m} type="button" onClick={() => setMode(m)}
- className={cn("flex-1 py-2 text-[12px] font-bold transition-all capitalize",
- mode === m ? "bg-green-500 text-white" : "bg-white text-muted-foreground hover:bg-muted"
- )}>
- {m === "template" ? " Meta Template" : " Custom Message"}
- </button>
- ))}
- </div>
+  const addCustomBranch = () => setBranches(p => [...p, { id: `custom_${Date.now()}`, label: "Custom Option", type: "custom" }])
+  const removeBranch = (id: string) => setBranches(p => p.filter(b => b.id !== id))
+  const updateBranch = (id: string, label: string) => setBranches(p => p.map(b => b.id === id ? { ...b, label } : b))
 
- {mode === "template" ? (
- <>
- <FieldWrap hint="Only approved templates appear here.">
- <Label required>Select Template</Label>
- {loadingTpls ? (
- <div className="flex items-center gap-2 p-3 bg-muted rounded-lg text-[12px] text-muted-foreground">
- <Loader2 className="h-3 w-3 animate-spin" /> Loading templates…
- </div>
- ) : (
- <select className={selectCls} value={templateName} onChange={e => onTemplateChange(e.target.value)}>
- <option value="">— Select a template —</option>
- {templates.map((t: any) => (
- <option key={t.name} value={t.name}>{t.display_name ?? t.name} ({t.language})</option>
- ))}
- </select>
- )}
- </FieldWrap>
- <FieldWrap>
- <Label>Language Code</Label>
- <input className={inputCls} value={templateLanguage} onChange={e => setTemplateLang(e.target.value)} placeholder="en" />
- </FieldWrap>
- </>
- ) : (
- <>
- <FieldWrap hint="Use {{variable}} syntax to insert dynamic values.">
- <div className="flex items-center justify-between mb-1.5">
- <Label required>Message Text</Label>
- <VarPicker onInsert={insertVar} availableVars={availableVars} />
- </div>
- <textarea ref={msgRef} className={cn(inputCls, "min-h-[100px] resize-y")} placeholder="Hi {{name}}, your order {{order.id}} is ready!" value={message} onChange={e => setMessage(e.target.value)} />
- </FieldWrap>
+  const preview = useMemo(() =>
+    message.replace(/\{\{([^}]+)\}\}/g, (_: string, p: string) => `[${p.split(".").pop()?.toUpperCase() ?? p}]`),
+    [message]
+  )
 
- {/* Live preview */}
- {message && (
- <div>
- <Label>Live Preview</Label>
- <div className="bg-[#efeae2] rounded-xl p-3">
- <div className="bg-[#d9fdd3] rounded-[8px_8px_8px_0] px-3 py-2 text-[12px] text-[#111b21] leading-relaxed shadow-sm max-w-[90%]">
- {preview}
- </div>
- <div className="text-right text-[10px] text-[#667781] mt-1">10:30 </div>
- </div>
- </div>
- )}
- </>
- )}
+  const handleSaveClick = () => {
+    let previewText = ""
+    if (mode === "template") {
+      previewText = selectedTemplateText.replace(/\{\{(\d+)\}\}/g, (_, num) => {
+        const mapped = variables[num] ?? `{{${num}}}`
+        return mapped.replace(/\{\{([^}]+)\}\}/g, (__, name) => `[${name.split(".").pop()?.toUpperCase() ?? name}]`)
+      })
+    } else {
+      previewText = preview
+    }
 
- {/* Button branches */}
- {branches.length > 0 && (
- <div>
- <div className="flex items-center justify-between mb-2">
- <Label>Reply Branches</Label>
- <button type="button" onClick={addCustomBranch} className="flex items-center gap-1 text-[11px] text-primary font-medium hover:underline">
- <Plus className="h-3 w-3" /> Add Branch
- </button>
- </div>
- <div className="space-y-2">
- {branches.map(b => (
- <div key={b.id} className={cn(
- "flex items-center gap-2 px-3 py-2 rounded-lg border",
- b.type === "button" ? "bg-blue-50 border-blue-200" :
- b.type === "fallback" ? "bg-gray-50 border-gray-200" : "bg-purple-50 border-purple-200"
- )}>
- <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground w-14 shrink-0">
- {b.type === "button" ? "BTN" : b.type === "fallback" ? "ELSE" : "CUSTOM"}
- </span>
- <input
- className="flex-1 bg-transparent text-[12px] font-medium focus:outline-none"
- value={b.label}
- onChange={e => updateBranch(b.id, e.target.value)}
- disabled={b.type === "fallback"}
- />
- {b.type !== "true" && b.type !== "false" && b.type !== "fallback" && (
- <button type="button" onClick={() => removeBranch(b.id)} className="text-muted-foreground hover:text-red-500 transition-colors">
- <Trash2 className="h-3 w-3" />
- </button>
- )}
- </div>
- ))}
- </div>
- </div>
- )}
+    onSave({
+      mode,
+      templateName,
+      templateLanguage,
+      message,
+      branches,
+      fallbackMode,
+      fallbackMessage: fallbackMsg,
+      previewText,
+      variables
+    })
+  }
 
- {/* Fallback settings */}
- {branches.some(b => b.type === "fallback") && (
- <div className="border border-dashed border-border rounded-xl p-3 space-y-3">
- <Label>Fallback Reply Action</Label>
- <div className="grid grid-cols-2 gap-2">
- {[["ai", " Route to AI"], ["message", " Custom Reply"]].map(([v, l]) => (
- <label key={v} className={cn("flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all text-[11px] font-semibold",
- fallbackMode === v ? "border-green-500 bg-green-50 text-green-700" : "border-border text-muted-foreground hover:border-green-200"
- )}>
- <input type="radio" name="fallback" value={v} checked={fallbackMode === v} onChange={() => setFallbackMode(v as any)} className="hidden" />
- {l}
- </label>
- ))}
- </div>
- {fallbackMode === "message" && (
- <textarea className={cn(inputCls, "min-h-[60px]")} placeholder="Sorry, please tap one of the buttons above." value={fallbackMsg} onChange={e => setFallbackMsg(e.target.value)} />
- )}
- </div>
- )}
- </div>
- <div className="p-4 border-t border-border bg-muted/20">
- <button onClick={() => onSave({ mode, templateName, templateLanguage, message, branches, fallbackMode, fallbackMessage: fallbackMsg, previewText: mode === "custom" ? preview : "" })}
- className="w-full py-2.5 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600 transition-colors text-[13px] shadow-sm">
- Save WhatsApp Node
- </button>
- </div>
- </>
- )
+  return (
+    <>
+      <SectionHeader icon={MessageSquare} title="WhatsApp Message" subtitle="Send a template or custom message" color="bg-green-500" />
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 animate-fadeIn">
+        <div className="flex rounded-xl overflow-hidden border border-border">
+          {(["template", "custom"] as const).map(m => (
+            <button key={m} type="button" onClick={() => setMode(m)}
+              className={cn("flex-1 py-2 text-[12px] font-bold transition-all capitalize",
+                mode === m ? "bg-green-500 text-white" : "bg-white text-muted-foreground hover:bg-muted"
+              )}>
+              {m === "template" ? " Meta Template" : " Custom Message"}
+            </button>
+          ))}
+        </div>
+
+        {mode === "template" ? (
+          <>
+            <FieldWrap hint="Only approved templates appear here.">
+              <Label required>Select Template</Label>
+              {loadingTpls ? (
+                <div className="flex items-center gap-2 p-3 bg-muted rounded-lg text-[12px] text-muted-foreground">
+                  <Loader2 className="h-3 w-3 animate-spin" /> Loading templates…
+                </div>
+              ) : (
+                <select className={selectCls} value={templateName} onChange={e => onTemplateChange(e.target.value)}>
+                  <option value="">— Select a template —</option>
+                  {templates.map((t: any) => (
+                    <option key={t.name} value={t.name}>{t.display_name ?? t.name} ({t.language})</option>
+                  ))}
+                </select>
+              )}
+            </FieldWrap>
+            <FieldWrap>
+              <Label>Language Code</Label>
+              <input className={inputCls} value={templateLanguage} onChange={e => setTemplateLang(e.target.value)} placeholder="en" />
+            </FieldWrap>
+
+            {selectedTemplateText && (
+              <div className="bg-green-50 border border-green-200 rounded-xl p-3">
+                <p className="text-[11px] font-semibold text-green-700 mb-1">Template Message Body</p>
+                <p className="text-[11px] text-green-600 font-mono leading-relaxed whitespace-pre-wrap">{selectedTemplateText}</p>
+              </div>
+            )}
+
+            {templatePlaceholders.length > 0 && (
+              <div className="space-y-3 pt-2">
+                <h4 className="text-[12px] font-bold text-foreground">Map Template Variables</h4>
+                {templatePlaceholders.map(num => (
+                  <FieldWrap key={num}>
+                    <div className="flex items-center justify-between mb-1">
+                      <Label required>{`Parameter {{${num}}}`}</Label>
+                      <VarPicker 
+                        onInsert={(v) => setVariables(p => ({ ...p, [num]: (p[num] ?? "") + v }))} 
+                        availableVars={availableVars} 
+                      />
+                    </div>
+                    <input 
+                      className={inputCls} 
+                      placeholder={`Enter text or select a variable`} 
+                      value={variables[num] ?? ""} 
+                      onChange={e => setVariables(p => ({ ...p, [num]: e.target.value }))} 
+                    />
+                  </FieldWrap>
+                ))}
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            <FieldWrap hint="Use {{variable}} syntax to insert dynamic values.">
+              <div className="flex items-center justify-between mb-1.5">
+                <Label required>Message Text</Label>
+                <VarPicker onInsert={insertVar} availableVars={availableVars} />
+              </div>
+              <textarea ref={msgRef} className={cn(inputCls, "min-h-[100px] resize-y")} placeholder="Hi {{name}}, your order {{order.id}} is ready!" value={message} onChange={e => setMessage(e.target.value)} />
+            </FieldWrap>
+
+            {message && (
+              <div>
+                <Label>Live Preview</Label>
+                <div className="bg-[#efeae2] rounded-xl p-3">
+                  <div className="bg-[#d9fdd3] rounded-[8px_8px_8px_0] px-3 py-2 text-[12px] text-[#111b21] leading-relaxed shadow-sm max-w-[90%]">
+                    {preview}
+                  </div>
+                  <div className="text-right text-[10px] text-[#667781] mt-1">10:30 </div>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {branches.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <Label>Reply Branches</Label>
+              <button type="button" onClick={addCustomBranch} className="flex items-center gap-1 text-[11px] text-primary font-medium hover:underline">
+                <Plus className="h-3 w-3" /> Add Branch
+              </button>
+            </div>
+            <div className="space-y-2">
+              {branches.map(b => (
+                <div key={b.id} className={cn(
+                  "flex items-center gap-2 px-3 py-2 rounded-lg border",
+                  b.type === "button" ? "bg-blue-50 border-blue-200" :
+                    b.type === "fallback" ? "bg-gray-50 border-gray-200" : "bg-purple-50 border-purple-200"
+                )}>
+                  <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground w-14 shrink-0">
+                    {b.type === "button" ? "BTN" : b.type === "fallback" ? "ELSE" : "CUSTOM"}
+                  </span>
+                  <input
+                    className="flex-1 bg-transparent text-[12px] font-medium focus:outline-none"
+                    value={b.label}
+                    onChange={e => updateBranch(b.id, e.target.value)}
+                    disabled={b.type === "fallback"}
+                  />
+                  {b.type !== "true" && b.type !== "false" && b.type !== "fallback" && (
+                    <button type="button" onClick={() => removeBranch(b.id)} className="text-muted-foreground hover:text-red-500 transition-colors">
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {branches.some(b => b.type === "fallback") && (
+          <div className="border border-dashed border-border rounded-xl p-3 space-y-3">
+            <Label>Fallback Reply Action</Label>
+            <div className="grid grid-cols-2 gap-2">
+              {[["ai", " Route to AI"], ["message", " Custom Reply"]].map(([v, l]) => (
+                <label key={v} className={cn("flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all text-[11px] font-semibold",
+                  fallbackMode === v ? "border-green-500 bg-green-50 text-green-700" : "border-border text-muted-foreground hover:border-green-200"
+                )}>
+                  <input type="radio" name="fallback" value={v} checked={fallbackMode === v} onChange={() => setFallbackMode(v as any)} className="hidden" />
+                  {l}
+                </label>
+              ))}
+            </div>
+            {fallbackMode === "message" && (
+              <textarea className={cn(inputCls, "min-h-[60px]")} placeholder="Sorry, please tap one of the buttons above." value={fallbackMsg} onChange={e => setFallbackMsg(e.target.value)} />
+            )}
+          </div>
+        )}
+      </div>
+      <div className="p-4 border-t border-border bg-muted/20">
+        <button onClick={handleSaveClick}
+          className="w-full py-2.5 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600 transition-colors text-[13px] shadow-sm">
+          Save WhatsApp Node
+        </button>
+      </div>
+    </>
+  )
 }
 
 // Email
@@ -756,44 +972,108 @@ function CRMPanel({ data, onSave }: { data: any; onSave: (d: any) => void }) {
 
 // Webhook
 function WebhookPanel({ data, onSave, workflowId }: { data: any; onSave: (d: any) => void; workflowId: string | null }) {
- const url = `${typeof window !== "undefined" ? window.location.origin : ""}/api/webhooks/whatsapp`
- const [method, setMethod] = useState(data.method ?? "POST")
- const [headers, setHeaders] = useState(data.headers ?? "{}")
- const copied = useRef(false)
- const copy = () => { navigator.clipboard.writeText(url); toast.success("Copied!") }
- return (
- <>
- <SectionHeader icon={Globe} title="Webhook Trigger" subtitle="Receive HTTP requests to start flow" color="bg-sky-600" />
- <div className="flex-1 overflow-y-auto p-4 space-y-4">
- <FieldWrap hint="Share this URL with your external system (Meta Ads, Typeform, etc.)">
- <Label>Your Webhook URL</Label>
- <div className="bg-muted rounded-xl p-3 flex items-center gap-2">
- <code className="text-[11px] flex-1 truncate text-foreground font-mono">{url}</code>
- <button type="button" onClick={copy} className="shrink-0 p-1.5 bg-white border border-border rounded-lg hover:bg-sky-50 transition-colors">
- <Copy className="h-3.5 w-3.5 text-sky-600" />
- </button>
- </div>
- </FieldWrap>
- <FieldWrap>
- <Label>Method</Label>
- <select className={selectCls} value={method} onChange={e => setMethod(e.target.value)}>
- <option value="POST">POST</option>
- <option value="GET">GET</option>
- </select>
- </FieldWrap>
- <FieldWrap hint="Optional custom headers as JSON object">
- <Label>Headers (JSON)</Label>
- <textarea className={cn(inputCls, "font-mono text-[12px] min-h-[80px]")} value={headers} onChange={e => setHeaders(e.target.value)} placeholder='{"X-Api-Key": "secret"}' />
- </FieldWrap>
- </div>
- <div className="p-4 border-t border-border bg-muted/20">
- <button onClick={() => onSave({ method, headers })}
- className="w-full py-2.5 bg-sky-600 text-white font-bold rounded-xl hover:bg-sky-700 transition-colors text-[13px] shadow-sm">
- Save Webhook
- </button>
- </div>
- </>
- )
+  const url = workflowId 
+    ? `${typeof window !== "undefined" ? window.location.origin : ""}/api/workflows/trigger?workflowId=${workflowId}`
+    : "Save workflow first to generate Webhook URL"
+
+  const [method, setMethod] = useState(data.method ?? "POST")
+  const [headers, setHeaders] = useState(data.headers ?? "{}")
+  const [sampleJson, setSampleJson] = useState(data.sampleJson ?? `{\n  "phone": "+14155552671",\n  "name": "John Doe",\n  "email": "john@example.com"\n}`)
+  const [detectedFields, setDetectedFields] = useState<string[]>(data.payloadFields ?? ["phone", "name", "email"])
+
+  const copy = () => {
+    if (!workflowId) {
+      toast.error("Please save the workflow first to generate a valid Webhook URL")
+      return
+    }
+    navigator.clipboard.writeText(url)
+    toast.success("Webhook URL copied to clipboard!")
+  }
+
+  // Prettify / Validate JSON
+  const handlePrettify = () => {
+    try {
+      const parsed = JSON.parse(sampleJson)
+      setSampleJson(JSON.stringify(parsed, null, 2))
+      const keys = getJsonKeys(parsed)
+      setDetectedFields(keys)
+      toast.success("JSON verified and fields extracted!")
+    } catch {
+      toast.error("Invalid JSON format")
+    }
+  }
+
+  const handleSaveClick = () => {
+    let fields: string[] = []
+    if (sampleJson.trim()) {
+      try {
+        const parsed = JSON.parse(sampleJson)
+        fields = getJsonKeys(parsed)
+      } catch {
+        toast.error("Invalid JSON format. Please verify it before saving.")
+        return
+      }
+    }
+    onSave({ method, headers, sampleJson, payloadFields: fields })
+  }
+
+  return (
+    <>
+      <SectionHeader icon={Globe} title="Webhook Trigger" subtitle="Receive HTTP requests to start flow" color="bg-sky-600" />
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 animate-fadeIn">
+        <FieldWrap hint={workflowId ? "Copy this URL and configure your webhook source." : "Save the workflow first to generate the webhook trigger URL."}>
+          <Label>Your Webhook URL</Label>
+          <div className="bg-muted rounded-xl p-3 flex items-center gap-2">
+            <code className="text-[11px] flex-1 truncate text-foreground font-mono">{url}</code>
+            <button type="button" onClick={copy} className="shrink-0 p-1.5 bg-white border border-border rounded-lg hover:bg-sky-50 transition-colors">
+              <Copy className="h-3.5 w-3.5 text-sky-600" />
+            </button>
+          </div>
+        </FieldWrap>
+
+        <FieldWrap>
+          <Label>Method</Label>
+          <select className={selectCls} value={method} onChange={e => setMethod(e.target.value)}>
+            <option value="POST">POST</option>
+            <option value="GET">GET</option>
+          </select>
+        </FieldWrap>
+
+        <FieldWrap hint="Optional custom headers as JSON object">
+          <Label>Headers (JSON)</Label>
+          <textarea className={cn(inputCls, "font-mono text-[12px] min-h-[60px]")} value={headers} onChange={e => setHeaders(e.target.value)} placeholder='{"X-Api-Key": "secret"}' />
+        </FieldWrap>
+
+        <FieldWrap hint="Paste a sample JSON payload from your source system to extract dynamic variables.">
+          <div className="flex items-center justify-between mb-1">
+            <Label>Sample JSON Payload</Label>
+            <button type="button" onClick={handlePrettify} className="text-[10px] text-sky-600 font-bold hover:underline">
+              Verify & Format
+            </button>
+          </div>
+          <textarea className={cn(inputCls, "font-mono text-[12px] min-h-[140px] resize-y")} value={sampleJson} onChange={e => setSampleJson(e.target.value)} placeholder='{"phone": "+1...", "name": "John"}' />
+        </FieldWrap>
+
+        {detectedFields.length > 0 && (
+          <div className="space-y-1.5">
+            <Label>Extracted Payload Variables</Label>
+            <div className="flex flex-wrap gap-1.5 bg-muted/40 border border-border rounded-lg p-2.5 max-h-32 overflow-y-auto">
+              {detectedFields.map(f => (
+                <span key={f} className="text-[10px] font-semibold font-mono bg-sky-50 text-sky-700 border border-sky-200 px-2 py-0.5 rounded">
+                  {`{{${f}}}`}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="p-4 border-t border-border bg-muted/20">
+        <button onClick={handleSaveClick} className="w-full py-2.5 bg-sky-600 text-white font-bold rounded-xl hover:bg-sky-700 transition-colors text-[13px] shadow-sm">
+          Save Webhook
+        </button>
+      </div>
+    </>
+  )
 }
 
 // Reminder
@@ -864,59 +1144,39 @@ function ReminderPanel({ data, onSave }: { data: any; onSave: (d: any) => void }
 function NodeConfigPanel({ node, onSave, onClose, workflowId, availableVars }: {
  node: any; onSave: (d: any) => void; onClose: () => void; workflowId: string | null; availableVars?: string[]
 }) {
- const typeKey = node.data?.subtype ?? node.data?.type ?? node.data?.id ?? "trigger"
- const data = node.data ?? {}
+  const typeKey = node.data?.subtype ?? node.data?.type ?? node.data?.id ?? "trigger"
+  const data = node.data ?? {}
 
- const panel = (() => {
- switch (typeKey) {
- case "google_sheet": case "trigger": return <GoogleSheetPanel data={data} onSave={onSave} />
- case "whatsapp": return <WhatsAppPanel data={data} onSave={onSave} availableVars={availableVars} />
- case "email": return <EmailPanel data={data} onSave={onSave} availableVars={availableVars} />
- case "voice": return <VoicePanel data={data} onSave={onSave} availableVars={availableVars} />
- case "delay": return <DelayPanel data={data} onSave={onSave} />
- case "condition": return <ConditionPanel data={data} onSave={onSave} />
- case "update_crm": case "crm": return <CRMPanel data={data} onSave={onSave} />
- case "webhook": return <WebhookPanel data={data} onSave={onSave} workflowId={workflowId} />
- case "reminder": return <ReminderPanel data={data} onSave={onSave} />
- case "form":
- return (
- <>
- <SectionHeader icon={MessageSquare} title="Form Submission" subtitle="Trigger from any form" color="bg-indigo-600" />
- <div className="flex-1 overflow-y-auto p-4 space-y-4">
- <FieldWrap>
- <Label>Select Form</Label>
- <select className={selectCls} defaultValue={data.formId ?? ""} onChange={e => { }}>
- <option value="">All Forms</option>
- <option value="lead_capture">Lead Capture Form</option>
- <option value="contact_us">Contact Us</option>
- <option value="newsletter">Newsletter Signup</option>
- </select>
- </FieldWrap>
- </div>
- <div className="p-4 border-t border-border bg-muted/20">
- <button onClick={() => onSave({ formId: data.formId ?? "" })} className="w-full py-2.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 text-[13px] shadow-sm">Save Form</button>
- </div>
- </>
- )
- default:
- return (
- <div className="flex-1 flex flex-col items-center justify-center gap-3 text-muted-foreground p-6 text-center">
- <Settings2 className="h-10 w-10 opacity-20" />
- <p className="text-[14px] font-semibold">Config panel for <b>{typeKey}</b> coming soon</p>
- </div>
- )
- }
- })()
+  const panel = (() => {
+    switch (typeKey) {
+      case "google_sheet": case "trigger": return <GoogleSheetPanel data={data} onSave={onSave} />
+      case "whatsapp": return <WhatsAppPanel data={data} onSave={onSave} availableVars={availableVars} />
+      case "email": return <EmailPanel data={data} onSave={onSave} availableVars={availableVars} />
+      case "voice": return <VoicePanel data={data} onSave={onSave} availableVars={availableVars} />
+      case "delay": return <DelayPanel data={data} onSave={onSave} />
+      case "condition": return <ConditionPanel data={data} onSave={onSave} />
+      case "update_crm": case "crm": return <CRMPanel data={data} onSave={onSave} />
+      case "webhook": return <WebhookPanel data={data} onSave={onSave} workflowId={workflowId} />
+      case "reminder": return <ReminderPanel data={data} onSave={onSave} />
+      default:
+        return (
+          <div className="flex-1 flex flex-col items-center justify-center gap-3 text-muted-foreground p-6 text-center">
+            <Settings2 className="h-10 w-10 opacity-20" />
+            <p className="text-[14px] font-semibold">Config panel for <b>{typeKey}</b> coming soon</p>
+          </div>
+        )
+    }
+  })()
 
- return (
- <div className="w-[320px] bg-[var(--panel-bg)] border-l border-[var(--node-border)] flex flex-col shrink-0 z-10 shadow-[-8px_0_24px_rgba(0,0,0,0.04)] overflow-hidden">
- {/* Close button */}
- <button onClick={onClose} className="absolute top-[60px] right-[324px] z-50 p-1.5 bg-[var(--panel-bg)] border border-[var(--node-border)] text-[var(--text-secondary)] rounded-full shadow-md hover:bg-[var(--canvas-bg)] transition-colors">
- <X className="h-3.5 w-3.5" />
- </button>
- {panel}
- </div>
- )
+  return (
+    <div className="w-[320px] bg-[var(--panel-bg)] border-l border-[var(--node-border)] flex flex-col shrink-0 z-10 shadow-[-8px_0_24px_rgba(0,0,0,0.04)] overflow-hidden">
+      {/* Close button */}
+      <button onClick={onClose} className="absolute top-[60px] right-[324px] z-50 p-1.5 bg-[var(--panel-bg)] border border-[var(--node-border)] text-[var(--text-secondary)] rounded-full shadow-md hover:bg-[var(--canvas-bg)] transition-colors">
+        <X className="h-3.5 w-3.5" />
+      </button>
+      {panel}
+    </div>
+  )
 }
 
 // Main Builder Page 

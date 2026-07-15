@@ -61,3 +61,21 @@ export async function decryptJSON<T = Record<string, unknown>>(ciphertext: strin
   const plain = await decrypt(ciphertext)
   return JSON.parse(plain) as T
 }
+
+/**
+ * Parse secrets_enc safely, handling bytea hex format if returned by PG.
+ */
+export function parseSecrets(secretsEnc: any): Record<string, string> {
+  if (!secretsEnc) return {};
+  try {
+    if (typeof secretsEnc === "object") return secretsEnc;
+    let str = secretsEnc;
+    if (typeof str === "string" && str.startsWith("\\x")) {
+      str = Buffer.from(str.slice(2), "hex").toString("utf8");
+    }
+    return JSON.parse(str);
+  } catch (err) {
+    console.error("Failed to parse secrets_enc:", err);
+    return {};
+  }
+}

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { getTenant, TenantError } from '@/lib/tenant'
-import { decrypt } from '@/lib/crypto'
+import { decrypt, parseSecrets } from '@/lib/crypto'
 import { submitMessageTemplate } from '@/lib/whatsapp/meta-api'
 import {
   validateTemplatePayload,
@@ -135,7 +135,7 @@ export async function POST(request: Request) {
       let accessToken: string
       try {
         if (!conn.secrets_enc) throw new Error('No encrypted secrets')
-        const secretsObj = JSON.parse(conn.secrets_enc)
+        const secretsObj = parseSecrets(conn.secrets_enc)
         if (!secretsObj.accessToken) throw new Error('No accessToken in secrets')
         accessToken = await decrypt(secretsObj.accessToken)
       } catch (err) {

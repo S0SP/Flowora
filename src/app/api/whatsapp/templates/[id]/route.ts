@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
 import { getTenant, TenantError } from '@/lib/tenant'
-import { decrypt } from '@/lib/crypto'
+import { decrypt, parseSecrets } from '@/lib/crypto'
 import {
   deleteMessageTemplate,
   editMessageTemplate,
@@ -122,7 +122,7 @@ export async function PATCH(
       let accessToken: string
       try {
         if (!conn.secrets_enc) throw new Error('No encrypted secrets')
-        const secretsObj = JSON.parse(conn.secrets_enc)
+        const secretsObj = parseSecrets(conn.secrets_enc)
         if (!secretsObj.accessToken) throw new Error('No accessToken in secrets')
         accessToken = await decrypt(secretsObj.accessToken)
       } catch (err) {
@@ -261,7 +261,7 @@ export async function DELETE(
       let accessToken: string
       try {
         if (!conn.secrets_enc) throw new Error('No encrypted secrets')
-        const secretsObj = JSON.parse(conn.secrets_enc)
+        const secretsObj = parseSecrets(conn.secrets_enc)
         if (!secretsObj.accessToken) throw new Error('No accessToken in secrets')
         accessToken = await decrypt(secretsObj.accessToken)
       } catch (err) {

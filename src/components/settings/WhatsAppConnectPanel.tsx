@@ -15,7 +15,6 @@ import {
   RotateCcw,
   Building2,
   ChevronDown,
-  RefreshCw,
 } from "lucide-react";
 import { useWorkspace } from "@/context/WorkspaceContext";
 
@@ -55,7 +54,6 @@ export function WhatsAppConnectPanel() {
   const [pin, setPin] = useState("");
   const [tokenEdited, setTokenEdited] = useState(false);
 
-  const [isSyncing, setIsSyncing] = useState(false);
   const [verifyingRegistration, setVerifyingRegistration] = useState(false);
   const [registrationProbe, setRegistrationProbe] = useState<RegistrationProbe | null>(null);
 
@@ -292,19 +290,7 @@ export function WhatsAppConnectPanel() {
     toast.success("Webhook URL copied to clipboard");
   };
 
-  const handleSyncSip = async () => {
-    setIsSyncing(true);
-    try {
-      const res = await fetch("/api/whatsapp/calls/sync", { method: "POST" });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to sync SIP settings");
-      toast.success(`Successfully synced calling & SIP settings with LiveKit! Number: +${data.phoneNumber}`);
-    } catch (err: any) {
-      toast.error(err.message || "An error occurred while syncing");
-    } finally {
-      setIsSyncing(false);
-    }
-  };
+
 
   if (loading) {
     return (
@@ -597,37 +583,7 @@ export function WhatsAppConnectPanel() {
             )}
           </div>
 
-          <div className="bg-white border border-border rounded-xl p-6 shadow-sm space-y-4">
-            <div>
-              <h3 className="text-[15px] font-semibold text-foreground">WhatsApp Calling & SIP Configuration</h3>
-              <p className="text-[13px] text-muted-foreground mt-1">
-                Synchronize your Meta calling settings and provision direct TLS SIP trunks and routing rules in LiveKit.
-              </p>
-            </div>
-            <div className="flex justify-between items-center bg-muted/30 p-4 rounded-lg border border-border">
-              <div className="space-y-1">
-                <span className="text-[13px] font-semibold text-foreground">Direct LiveKit SIP Gateway</span>
-                <p className="text-[11px] text-muted-foreground">Sets up secure TLS trunk lines to wa.meta.vc</p>
-              </div>
-              <button
-                onClick={handleSyncSip}
-                disabled={isSyncing}
-                className="flex items-center gap-2 px-4 py-2 border border-border bg-white hover:bg-muted text-[13px] font-semibold text-foreground rounded-lg shadow-sm disabled:opacity-50 transition-all"
-              >
-                {isSyncing ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Syncing...
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw className="h-4 w-4" />
-                    Sync calling & SIP settings
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
+
         </div>
 
         <div className="space-y-6">

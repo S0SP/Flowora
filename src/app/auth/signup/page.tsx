@@ -19,7 +19,7 @@ const FEATURES = [
 
 export default function SignupPage() {
   const router = useRouter();
-  const [step, setStep] = useState<"account" | "workspace">("account");
+  const [step, setStep] = useState<"account" | "check-email" | "workspace">("account");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -40,7 +40,7 @@ export default function SignupPage() {
     setLoading(true);
     try {
       const supabase = createClient();
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -50,7 +50,12 @@ export default function SignupPage() {
       });
 
       if (error) throw error;
-      setStep("workspace");
+      
+      if (!data?.session) {
+        setStep("check-email");
+      } else {
+        setStep("workspace");
+      }
     } catch (err: any) {
       toast.error(err.message ?? "Failed to create account");
     } finally {
@@ -135,7 +140,7 @@ export default function SignupPage() {
           <div className="flex items-center gap-3 mb-8">
             <div className={cn("flex items-center gap-2 text-sm font-medium", step === "account" ? "text-foreground" : "text-muted-foreground")}>
               <span className={cn("w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold", step === "account" ? "bg-primary text-primary-foreground" : "bg-primary text-primary-foreground")}>
-                {step === "workspace" ? "✓" : "1"}
+                {step !== "account" ? "✓" : "1"}
               </span>
               Account
             </div>
@@ -164,7 +169,7 @@ export default function SignupPage() {
                     onChange={e => setFullName(e.target.value)}
                     placeholder="Robert Fox"
                     required
-                    className="w-full border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 bg-white"
+                    className="w-full border border-border rounded-xl px-4 py-3 text-sm text-[#1B1B1B] focus:outline-none focus:ring-2 focus:ring-primary/40 bg-white"
                   />
                 </div>
 
@@ -176,7 +181,7 @@ export default function SignupPage() {
                     onChange={e => setEmail(e.target.value)}
                     placeholder="you@company.com"
                     required
-                    className="w-full border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 bg-white"
+                    className="w-full border border-border rounded-xl px-4 py-3 text-sm text-[#1B1B1B] focus:outline-none focus:ring-2 focus:ring-primary/40 bg-white"
                   />
                 </div>
 
@@ -190,7 +195,7 @@ export default function SignupPage() {
                       placeholder="Min. 8 characters"
                       required
                       minLength={8}
-                      className="w-full border border-border rounded-xl px-4 py-3 pr-11 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 bg-white"
+                      className="w-full border border-border rounded-xl px-4 py-3 pr-11 text-sm text-[#1B1B1B] focus:outline-none focus:ring-2 focus:ring-primary/40 bg-white"
                     />
                     <button
                       type="button"
@@ -228,6 +233,29 @@ export default function SignupPage() {
                 </p>
               </form>
             </>
+          ) : step === "check-email" ? (
+            <div className="text-center space-y-6 py-4 animate-in fade-in duration-300">
+              <div className="w-16 h-16 bg-primary/10 border border-primary/20 rounded-full flex items-center justify-center mx-auto">
+                <CheckCircle className="w-8 h-8 text-primary" />
+              </div>
+              <div className="space-y-2">
+                <h1 className="text-2xl font-bold text-foreground">Verify your email</h1>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  We&apos;ve sent a verification link to <span className="font-semibold text-foreground">{email}</span>.
+                </p>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Please check your inbox and click the link to confirm your account, then sign in to setup your workspace.
+                </p>
+              </div>
+              <div className="pt-2">
+                <Link
+                  href="/auth/login"
+                  className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-6 py-2.5 rounded-xl hover:bg-primary/90 transition-colors shadow-sm"
+                >
+                  Go to Sign In
+                </Link>
+              </div>
+            </div>
           ) : (
             <>
               <div className="mb-6">
@@ -244,7 +272,7 @@ export default function SignupPage() {
                     onChange={e => setWorkspaceName(e.target.value)}
                     placeholder="Acme Corp"
                     required
-                    className="w-full border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 bg-white"
+                    className="w-full border border-border rounded-xl px-4 py-3 text-sm text-[#1B1B1B] focus:outline-none focus:ring-2 focus:ring-primary/40 bg-white"
                   />
                 </div>
 
@@ -253,7 +281,7 @@ export default function SignupPage() {
                   <select
                     value={industry}
                     onChange={e => setIndustry(e.target.value)}
-                    className="w-full border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 bg-white"
+                    className="w-full border border-border rounded-xl px-4 py-3 text-sm text-[#1B1B1B] focus:outline-none focus:ring-2 focus:ring-primary/40 bg-white"
                   >
                     <option value="">Select industry…</option>
                     <option value="saas">SaaS / Technology</option>

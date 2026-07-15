@@ -396,8 +396,8 @@ async function _sendWhatsAppViaWorkspace(
   let token = process.env.META_ACCESS_TOKEN;
   if (conn?.secrets_enc) {
     try {
-      const { decrypt } = await import("@/lib/crypto")
-      const secretsObj = JSON.parse(conn.secrets_enc)
+      const { decrypt, parseSecrets } = await import("@/lib/crypto")
+      const secretsObj = parseSecrets(conn.secrets_enc)
       if (secretsObj.accessToken) {
         token = await decrypt(secretsObj.accessToken)
       }

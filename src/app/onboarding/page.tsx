@@ -253,7 +253,7 @@ export default function OnboardingPage() {
                           value={companyName}
                           onChange={e => setCompanyName(e.target.value)}
                           placeholder="Acme Corp"
-                          className="w-full px-4 py-2.5 border border-[#E8E8E4] rounded-xl text-sm focus:outline-none focus:border-[#FFE27C] focus:ring-2 focus:ring-[#FFE27C]/20 bg-white"
+                          className="w-full px-4 py-2.5 border border-[#E8E8E4] rounded-xl text-sm text-[#1B1B1B] focus:outline-none focus:border-[#FFE27C] focus:ring-2 focus:ring-[#FFE27C]/20 bg-white"
                         />
                       </div>
 
@@ -321,7 +321,7 @@ export default function OnboardingPage() {
                             onChange={e => { f.set(e.target.value); setSkipWA(false) }}
                             placeholder={f.key === "accessToken" ? "EAA..." : ""}
                             disabled={skipWA}
-                            className="w-full px-4 py-2.5 border border-[#E8E8E4] rounded-xl text-sm focus:outline-none focus:border-[#FFE27C] focus:ring-2 focus:ring-[#FFE27C]/20 bg-white disabled:opacity-50"
+                            className="w-full px-4 py-2.5 border border-[#E8E8E4] rounded-xl text-sm text-[#1B1B1B] focus:outline-none focus:border-[#FFE27C] focus:ring-2 focus:ring-[#FFE27C]/20 bg-white disabled:opacity-50"
                           />
                         </div>
                       ))}

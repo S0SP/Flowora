@@ -6,36 +6,43 @@ export const maxDuration = 120
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json()
-    let { workflowId, workspaceId, triggerData } = body
+    let workflowId = req.nextUrl.searchParams.get("workflowId")
+    let body: any = {}
+    try {
+      body = await req.json()
+    } catch {}
+
+    let triggerData = body.triggerData || body
+    if (!workflowId) {
+      workflowId = body.workflowId
+    }
+    let workspaceId = body.workspaceId
 
     if (!workspaceId) {
       try { const t = await getTenant(); workspaceId = t.workspaceId } catch {}
     }
 
-    if (!workflowId || !workspaceId) {
-      return NextResponse.json({ error: "workflowId and workspaceId required" }, { status: 400 })
+    if (!workflowId) {
+      return NextResponse.json({ error: "workflowId required" }, { status: 400 })
     }
 
     const admin = await createAdminClient()
 
-    const { data: workflow, error } = await admin
-      .from("workflows")
-      .select("*")
-      .eq("id", workflowId)
-      .eq("workspace_id", workspaceId)
-      .single()
+    // Fetch the workflow (using UUID, globally unique)
+    let query = admin.from("workflows").select("*").eq("id", workflowId)
+    if (workspaceId) {
+      query = query.eq("workspace_id", workspaceId)
+    }
+    const { data: workflow, error } = await query.single()
 
     if (error || !workflow) {
       return NextResponse.json({ error: "Workflow not found" }, { status: 404 })
     }
 
-    if (workflow.status !== "active" && !body.testMode) {
-      return NextResponse.json({ message: "Workflow is not active" })
+    // Set correct workspaceId from workflow record if not determined yet
+    if (!workspaceId) {
+      workspaceId = workflow.workspace_id
     }
-
-    const nodes: any[] = workflow.nodes ?? []
-    const edges: any[] = workflow.edges ?? []
 
     // Create run record
     const { data: run } = await admin
@@ -56,12 +63,12 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      await executeWorkflow({ workflow, nodes, edges, triggerData, workspaceId, run, admin })
+      await executeWorkflow({ workflow, nodes: workflow.nodes ?? [], edges: workflow.edges ?? [], triggerData, workspaceId, run, admin })
 
       await admin.from("workflow_runs").update({
         status:          "completed",
         completed_at:    new Date().toISOString(),
-        steps_completed: nodes.length,
+        steps_completed: (workflow.nodes ?? []).length,
       }).eq("id", run.id)
 
       await admin.from("workflows").update({
@@ -298,13 +305,22 @@ async function executeNode(opts: {
   const triggerData = context.triggerData ?? {}
   const nodeType    = data.subtype ?? data.type ?? node.type ?? ""
 
+  function getNestedValue(obj: any, path: string): any {
+    if (!obj) return undefined
+    return path.split('.').reduce((acc, part) => acc && acc[part], obj)
+  }
+
   function sub(str: string): string {
     if (!str) return ""
-    return str.replace(/\{\{(\w+(?:\.\w+)*)\}\}/g, (_, key) => {
-      // Support dot notation: {{contact.name}} → triggerData.name
-      const parts  = key.split(".")
+    return str.replace(/\{\{([^}]+)\}\}/g, (_, key) => {
+      const trimmed = key.trim()
+      const val = getNestedValue(triggerData, trimmed) ?? getNestedValue(context, trimmed)
+      if (val !== undefined && val !== null) {
+        return String(val)
+      }
+      const parts = trimmed.split(".")
       const simple = parts[parts.length - 1]
-      return triggerData[key] ?? triggerData[simple] ?? context[key] ?? ""
+      return triggerData[simple] ?? context[simple] ?? ""
     })
   }
 
@@ -347,7 +363,21 @@ async function executeNode(opts: {
       if (template) {
         // Build components with variable substitution
         const components: any[] = []
-        if (data.components) {
+        if (data.variables && Object.keys(data.variables).length > 0) {
+          const params = Object.entries(data.variables)
+            .sort((a, b) => parseInt(a[0]) - parseInt(b[0]))
+            .map(([_, val]) => ({
+              type: "text",
+              text: sub(String(val)),
+            }))
+          
+          if (params.length > 0) {
+            components.push({
+              type: "body",
+              parameters: params,
+            })
+          }
+        } else if (data.components) {
           for (const comp of data.components) {
             if (comp.type === "BODY" && comp.example?.body_text) {
               components.push({

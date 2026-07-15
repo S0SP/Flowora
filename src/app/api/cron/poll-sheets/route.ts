@@ -42,11 +42,38 @@ export async function GET(req: NextRequest) {
     let newLeads = 0;
 
     for (const workflow of workflows) {
-      try {
-        const triggerNode = workflow.nodes?.find(
-          (n: any) => n.data?.type === "trigger" || n.data?.subtype === "google_sheet" || n.type === "trigger"
-        );
+      const triggerConfig = workflow.trigger_config ?? {};
+      const lastPolledAt = triggerConfig.last_polled_at;
 
+      const triggerNode = workflow.nodes?.find(
+        (n: any) => n.data?.type === "trigger" || n.data?.subtype === "google_sheet" || n.type === "trigger"
+      );
+
+      const pollInterval = Number(triggerNode?.data?.pollInterval || 60);
+
+      if (lastPolledAt) {
+        const elapsedMs = Date.now() - new Date(lastPolledAt).getTime();
+        if (elapsedMs < pollInterval * 1000) {
+          console.log(`[poll-sheets] Skipping workflow ${workflow.id}: interval is ${pollInterval}s, only ${(elapsedMs / 1000).toFixed(0)}s elapsed`);
+          continue;
+        }
+      }
+
+      // Record check timestamp
+      try {
+        const updatedConfig = {
+          ...triggerConfig,
+          last_polled_at: new Date().toISOString()
+        };
+        await admin
+          .from("workflows")
+          .update({ trigger_config: updatedConfig })
+          .eq("id", workflow.id);
+      } catch (err: any) {
+        console.warn(`[poll-sheets] Failed to update last_polled_at for workflow ${workflow.id}:`, err.message);
+      }
+
+      try {
         const sheetUrl = triggerNode?.data?.sheetUrl || triggerNode?.data?.url;
         if (!sheetUrl) continue;
 

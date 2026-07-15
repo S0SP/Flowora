@@ -17,8 +17,6 @@ const navGroups = [
     group_label: "WORKSPACE",
     items: [
       { icon: Building2, label: "General" },
-      { icon: Shield, label: "Roles & Permissions" },
-      { icon: Bell, label: "Notifications" },
       { icon: SlidersHorizontal, label: "Fields & Tags" },
       { icon: Coins, label: "Deals & Currency" },
     ]
@@ -39,23 +37,9 @@ const navGroups = [
     ]
   },
   {
-    group_label: "BILLING",
-    items: [
-      { icon: CreditCard, label: "Billing & Credits" },
-      { icon: Receipt, label: "Invoices" },
-    ]
-  },
-  {
     group_label: "DEVELOPER",
     items: [
       { icon: Key, label: "API Keys" },
-    ]
-  },
-  {
-    group_label: "SECURITY",
-    items: [
-      { icon: Lock, label: "Security" },
-      { icon: FileText, label: "Audit Log" },
     ]
   }
 ]
@@ -91,9 +75,11 @@ export default function SettingsPage() {
   const [smtpUser, setSmtpUser] = useState("")
   const [smtpPass, setSmtpPass] = useState("")
 
-  const [twilioSid, setTwilioSid] = useState("")
-  const [twilioToken, setTwilioToken] = useState("")
-  const [twilioPhone, setTwilioPhone] = useState("")
+  const [livekitUrl, setLivekitUrl] = useState("")
+  const [livekitApiKey, setLivekitApiKey] = useState("")
+  const [livekitApiSecret, setLivekitApiSecret] = useState("")
+  const [deepgramApiKey, setDeepgramApiKey] = useState("")
+  const [sarvamApiKey, setSarvamApiKey] = useState("")
 
   const [isSaving, setIsSaving] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
@@ -315,9 +301,11 @@ export default function SettingsPage() {
         }
         const voice = connections.find((c: any) => c.type === "voice")
         if (voice) {
-          setTwilioSid(voice.config?.sid || "")
-          setTwilioPhone(voice.config?.phone || "")
-          setTwilioToken("••••••••••••••••")
+          setLivekitUrl(voice.config?.livekitUrl || "")
+          setDeepgramApiKey(voice.config?.deepgramApiKey || "")
+          setSarvamApiKey(voice.config?.sarvamApiKey || "")
+          setLivekitApiKey("••••••••••••••••")
+          setLivekitApiSecret("••••••••••••••••")
         }
       })
       .catch(console.error)
@@ -387,20 +375,24 @@ export default function SettingsPage() {
           workspaceId: wsId,
           type: "voice",
           config: {
-            sid: twilioSid,
-            phone: twilioPhone,
+            livekitUrl,
+            deepgramApiKey,
+            sarvamApiKey,
           },
           secrets: {},
         }
-        if (twilioToken && twilioToken !== "••••••••••••••••") {
-          body.secrets.token = twilioToken
+        if (livekitApiKey && livekitApiKey !== "••••••••••••••••") {
+          body.secrets.apiKey = livekitApiKey
+        }
+        if (livekitApiSecret && livekitApiSecret !== "••••••••••••••••") {
+          body.secrets.apiSecret = livekitApiSecret
         }
         const res = await fetch("/api/settings/keys", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         })
-        if (!res.ok) throw new Error("Failed to save Twilio settings")
+        if (!res.ok) throw new Error("Failed to save Voice settings")
         toast.success("Voice & Calling configuration saved successfully!")
       } else {
         toast.info("Save logic for this section is under development")
@@ -587,93 +579,7 @@ export default function SettingsPage() {
             </div>
           </div>
         )
-      case "Roles & Permissions":
-        return (
-          <div className="max-w-[800px]">
-            <div className="flex items-center justify-between mb-7">
-              <div>
-                <h1 className="text-[22px] font-bold text-foreground mb-1">Roles & Permissions</h1>
-                <p className="text-[14px] text-muted-foreground">Manage team roles and their access levels across the workspace.</p>
-              </div>
-              <button className="flex items-center gap-2 bg-foreground text-white px-4 py-2 rounded-lg text-[13px] font-medium hover:bg-foreground/90 transition-colors">
-                <Plus className="h-4 w-4" /> Add Custom Role
-              </button>
-            </div>
-            
-            <div className="bg-white border border-border rounded-xl overflow-hidden shadow-sm">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-muted/30 border-b border-border">
-                    <th className="px-5 py-3 text-[12px] font-bold text-muted-foreground uppercase tracking-wider">Role Name</th>
-                    <th className="px-5 py-3 text-[12px] font-bold text-muted-foreground uppercase tracking-wider">Access Level</th>
-                    <th className="px-5 py-3 text-[12px] font-bold text-muted-foreground uppercase tracking-wider text-center">Team Members</th>
-                    <th className="px-5 py-3 text-[12px] font-bold text-muted-foreground uppercase tracking-wider text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#E8E8E4]">
-                  {[
-                    { role: "Owner", access: "Full Workspace Access", members: 1, isSystem: true },
-                    { role: "Admin", access: "Can manage billing, settings, and team", members: 2, isSystem: true },
-                    { role: "Agent", access: "Can reply to inbox and view leads", members: 8, isSystem: true },
-                    { role: "Viewer", access: "Read-only access to analytics and leads", members: 3, isSystem: true },
-                    { role: "Marketing", access: "Custom access: Campaigns only", members: 2, isSystem: false },
-                  ].map((role) => (
-                    <tr key={role.role} className="hover:bg-muted/30/50 transition-colors">
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[14px] font-semibold text-foreground">{role.role}</span>
-                          {role.isSystem && (
-                            <span className="text-[10px] font-bold text-muted-foreground bg-border px-1.5 py-0.5 rounded">SYSTEM</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-5 py-4 text-[13px] text-muted-foreground">{role.access}</td>
-                      <td className="px-5 py-4 text-center">
-                        <div className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-muted/50 text-[12px] font-bold text-foreground">
-                          {role.members}
-                        </div>
-                      </td>
-                      <td className="px-5 py-4 text-right">
-                        <button className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded hover:bg-border">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )
-      case "Notifications":
-        return (
-          <div className="max-w-[800px]">
-            <h1 className="text-[22px] font-bold text-foreground mb-1">Notifications</h1>
-            <p className="text-[14px] text-muted-foreground mb-7">Manage how you receive alerts and workflow updates</p>
-            <div className="space-y-4 bg-white border border-border rounded-xl p-6 shadow-sm">
-              {[
-                { label: "New Lead Created", email: true, inApp: true },
-                { label: "Lead Stage Changed", email: false, inApp: true },
-                { label: "Workflow Failed", email: true, inApp: true },
-                { label: "Weekly Report", email: true, inApp: false },
-              ].map(notif => (
-                <div key={notif.label} className="flex items-center justify-between py-3 border-b border-border last:border-0">
-                  <span className="text-[14px] font-medium text-foreground">{notif.label}</span>
-                  <div className="flex gap-6">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input type="checkbox" defaultChecked={notif.email} className="rounded border-gray-300 text-primary focus:ring-primary" />
-                      <span className="text-[13px] text-muted-foreground">Email</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input type="checkbox" defaultChecked={notif.inApp} className="rounded border-gray-300 text-primary focus:ring-primary" />
-                      <span className="text-[13px] text-muted-foreground">In-App</span>
-                    </label>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )
+
       case "WhatsApp Business":
         return <WhatsAppConnectPanel />
       case "Message Templates":
@@ -745,38 +651,66 @@ export default function SettingsPage() {
         return (
           <div className="max-w-[800px]">
             <h1 className="text-[22px] font-bold text-foreground mb-1">Voice & Calling Configuration</h1>
-            <p className="text-[14px] text-muted-foreground mb-7">Manage Twilio or internal AI voice infrastructure settings.</p>
+            <p className="text-[14px] text-muted-foreground mb-7">Configure LiveKit and custom AI voice settings.</p>
             <div className="bg-white border border-border rounded-xl p-6 shadow-sm space-y-5">
-              <div>
-                <label className="block text-[13px] font-semibold text-foreground mb-1.5">Twilio Account SID</label>
+              
+              <div className="space-y-1.5">
+                <label className="text-[13px] font-semibold text-foreground">LiveKit URL</label>
                 <input 
                   type="text" 
-                  value={twilioSid}
-                  onChange={e => setTwilioSid(e.target.value)}
-                  placeholder="AC..." 
-                  className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px]" 
+                  value={livekitUrl}
+                  onChange={e => setLivekitUrl(e.target.value)}
+                  placeholder="wss://your-project.livekit.cloud" 
+                  className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-[#1B1B1B] bg-white focus:outline-none focus:ring-1 focus:ring-primary" 
                 />
               </div>
-              <div>
-                <label className="block text-[13px] font-semibold text-foreground mb-1.5">Auth Token</label>
-                <input 
-                  type="password" 
-                  value={twilioToken}
-                  onChange={e => setTwilioToken(e.target.value)}
-                  placeholder="••••••••••••" 
-                  className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px]" 
-                />
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-semibold text-foreground">LiveKit API Key</label>
+                  <input 
+                    type="text" 
+                    value={livekitApiKey}
+                    onChange={e => setLivekitApiKey(e.target.value)}
+                    placeholder="API..." 
+                    className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-[#1B1B1B] bg-white focus:outline-none focus:ring-1 focus:ring-primary" 
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-semibold text-foreground">LiveKit API Secret</label>
+                  <input 
+                    type="password" 
+                    value={livekitApiSecret}
+                    onChange={e => setLivekitApiSecret(e.target.value)}
+                    placeholder="••••••••••••" 
+                    className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-[#1B1B1B] bg-white focus:outline-none focus:ring-1 focus:ring-primary" 
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-[13px] font-semibold text-foreground mb-1.5">Default Caller ID</label>
-                <input 
-                  type="text" 
-                  value={twilioPhone}
-                  onChange={e => setTwilioPhone(e.target.value)}
-                  placeholder="+1 (555) 000-0000" 
-                  className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px]" 
-                />
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-semibold text-foreground">Deepgram API Key (STT)</label>
+                  <input 
+                    type="password" 
+                    value={deepgramApiKey}
+                    onChange={e => setDeepgramApiKey(e.target.value)}
+                    placeholder="Deepgram API key" 
+                    className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-[#1B1B1B] bg-white focus:outline-none focus:ring-1 focus:ring-primary" 
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-semibold text-foreground">Sarvam API Key (TTS)</label>
+                  <input 
+                    type="password" 
+                    value={sarvamApiKey}
+                    onChange={e => setSarvamApiKey(e.target.value)}
+                    placeholder="Sarvam API key" 
+                    className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-[#1B1B1B] bg-white focus:outline-none focus:ring-1 focus:ring-primary" 
+                  />
+                </div>
               </div>
+
               <div className="flex justify-end pt-4">
                 <button
                   onClick={handleSave}
@@ -789,62 +723,7 @@ export default function SettingsPage() {
             </div>
           </div>
         )
-      case "Billing & Credits":
-        return (
-          <div className="max-w-[800px]">
-            <h1 className="text-[22px] font-bold text-foreground mb-1">Billing & Credits</h1>
-            <p className="text-[14px] text-muted-foreground mb-7">Manage your subscription and AI usage credits.</p>
-            <div className="grid grid-cols-2 gap-6 mb-8">
-              <div className="bg-white border border-border rounded-xl p-6 shadow-sm">
-                <h3 className="text-[13px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Current Plan</h3>
-                <div className="text-[28px] font-bold text-foreground mb-1">Pro Tier</div>
-                <p className="text-[13px] text-muted-foreground mb-4">$99 / month</p>
-                <button className="w-full py-2 bg-muted/50 font-medium text-[13px] rounded-lg hover:bg-border">Change Plan</button>
-              </div>
-              <div className="bg-white border border-border rounded-xl p-6 shadow-sm">
-                <h3 className="text-[13px] font-bold text-muted-foreground uppercase tracking-wider mb-2">AI Credits</h3>
-                <div className="text-[28px] font-bold text-foreground mb-1">12,500 <span className="text-[14px] font-normal text-muted-foreground">remaining</span></div>
-                <div className="w-full bg-gray-200 rounded-full h-2 mt-2 mb-4">
-                  <div className="bg-primary h-2 rounded-full" style={{ width: '45%' }}></div>
-                </div>
-                <button className="w-full py-2 bg-primary font-bold text-foreground text-[13px] rounded-lg shadow-sm hover:bg-primary/90">Buy Credits</button>
-              </div>
-            </div>
-          </div>
-        )
-      case "Invoices":
-        return (
-          <div className="max-w-[800px]">
-            <h1 className="text-[22px] font-bold text-foreground mb-1">Invoices</h1>
-            <p className="text-[14px] text-muted-foreground mb-7">View and download previous billing statements.</p>
-            <div className="bg-white border border-border rounded-xl overflow-hidden shadow-sm">
-              <table className="w-full text-left">
-                <thead className="bg-muted/30 border-b border-border">
-                  <tr>
-                    <th className="px-5 py-3 text-[12px] font-bold text-muted-foreground">Date</th>
-                    <th className="px-5 py-3 text-[12px] font-bold text-muted-foreground">Amount</th>
-                    <th className="px-5 py-3 text-[12px] font-bold text-muted-foreground">Status</th>
-                    <th className="px-5 py-3 text-[12px] font-bold text-muted-foreground text-right">Invoice</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#E8E8E4]">
-                  {[
-                    { date: "Jan 1, 2026", amount: "$99.00", status: "Paid" },
-                    { date: "Dec 1, 2025", amount: "$99.00", status: "Paid" },
-                    { date: "Nov 1, 2025", amount: "$99.00", status: "Paid" },
-                  ].map((inv, i) => (
-                    <tr key={i}>
-                      <td className="px-5 py-4 text-[14px]">{inv.date}</td>
-                      <td className="px-5 py-4 text-[14px] font-medium">{inv.amount}</td>
-                      <td className="px-5 py-4"><span className="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs">Paid</span></td>
-                      <td className="px-5 py-4 text-right"><button className="text-primary hover:underline text-[13px]">Download PDF</button></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )
+
       case "API Keys":
         return (
           <div className="max-w-[800px]">
@@ -1115,8 +994,6 @@ export default function SettingsPage() {
             )}
           </div>
         )
-      case "Security":
-      case "Audit Log":
       default:
         return (
           <div className="max-w-[800px] h-full flex flex-col items-center justify-center text-center">

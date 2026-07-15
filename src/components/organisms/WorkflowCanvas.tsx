@@ -388,7 +388,6 @@ function buildDroppedNodeData(typeId: string, setActiveRightPanel: (id: string) 
  switch (typeId) {
  case "google_sheet": return { ...base, subtype: "google_sheet", label: "Google Sheet Trigger", sheetUrl: "", phoneColumn: "phone" }
  case "webhook": return { ...base, subtype: "webhook", label: "Webhook Trigger", method: "POST" }
- case "form": return { ...base, subtype: "form", label: "Form Submission", formId: "" }
  case "whatsapp": return { ...base, label: "WhatsApp Message", toPhone: "{{phone}}", templateName: "", message: "", branches: [] }
  case "email": return { ...base, label: "Email", toEmail: "{{email}}", subject: "", html: "" }
  case "voice": return { ...base, label: "AI Voice Call", voiceId: "anushka", agentType: "livekit", systemPrompt: "" }

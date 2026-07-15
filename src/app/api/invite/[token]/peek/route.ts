@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { createHash } from "crypto";
 
 type RouteContext = { params: Promise<{ token: string }> };
@@ -49,16 +49,29 @@ export async function GET(_req: Request, ctx: RouteContext) {
 
     const workspace = invite.workspaces as unknown as { name: string; logo_url: string | null; slug: string } | null;
 
+    // Check if already a member
+    let alreadyMember = false;
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: member } = await admin
+        .from("workspace_members")
+        .select("id")
+        .eq("workspace_id", invite.workspace_id)
+        .eq("user_id", user.id)
+        .eq("status", "active")
+        .maybeSingle();
+      if (member) alreadyMember = true;
+    }
+
     return NextResponse.json({
       id: invite.id,
       role: invite.role,
       label: invite.label,
-      expires_at: invite.expires_at,
-      workspace: {
-        name: workspace?.name ?? "Unknown",
-        logo_url: workspace?.logo_url ?? null,
-        slug: workspace?.slug ?? "",
-      },
+      expiresAt: invite.expires_at,
+      workspaceName: workspace?.name ?? "Unknown",
+      workspaceSlug: workspace?.slug ?? "",
+      alreadyMember,
     });
   } catch (err: any) {
     console.error("[invite peek]", err);

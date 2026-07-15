@@ -6,7 +6,7 @@ import {
   subscribeWabaToApp,
   verifyPhoneNumber,
 } from '@/lib/whatsapp/meta-api'
-import { encrypt, decrypt } from '@/lib/crypto'
+import { encrypt, decrypt, parseSecrets } from '@/lib/crypto'
 
 export async function GET() {
   try {
@@ -48,7 +48,7 @@ export async function GET() {
     let accessToken: string
     try {
       if (!conn.secrets_enc) throw new Error('No encrypted secrets')
-      const secretsObj = JSON.parse(conn.secrets_enc)
+      const secretsObj = parseSecrets(conn.secrets_enc)
       if (!secretsObj.accessToken) throw new Error('No accessToken in secrets')
       accessToken = await decrypt(secretsObj.accessToken)
     } catch (err) {
