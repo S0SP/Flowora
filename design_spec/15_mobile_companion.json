@@ -1,0 +1,292 @@
+{
+  "meta": {
+    "screen": "15 \u2014 Mobile App Preview",
+    "file": "15_mobile_companion.json",
+    "version": "1.0.0",
+    "subtitle": "iOS/Android Companion App: Inbox, Notifications, Chat, Quick Reply"
+  },
+  "image_prompt": {
+    "composition": "Multiple iPhone 15 Pro mockup frames side by side on white background at 8K resolution. Each phone frame shows a different screen of the Flowora mobile app. Photorealistic device frames in titanium finish. Screens inside crisp and sharp. No blur. Dark status bar with time and signal. App uses same Flowora brand colors.",
+    "device_frame": {
+      "device": "iPhone 15 Pro titanium frame",
+      "screen_size": "390x844pt at 3x retina",
+      "status_bar": "9:41 AM \u00b7 signal bars \u00b7 WiFi \u00b7 battery",
+      "home_indicator": "thin white home bar bottom"
+    },
+    "screens": [
+      {
+        "screen_id": "mob_01",
+        "title": "Mobile \u2014 Home / Dashboard",
+        "content": {
+          "nav_bar": {
+            "left": "Flowora hexagon logo 22px",
+            "center": "Dashboard \u2014 17px 600 #1B1B1B",
+            "right": "Bell icon with badge 3 + Avatar circle 32px RF"
+          },
+          "greeting_card": {
+            "bg": "#1B1B1B",
+            "border_radius": "16px",
+            "padding": "20px",
+            "content": "Good morning, Robert \u2600\ufe0f \u2014 16px 600 white | 3 new leads overnight \u2014 13px #FFE27C",
+            "cta": {
+              "label": "View Inbox",
+              "bg": "#FFE27C",
+              "text": "#1B1B1B",
+              "border_radius": "8px",
+              "font": "13px 600"
+            }
+          },
+          "quick_stats": {
+            "layout": "2x2 grid",
+            "items": [
+              {
+                "label": "Open Chats",
+                "value": "132",
+                "color": "#1B1B1B"
+              },
+              {
+                "label": "Today's Leads",
+                "value": "86",
+                "color": "#1B1B1B"
+              },
+              {
+                "label": "AI Handled",
+                "value": "1,024",
+                "color": "#1B1B1B"
+              },
+              {
+                "label": "Unread",
+                "value": "47",
+                "color": "#EF4444"
+              }
+            ],
+            "card_style": "white bg border 1px #E8E8E4 border-radius 12px padding 14px"
+          },
+          "recent_conversations": {
+            "section_title": "Recent \u2014 14px 600 #1B1B1B",
+            "items": [
+              {
+                "avatar": "JD initials circle 36px gradient",
+                "name": "John Doe",
+                "message": "Hello, I'm interested in...",
+                "time": "2m ago",
+                "unread": "3 badge yellow"
+              },
+              {
+                "avatar": "SW initials",
+                "name": "Sarah Wilson",
+                "message": "Can you share pricing?",
+                "time": "15m ago",
+                "unread": null
+              },
+              {
+                "avatar": "RS initials",
+                "name": "Rakesh Sharma",
+                "message": "Thanks! Please call me.",
+                "time": "1h ago",
+                "unread": null
+              }
+            ],
+            "item_style": "flex row gap 12px items-center padding 14px 0 border-bottom 1px #F0F0EC"
+          },
+          "bottom_tab_bar": {
+            "bg": "#FFFFFF",
+            "border_top": "1px solid #E8E8E4",
+            "tabs": [
+              {
+                "icon": "Home 22px",
+                "label": "Home",
+                "active": true,
+                "color": "#1B1B1B"
+              },
+              {
+                "icon": "MessageCircle 22px",
+                "label": "Inbox",
+                "badge": "47",
+                "color": "#9B9B9B"
+              },
+              {
+                "icon": "Users 22px",
+                "label": "Contacts",
+                "color": "#9B9B9B"
+              },
+              {
+                "icon": "BarChart2 22px",
+                "label": "Analytics",
+                "color": "#9B9B9B"
+              },
+              {
+                "icon": "Menu 22px",
+                "label": "More",
+                "color": "#9B9B9B"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "screen_id": "mob_02",
+        "title": "Mobile \u2014 Shared Inbox List",
+        "content": {
+          "nav_bar": {
+            "left": "\u2190 back icon",
+            "center": "Inbox \u2014 17px 600",
+            "right": "Filter icon + Compose icon"
+          },
+          "filter_chips": {
+            "options": [
+              "All 132",
+              "Mine 48",
+              "Unread 47",
+              "Bot 84"
+            ],
+            "style": "horizontal scroll chips bg #F5F5F0 border-radius 20px padding 6px 14px font 12px active chip bg #1B1B1B text white"
+          },
+          "conversation_list": {
+            "items": [
+              {
+                "avatar": "JD 36px circle gradient yellow",
+                "name": "John Doe \u2014 14px 600 #1B1B1B",
+                "preview": "Hello, I'm interested in your product. \u2014 13px #6B6B6B line-clamp-1",
+                "time": "2m",
+                "badge": "3 \u2014 10px bg #FFE27C text #1B1B1B circle 18px",
+                "whatsapp_dot": "8px green WhatsApp indicator",
+                "agent_avatar": "tiny RF 20px circle bottom-right overlap"
+              },
+              {
+                "avatar": "SW gradient lavender",
+                "name": "Sarah Wilson",
+                "preview": "Can you share pricing details?",
+                "time": "15m",
+                "badge": null,
+                "read_ticks": "double check gray"
+              },
+              {
+                "avatar": "RS gradient blue",
+                "name": "Rakesh Sharma",
+                "preview": "Thanks! Please call me back.",
+                "time": "1h",
+                "badge": "1",
+                "ai_handled_dot": "small robot icon 14px"
+              }
+            ],
+            "item_style": "padding 14px 16px border-bottom 1px #F0F0EC flex row gap 12px items-center"
+          },
+          "bottom_tab_bar": "same as screen 1 with Inbox tab active"
+        }
+      },
+      {
+        "screen_id": "mob_03",
+        "title": "Mobile \u2014 Chat Screen",
+        "content": {
+          "nav_bar": {
+            "left": "\u2190 ChevronLeft",
+            "center_block": "avatar 32px + John Doe 15px 600 + Online \u00b7 WhatsApp \u2014 11px green",
+            "right": "Phone icon + MoreVertical icon"
+          },
+          "chat_area": {
+            "bg": "#F5F5F0",
+            "messages": [
+              {
+                "sender": "customer",
+                "bubble": {
+                  "text": "Hello, I'm interested in your product.",
+                  "bg": "#FFFFFF",
+                  "border_radius": "12px 12px 12px 0",
+                  "font": "14px #1B1B1B",
+                  "time": "10:30 AM",
+                  "max_width": "75%"
+                }
+              },
+              {
+                "sender": "agent_ai",
+                "bubble": {
+                  "text": "Hi John! \ud83d\udc4b Thanks for reaching out. How can we help you today?",
+                  "bg": "#FFE27C",
+                  "border_radius": "12px 12px 0 12px",
+                  "font": "14px #1B1B1B",
+                  "time": "10:30 AM",
+                  "tick": "double check delivered",
+                  "ai_label": "AI \u00b7 auto-replied \u2014 10px #9B9B9B below bubble right-align"
+                }
+              },
+              {
+                "sender": "customer",
+                "bubble": {
+                  "text": "Can you share the pricing for 100 users?",
+                  "bg": "#FFFFFF",
+                  "font": "14px #1B1B1B"
+                }
+              },
+              {
+                "sender": "agent",
+                "bubble": {
+                  "text": "Sure! Here's our pricing detail...",
+                  "attachment": "Business Plan PDF card \u2014 icon FileText + filename + size",
+                  "bg": "#FFE27C",
+                  "agent_label": "Robert Fox \u2014 10px #9B9B9B"
+                }
+              }
+            ]
+          },
+          "quick_replies_strip": {
+            "style": "horizontal scroll above input bar",
+            "chips": [
+              "Share Pricing \ud83d\udcc4",
+              "Book a Demo \ud83d\udcc5",
+              "Connect to Support"
+            ],
+            "chip_style": "bg white border 1px #E8E8E4 border-radius 20px padding 6px 14px font 12px #1B1B1B"
+          },
+          "input_bar": {
+            "bg": "#FFFFFF",
+            "border_top": "1px solid #E8E8E4",
+            "left_icons": "Paperclip 20px #9B9B9B + Camera 20px #9B9B9B",
+            "input_field": {
+              "placeholder": "Type a message...",
+              "bg": "#F5F5F0",
+              "border_radius": "22px",
+              "padding": "10px 16px",
+              "font": "14px #1B1B1B",
+              "flex": 1
+            },
+            "right_icon": "Send circle 36px bg #FFE27C arrow icon #1B1B1B"
+          }
+        }
+      },
+      {
+        "screen_id": "mob_04",
+        "title": "Mobile \u2014 Push Notification",
+        "content": {
+          "lock_screen_notification": {
+            "style": "rounded notification card on blurred wallpaper",
+            "app_icon": "Flowora logo 20px",
+            "app_name": "Flowora \u2014 12px 500 #1B1B1B",
+            "time": "now",
+            "title": "New Lead: Priya Patel \ud83d\udd25 \u2014 14px 600 #1B1B1B",
+            "body": "Came from Google Sheet \u00b7 Webinar Campaign \u00b7 Interested in 50 user plan \u2014 13px #6B6B6B",
+            "notification_actions": [
+              {
+                "label": "View",
+                "style": "bg white border-radius 8px font 13px 600"
+              },
+              {
+                "label": "Reply",
+                "style": "same"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "rendering_settings": {
+    "resolution": "7680x4320 8K",
+    "style": "photorealistic iPhone mockup product shot on white background",
+    "device_finish": "titanium Pro frames",
+    "screen_content": "pixel-perfect crisp UI inside device frames",
+    "no_blur": true,
+    "lighting": "soft studio lighting on device frames, screens fully lit"
+  },
+  "negative_prompt": "blur inside screens, dark wallpaper showing through, Android device, sketch, low-res screens, neon, text cutoff, missing UI elements"
+}

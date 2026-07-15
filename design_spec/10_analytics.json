@@ -1,0 +1,228 @@
+{
+  "meta": {
+    "screen": "10 \u2014 Analytics & Reports",
+    "file": "10_analytics.json",
+    "subtitle": "Full Analytics Dashboard with Conversation Metrics, Channel Performance, AI Stats, Funnel"
+  },
+  "image_prompt": {
+    "scene": "Flowora Analytics Dashboard page. Full page white background. Header with date range picker and export button. Tab navigation: Overview, Campaigns, Voice Calls, AI Performance, Revenue, Funnel. Main content shows Overview tab with metric cards, line charts, donut chart, and data tables.",
+    "page_header": {
+      "title": "Analytics & Reports \u2014 24px bold",
+      "date_range_picker": {
+        "style": "white border rounded-8 padding 8px 14px flex gap-8 align-center",
+        "icon": "Calendar 14px #6B6B6B",
+        "value": "Jan 7 \u2013 Jan 14, 2026",
+        "compare": "vs Jan 1\u20137 \u2014 12px #9B9B9B"
+      },
+      "right_actions": [
+        {
+          "label": "Export",
+          "icon": "Download",
+          "style": "secondary"
+        },
+        {
+          "label": "Schedule Report",
+          "icon": "Clock",
+          "style": "secondary"
+        }
+      ]
+    },
+    "tab_navigation": {
+      "tabs": [
+        "Overview",
+        "Campaigns",
+        "Voice Calls",
+        "AI Performance",
+        "Revenue",
+        "Funnel"
+      ],
+      "active": "Overview",
+      "active_style": "border-bottom 2px solid #FFE27C text #1B1B1B bold",
+      "inactive_style": "text #6B6B6B"
+    },
+    "kpi_strip": {
+      "layout": "5-column stat cards",
+      "cards": [
+        {
+          "label": "Total Conversations",
+          "value": "23,548",
+          "change": "+16.3%",
+          "color": "#22C55E",
+          "icon": "MessageCircle"
+        },
+        {
+          "label": "Resolved by AI",
+          "value": "12,820",
+          "subtext": "54.4%",
+          "color": "#C4B1F9",
+          "icon": "Bot"
+        },
+        {
+          "label": "Human Handled",
+          "value": "10,720",
+          "subtext": "45.6%",
+          "icon": "User"
+        },
+        {
+          "label": "Avg. Response Time",
+          "value": "38s",
+          "change": "-12.5%",
+          "color": "#22C55E",
+          "icon": "Clock"
+        },
+        {
+          "label": "Customer Satisfaction",
+          "value": "4.7 / 5.0",
+          "change": "+0.3",
+          "color": "#22C55E",
+          "icon": "Star"
+        }
+      ]
+    },
+    "charts_row": {
+      "layout": "2 columns: left 65% right 35%, gap 16px",
+      "left_chart": {
+        "title": "Conversations Over Time \u2014 16px bold",
+        "chart_type": "multi-line area chart",
+        "height": "220px",
+        "series": [
+          {
+            "name": "Total",
+            "color": "#B1D8FC",
+            "area_fill": "rgba(177,216,252,0.15)"
+          },
+          {
+            "name": "AI Resolved",
+            "color": "#C4B1F9",
+            "area_fill": "rgba(196,177,249,0.15)"
+          },
+          {
+            "name": "Human",
+            "color": "#FFE27C",
+            "area_fill": "rgba(255,226,124,0.10)"
+          }
+        ],
+        "x_axis": "Jan 7 \u00b7 Jan 8 \u00b7 Jan 9 \u00b7 Jan 10 \u00b7 Jan 11 \u00b7 Jan 12 \u00b7 Jan 13 \u00b7 Jan 14",
+        "y_axis": "0 \u00b7 500 \u00b7 1000 \u00b7 1500 \u00b7 2000 \u00b7 2500",
+        "legend": "row of colored dots with labels below chart",
+        "tooltip": "floating tooltip showing values at Jan 12 hover"
+      },
+      "right_chart": {
+        "title": "Channel Distribution \u2014 16px bold",
+        "chart_type": "donut chart",
+        "size": "160px diameter",
+        "segments": [
+          {
+            "label": "WhatsApp",
+            "value": "68%",
+            "color": "#22C55E"
+          },
+          {
+            "label": "Email",
+            "value": "18%",
+            "color": "#B1D8FC"
+          },
+          {
+            "label": "Voice",
+            "value": "9%",
+            "color": "#C4B1F9"
+          },
+          {
+            "label": "Web",
+            "value": "5%",
+            "color": "#FFE27C"
+          }
+        ],
+        "center_text": "Total\n23,548",
+        "legend": "vertical list with colored squares and percentages"
+      }
+    },
+    "campaign_performance_table": {
+      "title": "Campaign Performance \u2014 16px bold",
+      "export_button": "Download CSV \u2014 secondary small",
+      "table": {
+        "columns": [
+          "Campaign",
+          "Type",
+          "Sent",
+          "Delivered",
+          "Open Rate",
+          "Click Rate",
+          "Conversion",
+          "Revenue",
+          "Status"
+        ],
+        "rows": [
+          {
+            "name": "Webinar Invite Jan",
+            "type": {
+              "icon": "WhatsApp",
+              "label": "WhatsApp",
+              "color": "#22C55E"
+            },
+            "sent": "3,245",
+            "delivered": "3,102 (95.6%)",
+            "open_rate": "54.9%",
+            "click_rate": "28.7%",
+            "conversion": "12.4%",
+            "revenue": "$4,824",
+            "status": {
+              "label": "Active",
+              "color": "#22C55E"
+            }
+          },
+          {
+            "name": "Demo Follow-Up",
+            "type": {
+              "icon": "Mail",
+              "label": "Email",
+              "color": "#3B82F6"
+            },
+            "sent": "1,800",
+            "open_rate": "54.6%",
+            "conversion": "8.2%",
+            "status": {
+              "label": "Completed"
+            }
+          }
+        ]
+      }
+    },
+    "ai_performance_section": {
+      "title": "AI Performance \u2014 16px bold",
+      "metrics": [
+        {
+          "label": "Questions Answered by AI",
+          "value": "12,820",
+          "bar": "88%",
+          "color": "#C4B1F9"
+        },
+        {
+          "label": "Escalations to Human",
+          "value": "1,680",
+          "bar": "12%",
+          "color": "#F59E0B"
+        },
+        {
+          "label": "Voice Calls Made",
+          "value": "1,284",
+          "bar": "55%",
+          "color": "#C4B1F9"
+        },
+        {
+          "label": "Demos Booked via AI",
+          "value": "284",
+          "bar": "22%",
+          "color": "#22C55E"
+        },
+        {
+          "label": "Leads Converted by Voice",
+          "value": "156",
+          "bar": "12%",
+          "color": "#FFE27C"
+        }
+      ],
+      "metric_style": "label + value right + progress bar full-width below, height 6px rounded"
+    }
+  }
+}

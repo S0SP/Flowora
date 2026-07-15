@@ -1,28 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
+import { getTenant } from "@/lib/tenant";
 
 export async function GET() {
   try {
+    const { workspaceId } = await getTenant();
     const supabase = await createAdminClient();
 
-    const { data: settingsList, error: getError } = await supabase
+    // 1. Fetch settings for this workspace
+    let { data: settings, error: getError } = await supabase
       .from("chatbot_settings")
       .select("*")
-      .limit(1);
+      .eq("workspace_id", workspaceId)
+      .maybeSingle();
 
     if (getError) throw getError;
-    let settings = settingsList?.[0] || null;
 
-    // Auto-create defaults if table is empty
+    // Auto-create defaults if table is empty for this workspace
     if (!settings) {
       const { data: created, error: createError } = await supabase
         .from("chatbot_settings")
         .insert({
-          is_enabled: false,
-          system_prompt: "You are a helpful customer service AI assistant for our agency. Answer questions clearly and politely. Keep responses concise (under 3 sentences) and encourage booking a consultation call.",
-          is_caching_enabled: false,
-          is_lead_tool_enabled: false,
-          is_store_tool_enabled: false,
+          workspace_id: workspaceId,
+          is_active: false,
+          bot_name: "Aria",
+          persona: "You are Aria, a friendly and professional AI assistant. You help customers with product inquiries, pricing, demos, and support. Always be concise, warm, and solution-focused.",
+          language: "auto",
+          response_length: 65,
+          fallback_message: "I'm sorry, I can't help with that right now. Let me connect you with a human agent.",
+          use_knowledge_base: true,
+          whatsapp_enabled: true,
+          web_widget_enabled: false,
         })
         .select()
         .single();
@@ -31,14 +39,35 @@ export async function GET() {
       settings = created;
     }
 
-    // Retrieve prompt history list
+    // 2. Fetch widget styling settings from workspace_settings
+    const { data: wsSettings } = await supabase
+      .from("workspace_settings")
+      .select("chat_widget")
+      .eq("workspace_id", workspaceId)
+      .maybeSingle();
+
+    // 3. Retrieve prompt history list
     const { data: historyList } = await supabase
       .from("chatbot_prompt_history")
       .select("*")
       .order("created_at", { ascending: false })
       .limit(50);
 
-    return NextResponse.json({ settings, history: historyList || [] });
+    return NextResponse.json({
+      settings: {
+        botName: settings.bot_name ?? "Aria",
+        persona: settings.persona ?? "",
+        language: settings.language ?? "auto",
+        responseLength: settings.response_length ?? 65,
+        fallback: settings.fallback_message ?? "",
+        useKnowledgeBase: settings.use_knowledge_base ?? true,
+        isActive: settings.is_active ?? false,
+        whatsappEnabled: settings.whatsapp_enabled ?? true,
+        webWidgetEnabled: settings.web_widget_enabled ?? false,
+      },
+      chatWidget: wsSettings?.chat_widget ?? {},
+      history: historyList || [],
+    });
   } catch (err) {
     console.error("Chatbot API GET Error:", err);
     return NextResponse.json(
@@ -50,70 +79,86 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const { workspaceId } = await getTenant();
+    const supabase = await createAdminClient();
     const body = await req.json();
-    const { 
-      is_enabled, 
-      system_prompt, 
-      gemini_api_key, 
-      is_caching_enabled,
-      is_lead_tool_enabled,
-      is_store_tool_enabled
+
+    const {
+      botName,
+      persona,
+      language,
+      responseLength,
+      fallback,
+      useKnowledgeBase,
+      isActive,
+      whatsappEnabled,
+      webWidgetEnabled,
+      chatWidget,
     } = body;
 
-    if (is_enabled && !system_prompt) {
-      return NextResponse.json({ error: "System prompt instructions are required when chatbot is active" }, { status: 400 });
-    }
-
-    const supabase = await createAdminClient();
-
+    // Fetch existing settings
     const { data: existing } = await supabase
       .from("chatbot_settings")
-      .select("id, system_prompt")
-      .limit(1);
+      .select("id, persona")
+      .eq("workspace_id", workspaceId)
+      .maybeSingle();
 
-    const oldPrompt = existing?.[0]?.system_prompt;
-    if (system_prompt && system_prompt !== oldPrompt) {
+    const oldPersona = existing?.persona;
+    if (persona && persona !== oldPersona) {
       // Record historical prompt
       await supabase
         .from("chatbot_prompt_history")
-        .insert({ prompt: system_prompt });
+        .insert({ prompt: persona });
     }
+
+    const payload = {
+      bot_name: botName,
+      persona,
+      language,
+      response_length: responseLength !== undefined ? Number(responseLength) : 65,
+      fallback_message: fallback,
+      use_knowledge_base: !!useKnowledgeBase,
+      is_active: isActive !== undefined ? !!isActive : false,
+      whatsapp_enabled: whatsappEnabled !== undefined ? !!whatsappEnabled : true,
+      web_widget_enabled: webWidgetEnabled !== undefined ? !!webWidgetEnabled : false,
+      updated_at: new Date().toISOString(),
+    };
 
     let result;
 
-    if (existing && existing.length > 0) {
+    if (existing) {
       result = await supabase
         .from("chatbot_settings")
-        .update({
-          is_enabled: !!is_enabled,
-          system_prompt,
-          gemini_api_key: gemini_api_key || null,
-          is_caching_enabled: !!is_caching_enabled,
-          is_lead_tool_enabled: !!is_lead_tool_enabled,
-          is_store_tool_enabled: !!is_store_tool_enabled,
-          cache_resource_name: null,
-          cache_expires_at: null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", existing[0].id)
+        .update(payload)
+        .eq("id", existing.id)
         .select()
         .single();
     } else {
       result = await supabase
         .from("chatbot_settings")
         .insert({
-          is_enabled: !!is_enabled,
-          system_prompt,
-          gemini_api_key: gemini_api_key || null,
-          is_caching_enabled: !!is_caching_enabled,
-          is_lead_tool_enabled: !!is_lead_tool_enabled,
-          is_store_tool_enabled: !!is_store_tool_enabled,
+          workspace_id: workspaceId,
+          ...payload,
         })
         .select()
         .single();
     }
 
     if (result.error) throw result.error;
+
+    // Update widget styling settings in workspace_settings if provided
+    if (chatWidget) {
+      const { error: wsError } = await supabase
+        .from("workspace_settings")
+        .upsert({
+          workspace_id: workspaceId,
+          chat_widget: chatWidget,
+        }, {
+          onConflict: "workspace_id",
+        });
+
+      if (wsError) throw wsError;
+    }
 
     return NextResponse.json({ success: true, settings: result.data });
   } catch (err) {

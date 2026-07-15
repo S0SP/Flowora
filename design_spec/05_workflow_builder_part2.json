@@ -1,0 +1,349 @@
+{
+  "meta": {
+    "screen": "05 \u2014 Workflow Builder",
+    "part": 2,
+    "subtitle": "Right Panel Node Configuration: Google Sheet Setup + WhatsApp Template + Email Builder + Voice Node",
+    "file": "05_workflow_builder_part2.json"
+  },
+  "image_prompt": {
+    "scene": "Four side-by-side configuration panel states for the Flowora Workflow Builder right panel. Each panel 300px wide shown as individual state screenshots. White background, clean form layout, section headers, inputs, live previews.",
+    "panel_states": [
+      {
+        "state_name": "Google Sheet Trigger Configuration",
+        "panel_header": {
+          "icon": "GoogleSheets 18px green",
+          "title": "Google Sheet Trigger \u2014 16px bold #1B1B1B",
+          "close": "X 16px #9B9B9B",
+          "subtitle": "Configure your data source \u2014 13px #6B6B6B"
+        },
+        "form_sections": [
+          {
+            "label": "Sheet URL",
+            "input": {
+              "type": "text",
+              "placeholder": "https://docs.google.com/spreadsheets/d/...",
+              "value": "https://docs.google.com/spreadsheets/d/1BxiM...",
+              "suffix_button": {
+                "label": "Connect",
+                "bg": "#FFE27C",
+                "text": "#1B1B1B"
+              }
+            }
+          },
+          {
+            "label": "Sheet Name / Tab",
+            "input": {
+              "type": "select dropdown",
+              "value": "Sheet1 \u2014 Leads 2026",
+              "options": [
+                "Sheet1 \u2014 Leads 2026",
+                "Sheet2 \u2014 Archive"
+              ]
+            }
+          },
+          {
+            "label": "Trigger On",
+            "input": {
+              "type": "radio group",
+              "options": [
+                {
+                  "label": "New Row Added",
+                  "selected": true
+                },
+                {
+                  "label": "Row Updated"
+                },
+                {
+                  "label": "Both"
+                }
+              ]
+            }
+          },
+          {
+            "label": "Poll Interval",
+            "input": {
+              "type": "select",
+              "value": "Every 60 seconds",
+              "options": [
+                "Every 30 seconds",
+                "Every 60 seconds",
+                "Every 5 minutes"
+              ]
+            }
+          },
+          {
+            "section_title": "Column Mapping",
+            "description": "Map sheet columns to lead fields \u2014 12px #6B6B6B",
+            "mapping_rows": [
+              {
+                "sheet_col": "Column A \u2192 Name",
+                "maps_to": "contact_name"
+              },
+              {
+                "sheet_col": "Column B \u2192 Phone",
+                "maps_to": "phone_number"
+              },
+              {
+                "sheet_col": "Column C \u2192 Email",
+                "maps_to": "email"
+              },
+              {
+                "sheet_col": "Column D \u2192 Source",
+                "maps_to": "lead_source"
+              }
+            ],
+            "mapping_style": "two-column grid, 13px, arrow \u2192 between, dropdown for maps_to"
+          }
+        ],
+        "footer": {
+          "status": {
+            "icon": "CheckCircle green",
+            "text": "Sheet connected successfully \u2014 13px #22C55E"
+          },
+          "button": {
+            "label": "Save Configuration",
+            "style": "primary yellow full-width"
+          }
+        }
+      },
+      {
+        "state_name": "WhatsApp Message Node Configuration",
+        "panel_header": {
+          "icon": "WhatsApp 18px green",
+          "title": "WhatsApp Message",
+          "subtitle": "Select template and map variables"
+        },
+        "form_sections": [
+          {
+            "label": "WhatsApp Number",
+            "input": {
+              "value": "+1 415 555 0100 (Acme Corp)",
+              "type": "select"
+            }
+          },
+          {
+            "label": "Message Template",
+            "input": {
+              "type": "searchable select",
+              "value": "webinar_invite_v2",
+              "options": [
+                "webinar_invite_v2",
+                "demo_confirmation",
+                "follow_up_1"
+              ]
+            }
+          },
+          {
+            "label": "Dynamic Variables",
+            "variable_rows": [
+              {
+                "variable": "{{1}} \u2014 Name",
+                "mapped_to": "contact_name from Sheet"
+              },
+              {
+                "variable": "{{2}} \u2014 Date",
+                "mapped_to": "event_date (manual)"
+              },
+              {
+                "variable": "{{3}} \u2014 Link",
+                "mapped_to": "registration_url (manual)"
+              }
+            ]
+          },
+          {
+            "label": "Live Preview",
+            "preview": {
+              "style": "WhatsApp phone mockup preview \u2014 240px wide, green header bar 'Acme Corp', white chat bubble",
+              "message_bubble": {
+                "bg": "#DCF8C6",
+                "text": "Hi {{name}}! \ud83d\udc4b\n\nJoin our exclusive webinar on 'AI for Business Growth'\n\n\ud83d\udcc5 Date: {{date}}\n\ud83d\udd17 Reserve your spot now!\n{{link}}",
+                "cta_button": {
+                  "label": "Register Now \u2192",
+                  "bg": "#25D366",
+                  "text": "#FFFFFF"
+                }
+              }
+            }
+          }
+        ],
+        "footer": {
+          "button": {
+            "label": "Save Node",
+            "style": "primary yellow full-width"
+          }
+        }
+      },
+      {
+        "state_name": "Email Node Configuration",
+        "panel_header": {
+          "icon": "Mail 18px #3B82F6",
+          "title": "Send Email",
+          "subtitle": "Configure email provider and template"
+        },
+        "form_sections": [
+          {
+            "label": "Email Provider",
+            "provider_options": [
+              {
+                "icon": "Gmail logo",
+                "label": "Gmail (Google OAuth)",
+                "selected": false
+              },
+              {
+                "icon": "G logo",
+                "label": "Google Workspace",
+                "selected": true
+              },
+              {
+                "icon": "SMTP icon",
+                "label": "Custom SMTP",
+                "selected": false
+              }
+            ],
+            "provider_style": "3 pill options horizontal with icon"
+          },
+          {
+            "label": "From Email",
+            "input": {
+              "value": "team@acme.com",
+              "type": "text"
+            }
+          },
+          {
+            "label": "From Name",
+            "input": {
+              "value": "Acme Corp Team",
+              "type": "text"
+            }
+          },
+          {
+            "label": "Subject Line",
+            "input": {
+              "value": "You're invited! {{name}} \u2014 Webinar on {{date}}",
+              "type": "text with variable hint"
+            }
+          },
+          {
+            "label": "Email Template",
+            "template_builder": {
+              "style": "mini email builder inside panel",
+              "preview_toggle": {
+                "options": [
+                  "Desktop",
+                  "Mobile"
+                ],
+                "active": "Desktop"
+              },
+              "preview_frame": {
+                "bg": "#F4F4F2",
+                "email_card": {
+                  "width": "100%",
+                  "header_bg": "#FFE27C",
+                  "header_text": "Flowora \u2014 Acme Corp 16px bold",
+                  "body_text": "Hi {{name}},\n\nWe're thrilled to invite you to our upcoming webinar...",
+                  "cta_button": {
+                    "label": "Register Now",
+                    "bg": "#1B1B1B",
+                    "text": "#FFE27C"
+                  },
+                  "footer": "Unsubscribe | View in browser \u2014 11px gray"
+                }
+              }
+            }
+          }
+        ],
+        "footer": {
+          "button": {
+            "label": "Save Email Node",
+            "style": "primary yellow full-width"
+          }
+        }
+      },
+      {
+        "state_name": "Voice Call Node Configuration",
+        "panel_header": {
+          "icon": "Phone 18px #C4B1F9",
+          "title": "Voice Call Node",
+          "subtitle": "AI Voice Agent call configuration"
+        },
+        "form_sections": [
+          {
+            "label": "Call Type",
+            "options": [
+              {
+                "icon": "Phone #6B6B6B",
+                "label": "Normal Phone Call",
+                "selected": true
+              },
+              {
+                "icon": "WhatsApp green",
+                "label": "WhatsApp Voice Call",
+                "selected": false
+              }
+            ],
+            "style": "2-option card toggle"
+          },
+          {
+            "label": "Voice Agent",
+            "selected_voice": {
+              "name": "Sophia \u2014 14px bold #1B1B1B",
+              "description": "Professional \u00b7 Female \u00b7 English \u2014 12px #6B6B6B",
+              "preview_button": {
+                "icon": "Play 14px",
+                "label": "Preview Voice",
+                "style": "secondary small"
+              }
+            }
+          },
+          {
+            "label": "Call Objective",
+            "input": {
+              "type": "textarea",
+              "value": "Introduce the webinar, confirm registration, answer questions, and book a demo if interested.",
+              "rows": 3
+            }
+          },
+          {
+            "label": "Call Timing",
+            "input": {
+              "type": "select",
+              "value": "2 hours after lead trigger",
+              "options": [
+                "Immediately",
+                "30 min after trigger",
+                "1 hour after trigger",
+                "2 hours after trigger",
+                "Next business day"
+              ]
+            }
+          },
+          {
+            "label": "Call Recording",
+            "toggle": {
+              "state": "ON",
+              "color": "#22C55E",
+              "label": "Record and transcribe all calls \u2014 13px #6B6B6B"
+            }
+          },
+          {
+            "label": "Credits Estimate",
+            "info_box": {
+              "bg": "#FFF9E6",
+              "border": "1px solid #FFE27C",
+              "border_radius": "8px",
+              "padding": "10px 14px",
+              "text": "~15 credits per minute \u00b7 Avg call 3 min = ~45 credits \u2014 12px #6B6B6B",
+              "icon": "Info 14px #F59E0B"
+            }
+          }
+        ],
+        "footer": {
+          "button": {
+            "label": "Save Voice Node",
+            "style": "primary yellow full-width"
+          }
+        }
+      }
+    ]
+  }
+}

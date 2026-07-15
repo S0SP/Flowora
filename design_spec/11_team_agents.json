@@ -1,0 +1,814 @@
+{
+  "meta": {
+    "screen": "11 \u2014 Team & Agents",
+    "file": "11_team_agents.json",
+    "version": "1.0.0",
+    "subtitle": "Team Management: Agent Roster, Roles, Performance, Invite Modal, Permission Matrix"
+  },
+  "global_design_system": {
+    "colors": {
+      "primary_yellow": "#FFE27C",
+      "neutral_dark": "#1B1B1B",
+      "surface_white": "#FFFFFF",
+      "surface_linen": "#FAFAF8",
+      "accent_lavender": "#C4B1F9",
+      "accent_sky": "#B1D8FC",
+      "success": "#22C55E",
+      "warning": "#F59E0B",
+      "error": "#EF4444",
+      "text_primary": "#1B1B1B",
+      "text_secondary": "#6B6B6B",
+      "text_muted": "#9B9B9B",
+      "border": "#E8E8E4",
+      "sidebar_bg": "#1B1B1B"
+    },
+    "typography": {
+      "font_family": "Inter, -apple-system, sans-serif",
+      "page_title": "24px / 700 / #1B1B1B",
+      "section_title": "16px / 600 / #1B1B1B",
+      "body": "14px / 400 / #1B1B1B",
+      "caption": "12px / 400 / #6B6B6B",
+      "micro": "11px / 400 / #9B9B9B"
+    },
+    "spacing": {
+      "sidebar_width": "240px",
+      "content_padding": "32px",
+      "card_padding": "20px",
+      "border_radius_card": "12px",
+      "border_radius_button": "8px",
+      "border_radius_badge": "6px",
+      "border_radius_avatar": "50%"
+    },
+    "shadows": {
+      "card": "0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)",
+      "button": "0 2px 8px rgba(255,226,124,0.35)",
+      "modal": "0 20px 60px rgba(0,0,0,0.15)",
+      "table_row_hover": "0 2px 8px rgba(0,0,0,0.06)"
+    }
+  },
+  "layout": {
+    "type": "sidebar_plus_main",
+    "sidebar": {
+      "width": "240px",
+      "background": "#1B1B1B",
+      "active_item": "Team & Agents",
+      "active_item_style": "left yellow bar 3px + #FFE27C text + subtle yellow bg tint"
+    },
+    "main_content": {
+      "background": "#FAFAF8",
+      "padding": "32px",
+      "max_width": "1280px"
+    }
+  },
+  "image_prompt": {
+    "composition": "Ultra-wide 16:9 desktop screenshot at 8K resolution. Crisp white background. Left sidebar dark #1B1B1B with yellow Flowora logo and nav items. Main content area showing Team & Agents full page. No blur anywhere. All text sharp and readable. Professional SaaS enterprise UI. Figma-quality mockup.",
+    "page_header": {
+      "left_side": {
+        "breadcrumb": "Settings / Team & Agents \u2014 12px #9B9B9B",
+        "title": "Team & Agents \u2014 24px 700 #1B1B1B",
+        "subtitle": "Manage team members, assign roles, and monitor agent performance \u2014 14px #6B6B6B"
+      },
+      "right_side": {
+        "search_bar": {
+          "placeholder": "Search team members...",
+          "width": "220px",
+          "border": "1px solid #E8E8E4",
+          "border_radius": "8px",
+          "bg": "#FFFFFF",
+          "icon": "Search 16px #9B9B9B left"
+        },
+        "filter_dropdown": {
+          "label": "All Roles",
+          "icon": "ChevronDown",
+          "style": "outlined border #E8E8E4 border-radius 8px bg white"
+        },
+        "invite_button": {
+          "label": "+ Invite Member",
+          "icon": "UserPlus 16px",
+          "bg": "#FFE27C",
+          "text_color": "#1B1B1B",
+          "font_weight": "600",
+          "border_radius": "8px",
+          "padding": "10px 20px",
+          "shadow": "0 2px 8px rgba(255,226,124,0.4)"
+        }
+      }
+    },
+    "stats_strip": {
+      "layout": "4 cards horizontal flex row gap-16px",
+      "card_style": "white bg border 1px #E8E8E4 border-radius 12px padding 20px shadow card",
+      "cards": [
+        {
+          "icon": "Users \u2014 20px #1B1B1B bg #F5F5F0 circle 36px",
+          "label": "Total Members \u2014 12px #6B6B6B",
+          "value": "12 \u2014 28px 700 #1B1B1B",
+          "delta": null
+        },
+        {
+          "icon": "CircleDot \u2014 20px #22C55E bg #DCFCE7 circle 36px",
+          "label": "Online Now \u2014 12px #6B6B6B",
+          "value": "7 \u2014 28px 700 #1B1B1B",
+          "delta": "Live count \u2014 11px #22C55E"
+        },
+        {
+          "icon": "MessageCircle \u2014 20px #1B1B1B bg #F5F5F0 circle 36px",
+          "label": "Avg Chats / Day \u2014 12px #6B6B6B",
+          "value": "48 \u2014 28px 700 #1B1B1B",
+          "delta": "+6% vs last week \u2014 11px #22C55E"
+        },
+        {
+          "icon": "Clock \u2014 20px #1B1B1B bg #F5F5F0 circle 36px",
+          "label": "Avg Response Time \u2014 12px #6B6B6B",
+          "value": "2m 14s \u2014 28px 700 #1B1B1B",
+          "delta": "-18s vs last week \u2014 11px #22C55E"
+        }
+      ]
+    },
+    "tabs_row": {
+      "tabs": [
+        {
+          "label": "All Members",
+          "count": "12",
+          "active": true,
+          "style": "underline yellow 2px bottom border"
+        },
+        {
+          "label": "Admins",
+          "count": "2",
+          "active": false
+        },
+        {
+          "label": "Managers",
+          "count": "3",
+          "active": false
+        },
+        {
+          "label": "Agents",
+          "count": "7",
+          "active": false
+        },
+        {
+          "label": "Inactive",
+          "count": "1",
+          "active": false
+        }
+      ],
+      "tab_style_active": "14px 600 #1B1B1B border-bottom 2px #FFE27C",
+      "tab_style_inactive": "14px 400 #6B6B6B"
+    },
+    "agent_table": {
+      "container_style": "white bg border 1px #E8E8E4 border-radius 12px overflow hidden shadow card margin-top 20px",
+      "table_header": {
+        "bg": "#FAFAF8",
+        "border_bottom": "1px solid #E8E8E4",
+        "padding": "12px 20px",
+        "columns": [
+          {
+            "label": "Member",
+            "width": "280px",
+            "sort_icon": "ChevronsUpDown 12px #9B9B9B"
+          },
+          {
+            "label": "Role",
+            "width": "120px"
+          },
+          {
+            "label": "Status",
+            "width": "100px"
+          },
+          {
+            "label": "Assigned Chats",
+            "width": "130px",
+            "sort_icon": "ChevronsUpDown 12px #9B9B9B"
+          },
+          {
+            "label": "Chats Handled",
+            "width": "130px",
+            "sort_icon": "ChevronsUpDown 12px #9B9B9B"
+          },
+          {
+            "label": "Avg Response",
+            "width": "120px"
+          },
+          {
+            "label": "Credit Usage",
+            "width": "130px"
+          },
+          {
+            "label": "Actions",
+            "width": "80px",
+            "align": "center"
+          }
+        ],
+        "column_style": "11px 600 #9B9B9B uppercase letter-spacing 0.05em"
+      },
+      "table_rows": [
+        {
+          "row_state": "default white bg hover shadow-row-hover",
+          "border_bottom": "1px solid #F0F0EC",
+          "padding": "16px 20px",
+          "member_cell": {
+            "avatar": {
+              "size": "40px",
+              "shape": "circle",
+              "bg": "linear-gradient 135deg #FFE27C #F59E0B",
+              "initials": "RF",
+              "initials_style": "14px 700 #1B1B1B"
+            },
+            "name": "Robert Fox \u2014 14px 600 #1B1B1B",
+            "email": "robert@acme.com \u2014 12px #9B9B9B",
+            "you_badge": {
+              "label": "You",
+              "bg": "#F5F5F0",
+              "text": "#6B6B6B",
+              "border_radius": "4px",
+              "font": "11px 500"
+            }
+          },
+          "role_cell": {
+            "badge": {
+              "label": "Admin",
+              "bg": "#1B1B1B",
+              "text": "#FFE27C",
+              "border_radius": "6px",
+              "padding": "4px 10px",
+              "font": "12px 600"
+            }
+          },
+          "status_cell": {
+            "dot": "8px circle #22C55E",
+            "label": "Online \u2014 13px #22C55E"
+          },
+          "assigned_chats": "12 \u2014 14px 500 #1B1B1B",
+          "chats_handled": "1,482 \u2014 14px 500 #1B1B1B",
+          "avg_response": "1m 42s \u2014 14px #6B6B6B",
+          "credit_usage": {
+            "bar": "progress bar 80px wide fill 62% bg #FFE27C track #F0F0EC border-radius 4px",
+            "label": "620 / 1000 \u2014 11px #9B9B9B"
+          },
+          "actions": {
+            "edit_icon": "Pencil 16px #6B6B6B hover #1B1B1B",
+            "more_icon": "MoreHorizontal 16px #6B6B6B hover #1B1B1B"
+          }
+        },
+        {
+          "member_cell": {
+            "avatar": {
+              "bg": "linear-gradient #C4B1F9 #A78BFA",
+              "initials": "SW"
+            },
+            "name": "Sarah Wilson \u2014 14px 600 #1B1B1B",
+            "email": "sarah@acme.com \u2014 12px #9B9B9B"
+          },
+          "role_cell": {
+            "badge": {
+              "label": "Manager",
+              "bg": "#F3F0FF",
+              "text": "#7C3AED",
+              "border_radius": "6px",
+              "padding": "4px 10px",
+              "font": "12px 600"
+            }
+          },
+          "status_cell": {
+            "dot": "8px circle #22C55E",
+            "label": "Online \u2014 13px #22C55E"
+          },
+          "assigned_chats": "9",
+          "chats_handled": "980",
+          "avg_response": "2m 05s",
+          "credit_usage": {
+            "bar": "fill 45% #FFE27C",
+            "label": "450 / 1000"
+          },
+          "actions": {
+            "edit_icon": "Pencil 16px",
+            "more_icon": "MoreHorizontal 16px"
+          }
+        },
+        {
+          "member_cell": {
+            "avatar": {
+              "bg": "linear-gradient #B1D8FC #60A5FA",
+              "initials": "RS"
+            },
+            "name": "Rakesh Sharma \u2014 14px 600 #1B1B1B",
+            "email": "rakesh@acme.com \u2014 12px #9B9B9B"
+          },
+          "role_cell": {
+            "badge": {
+              "label": "Agent",
+              "bg": "#F0FDF4",
+              "text": "#15803D",
+              "border_radius": "6px",
+              "padding": "4px 10px",
+              "font": "12px 600"
+            }
+          },
+          "status_cell": {
+            "dot": "8px circle #22C55E",
+            "label": "Online \u2014 13px #22C55E"
+          },
+          "assigned_chats": "14",
+          "chats_handled": "623",
+          "avg_response": "3m 11s",
+          "credit_usage": {
+            "bar": "fill 30% #FFE27C",
+            "label": "300 / 1000"
+          },
+          "actions": {
+            "edit_icon": "Pencil 16px",
+            "more_icon": "MoreHorizontal 16px"
+          }
+        },
+        {
+          "member_cell": {
+            "avatar": {
+              "bg": "linear-gradient #FDE68A #FCA5A5",
+              "initials": "PP"
+            },
+            "name": "Priya Patel \u2014 14px 600 #1B1B1B",
+            "email": "priya@acme.com \u2014 12px #9B9B9B"
+          },
+          "role_cell": {
+            "badge": {
+              "label": "Agent",
+              "bg": "#F0FDF4",
+              "text": "#15803D",
+              "border_radius": "6px",
+              "padding": "4px 10px",
+              "font": "12px 600"
+            }
+          },
+          "status_cell": {
+            "dot": "8px circle #F59E0B",
+            "label": "Away \u2014 13px #F59E0B"
+          },
+          "assigned_chats": "6",
+          "chats_handled": "421",
+          "avg_response": "4m 30s",
+          "credit_usage": {
+            "bar": "fill 20% #FFE27C",
+            "label": "200 / 1000"
+          },
+          "actions": {
+            "edit_icon": "Pencil 16px",
+            "more_icon": "MoreHorizontal 16px"
+          }
+        },
+        {
+          "member_cell": {
+            "avatar": {
+              "bg": "linear-gradient #1B1B1B #3F3F3F",
+              "initials": "DL",
+              "initials_color": "#FFE27C"
+            },
+            "name": "David Lee \u2014 14px 600 #1B1B1B",
+            "email": "david@acme.com \u2014 12px #9B9B9B"
+          },
+          "role_cell": {
+            "badge": {
+              "label": "Manager",
+              "bg": "#F3F0FF",
+              "text": "#7C3AED",
+              "border_radius": "6px",
+              "padding": "4px 10px",
+              "font": "12px 600"
+            }
+          },
+          "status_cell": {
+            "dot": "8px circle #EF4444",
+            "label": "Offline \u2014 13px #9B9B9B"
+          },
+          "assigned_chats": "0",
+          "chats_handled": "312",
+          "avg_response": "\u2014",
+          "credit_usage": {
+            "bar": "fill 15% #FFE27C",
+            "label": "150 / 1000"
+          },
+          "actions": {
+            "edit_icon": "Pencil 16px",
+            "more_icon": "MoreHorizontal 16px"
+          }
+        },
+        {
+          "member_cell": {
+            "avatar": {
+              "bg": "linear-gradient #C4B1F9 #818CF8",
+              "initials": "CW"
+            },
+            "name": "Camren Williamson \u2014 14px 600 #1B1B1B",
+            "email": "camren@acme.com \u2014 12px #9B9B9B"
+          },
+          "role_cell": {
+            "badge": {
+              "label": "Agent",
+              "bg": "#F0FDF4",
+              "text": "#15803D",
+              "border_radius": "6px",
+              "padding": "4px 10px",
+              "font": "12px 600"
+            }
+          },
+          "status_cell": {
+            "dot": "8px circle #22C55E",
+            "label": "Online \u2014 13px #22C55E"
+          },
+          "assigned_chats": "11",
+          "chats_handled": "825",
+          "avg_response": "1m 58s",
+          "credit_usage": {
+            "bar": "fill 55% #FFE27C",
+            "label": "550 / 1000"
+          },
+          "actions": {
+            "edit_icon": "Pencil 16px",
+            "more_icon": "MoreHorizontal 16px"
+          }
+        },
+        {
+          "member_cell": {
+            "avatar": {
+              "bg": "linear-gradient #B1D8FC #38BDF8",
+              "initials": "BS"
+            },
+            "name": "Brooklyn Simmons \u2014 14px 600 #1B1B1B",
+            "email": "brooklyn@acme.com \u2014 12px #9B9B9B"
+          },
+          "role_cell": {
+            "badge": {
+              "label": "Agent",
+              "bg": "#F0FDF4",
+              "text": "#15803D",
+              "border_radius": "6px",
+              "padding": "4px 10px",
+              "font": "12px 600"
+            }
+          },
+          "status_cell": {
+            "dot": "8px circle #22C55E",
+            "label": "Online \u2014 13px #22C55E"
+          },
+          "assigned_chats": "8",
+          "chats_handled": "425",
+          "avg_response": "2m 44s",
+          "credit_usage": {
+            "bar": "fill 25% #FFE27C",
+            "label": "250 / 1000"
+          },
+          "actions": {
+            "edit_icon": "Pencil 16px",
+            "more_icon": "MoreHorizontal 16px"
+          }
+        },
+        {
+          "member_cell": {
+            "avatar": {
+              "bg": "linear-gradient #FDE68A #F97316",
+              "initials": "DS"
+            },
+            "name": "Darrell Steward \u2014 14px 600 #1B1B1B",
+            "email": "darrell@acme.com \u2014 12px #9B9B9B",
+            "pending_badge": {
+              "label": "Invite Pending",
+              "bg": "#FFFBEB",
+              "text": "#D97706",
+              "border_radius": "4px",
+              "font": "11px 500"
+            }
+          },
+          "role_cell": {
+            "badge": {
+              "label": "Agent",
+              "bg": "#F0FDF4",
+              "text": "#15803D",
+              "border_radius": "6px",
+              "padding": "4px 10px",
+              "font": "12px 600"
+            }
+          },
+          "status_cell": {
+            "dot": "8px circle #9B9B9B",
+            "label": "Pending \u2014 13px #9B9B9B"
+          },
+          "assigned_chats": "\u2014",
+          "chats_handled": "\u2014",
+          "avg_response": "\u2014",
+          "credit_usage": {
+            "bar": "fill 0% bg #F0F0EC",
+            "label": "0 / 1000"
+          },
+          "actions": {
+            "resend_icon": "RefreshCw 16px #6B6B6B hover #1B1B1B",
+            "more_icon": "MoreHorizontal 16px #6B6B6B"
+          }
+        }
+      ],
+      "pagination": {
+        "position": "bottom right of table",
+        "style": "Showing 1\u20138 of 12 members \u2014 12px #9B9B9B | < 1 2 > page buttons outlined border-radius 6px"
+      }
+    },
+    "invite_member_modal": {
+      "trigger": "Click + Invite Member button",
+      "overlay": "rgba(0,0,0,0.4) full screen backdrop blur 4px",
+      "modal_card": {
+        "width": "480px",
+        "bg": "#FFFFFF",
+        "border_radius": "16px",
+        "padding": "32px",
+        "shadow": "0 20px 60px rgba(0,0,0,0.18)"
+      },
+      "modal_header": {
+        "icon": "UserPlus 24px bg #FFE27C circle 48px",
+        "title": "Invite Team Member \u2014 20px 700 #1B1B1B",
+        "subtitle": "Send an email invite to add a new member to your workspace \u2014 14px #6B6B6B",
+        "close_button": "X icon top right 20px #9B9B9B hover #1B1B1B"
+      },
+      "form_fields": [
+        {
+          "label": "Full Name \u2014 13px 600 #1B1B1B margin-bottom 6px",
+          "input": {
+            "placeholder": "Enter full name",
+            "type": "text",
+            "border": "1px solid #E8E8E4",
+            "border_radius": "8px",
+            "padding": "10px 14px",
+            "font": "14px #1B1B1B",
+            "focus_border": "#FFE27C"
+          }
+        },
+        {
+          "label": "Email Address \u2014 13px 600 #1B1B1B",
+          "input": {
+            "placeholder": "name@company.com",
+            "type": "email",
+            "border": "1px solid #E8E8E4",
+            "border_radius": "8px",
+            "padding": "10px 14px",
+            "icon_left": "Mail 16px #9B9B9B"
+          }
+        },
+        {
+          "label": "Assign Role \u2014 13px 600 #1B1B1B",
+          "type": "select_dropdown",
+          "options": [
+            "Agent",
+            "Manager",
+            "Admin"
+          ],
+          "selected": "Agent",
+          "style": "border 1px #E8E8E4 border-radius 8px padding 10px 14px ChevronDown icon right"
+        },
+        {
+          "label": "Assign to Inbox \u2014 13px 600 #1B1B1B",
+          "type": "multi_select_tags",
+          "options": [
+            "General Support",
+            "Sales Inbox",
+            "WhatsApp Business"
+          ],
+          "selected": [
+            "General Support"
+          ],
+          "tag_style": "bg #F5F5F0 text #1B1B1B border-radius 6px padding 4px 10px font 12px X remove icon"
+        },
+        {
+          "label": "Credit Limit per Month \u2014 13px 600 #1B1B1B",
+          "input": {
+            "placeholder": "1000",
+            "type": "number",
+            "suffix_label": "credits \u2014 13px #9B9B9B",
+            "helper": "Leave blank for unlimited \u2014 11px #9B9B9B"
+          }
+        }
+      ],
+      "modal_footer": {
+        "cancel_button": {
+          "label": "Cancel",
+          "style": "outlined border #E8E8E4 bg white text #1B1B1B border-radius 8px padding 10px 20px"
+        },
+        "send_invite_button": {
+          "label": "Send Invite",
+          "icon": "Send 16px",
+          "bg": "#FFE27C",
+          "text_color": "#1B1B1B",
+          "font_weight": "600",
+          "border_radius": "8px",
+          "padding": "10px 24px",
+          "shadow": "0 2px 8px rgba(255,226,124,0.4)"
+        }
+      }
+    },
+    "agent_detail_side_panel": {
+      "trigger": "Click Edit icon on any agent row",
+      "type": "right side panel 380px sliding in from right",
+      "overlay": "none \u2014 panel slides over content with shadow",
+      "panel_style": {
+        "bg": "#FFFFFF",
+        "border_left": "1px solid #E8E8E4",
+        "shadow": "-8px 0 32px rgba(0,0,0,0.1)",
+        "padding": "24px"
+      },
+      "panel_header": {
+        "back_button": "ChevronLeft 20px + Agent Details \u2014 16px 600 #1B1B1B",
+        "close_button": "X icon 20px #9B9B9B"
+      },
+      "agent_profile_block": {
+        "avatar": "56px circle gradient initials",
+        "name": "Robert Fox \u2014 18px 700 #1B1B1B",
+        "email": "robert@acme.com \u2014 13px #6B6B6B",
+        "role_badge": "Admin badge yellow on dark",
+        "status_row": "dot + Online text + Last seen timestamp"
+      },
+      "performance_mini_stats": {
+        "layout": "2x2 grid",
+        "items": [
+          {
+            "label": "Chats Today",
+            "value": "23"
+          },
+          {
+            "label": "Chats This Week",
+            "value": "156"
+          },
+          {
+            "label": "Avg Response",
+            "value": "1m 42s"
+          },
+          {
+            "label": "CSAT Score",
+            "value": "4.8 / 5.0"
+          }
+        ],
+        "card_style": "bg #FAFAF8 border 1px #E8E8E4 border-radius 8px padding 12px"
+      },
+      "edit_form": {
+        "fields": [
+          {
+            "label": "Full Name",
+            "value": "Robert Fox",
+            "editable": true
+          },
+          {
+            "label": "Email",
+            "value": "robert@acme.com",
+            "editable": false,
+            "note": "Cannot change \u2014 11px #9B9B9B"
+          },
+          {
+            "label": "Role",
+            "type": "select",
+            "options": [
+              "Agent",
+              "Manager",
+              "Admin"
+            ],
+            "selected": "Admin"
+          },
+          {
+            "label": "Assigned Inboxes",
+            "type": "multi_checkbox",
+            "options": [
+              "General Support",
+              "Sales Inbox",
+              "WhatsApp Business"
+            ],
+            "all_checked": true
+          },
+          {
+            "label": "Credit Limit / Month",
+            "value": "1000 credits",
+            "type": "number_input"
+          },
+          {
+            "label": "Max Concurrent Chats",
+            "value": "20",
+            "type": "number_input"
+          }
+        ]
+      },
+      "danger_zone": {
+        "section_label": "Danger Zone \u2014 13px 600 #EF4444",
+        "divider": "1px solid #FEE2E2",
+        "actions": [
+          {
+            "label": "Suspend Agent",
+            "icon": "PauseCircle",
+            "style": "outlined border #FCA5A5 text #EF4444"
+          },
+          {
+            "label": "Remove from Workspace",
+            "icon": "Trash2",
+            "style": "outlined border #FCA5A5 text #EF4444"
+          }
+        ]
+      },
+      "save_button": {
+        "label": "Save Changes",
+        "bg": "#FFE27C",
+        "text_color": "#1B1B1B",
+        "width": "100%",
+        "border_radius": "8px",
+        "shadow": "0 2px 8px rgba(255,226,124,0.4)"
+      }
+    },
+    "permissions_matrix_section": {
+      "layout": "below agent table full width",
+      "header": {
+        "title": "Role Permissions Matrix \u2014 16px 600 #1B1B1B",
+        "subtitle": "See what each role can access and do in Flowora \u2014 13px #6B6B6B"
+      },
+      "matrix_table": {
+        "container_style": "white bg border 1px #E8E8E4 border-radius 12px overflow hidden margin-top 16px",
+        "header_row": {
+          "bg": "#FAFAF8",
+          "columns": [
+            "Permission",
+            "Agent",
+            "Manager",
+            "Admin"
+          ],
+          "style": "12px 600 #9B9B9B uppercase"
+        },
+        "rows": [
+          {
+            "permission": "View Shared Inbox",
+            "agent": "check-green",
+            "manager": "check-green",
+            "admin": "check-green"
+          },
+          {
+            "permission": "Assign Conversations",
+            "agent": "x-red",
+            "manager": "check-green",
+            "admin": "check-green"
+          },
+          {
+            "permission": "Manage Campaigns",
+            "agent": "x-red",
+            "manager": "check-green",
+            "admin": "check-green"
+          },
+          {
+            "permission": "Access Workflow Builder",
+            "agent": "x-red",
+            "manager": "check-green",
+            "admin": "check-green"
+          },
+          {
+            "permission": "View Analytics",
+            "agent": "dash-partial",
+            "manager": "check-green",
+            "admin": "check-green"
+          },
+          {
+            "permission": "Manage Integrations",
+            "agent": "x-red",
+            "manager": "x-red",
+            "admin": "check-green"
+          },
+          {
+            "permission": "Billing & Credits",
+            "agent": "x-red",
+            "manager": "x-red",
+            "admin": "check-green"
+          },
+          {
+            "permission": "Invite Members",
+            "agent": "x-red",
+            "manager": "x-red",
+            "admin": "check-green"
+          },
+          {
+            "permission": "Configure AI Chatbot",
+            "agent": "x-red",
+            "manager": "check-green",
+            "admin": "check-green"
+          },
+          {
+            "permission": "Voice Agent Setup",
+            "agent": "x-red",
+            "manager": "x-red",
+            "admin": "check-green"
+          }
+        ],
+        "check_icon": "Check 16px #22C55E",
+        "x_icon": "X 16px #EF4444",
+        "dash_icon": "Minus 16px #F59E0B",
+        "row_style": "padding 14px 20px border-bottom 1px solid #F0F0EC alternate row bg #FAFAF8"
+      }
+    }
+  },
+  "rendering_settings": {
+    "resolution": "7680x4320 8K",
+    "style": "photorealistic UI screenshot",
+    "font_rendering": "crisp subpixel antialiasing",
+    "color_accuracy": "sRGB exact hex match",
+    "no_blur": true,
+    "depth_of_field": "none \u2014 all elements sharp",
+    "background": "pure white desktop context"
+  },
+  "negative_prompt": "blur, glow, neon, gradients on text, dark mode, mobile layout, sketch style, watercolor, 3D render, cartoon, lens flare, oversaturation, illegible text, missing elements, cropped UI"
+}

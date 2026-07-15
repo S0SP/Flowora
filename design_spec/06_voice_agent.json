@@ -1,0 +1,50 @@
+{
+  "module": "AI Voice Agent",
+  "description": "Configuration interface for the AI Voice Agent, handling lead retention, normal calls, and WhatsApp calls.",
+  "layout_structure": {
+    "type": "Dashboard with Configuration Panels",
+    "topbar": "Page Title: 'Voice Agent Settings', Action: 'Buy Credits' (Ghost Button)",
+    "main_area": "Two-column layout (Main settings on left, live preview/stats on right)."
+  },
+  "components": {
+    "configuration_panels": {
+      "column": "Left (60% width)",
+      "panels": [
+        {
+          "title": "Voice Selection",
+          "content": "A grid of voice profile cards (Male, Female, Accents). Play button icon to preview.",
+          "active_state": "Selected card has a Kournikova border and subtle glow."
+        },
+        {
+          "title": "Call Scripts & Objectives",
+          "content": "Rich text area for 'Primary Objective' (e.g., 'Book a meeting', 'Qualify lead'). Input fields for fallback messages."
+        },
+        {
+          "title": "Call Triggers",
+          "content": "Toggle switches for 'Call on missed web form', 'Call after WhatsApp template opened but unreplied for 24h'."
+        }
+      ]
+    },
+    "status_and_stats": {
+      "column": "Right (40% width)",
+      "panels": [
+        {
+          "title": "Agent Status",
+          "content": "Large toggle switch (Active/Paused). 'Currently handling 3 active calls.'",
+          "background": "colors.surface.primary",
+          "border": "1px solid colors.border"
+        },
+        {
+          "title": "Credit Balance",
+          "content": "Large bold text showing '2,450 mins remaining'. Small progress bar showing usage this month.",
+          "button": "Refill Credits (Primary)"
+        },
+        {
+          "title": "Recent Call Transcripts",
+          "content": "List of recent calls. Clicking one opens a modal with a full text transcript and an audio waveform player."
+        }
+      ]
+    }
+  },
+  "visual_prompt_notes": "A SaaS settings interface for configuring an AI Voice Agent. The screen is split into a larger left column and smaller right column. The left side shows a grid of 'Voice Profile' cards with play buttons, and a text area for writing call scripts. The right side shows a large green 'Active' toggle switch, a 'Credit Balance' gauge (yellow), and a list of recent calls. Clean white background with yellow and lavender UI accents."
+}

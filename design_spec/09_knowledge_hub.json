@@ -1,0 +1,237 @@
+{
+  "meta": {
+    "screen": "09 \u2014 Knowledge Hub (Graph RAG)",
+    "file": "09_knowledge_hub.json",
+    "subtitle": "Company Knowledge Graph visualization + Source Management + RAG Query Testing"
+  },
+  "image_prompt": {
+    "scene": "Flowora Knowledge Hub page showing the Graph RAG system. Left panel with source management. Center panel with interactive knowledge graph visualization. Right panel for query testing. Premium minimal design. No AI branding \u2014 purely branded as Flowora Knowledge Engine.",
+    "page_header": {
+      "title": "Knowledge Hub \u2014 24px bold #1B1B1B",
+      "subtitle": "Your AI chatbot and voice agent use this knowledge graph to answer questions accurately. \u2014 14px #6B6B6B",
+      "status": {
+        "icon": "CheckCircle 16px #22C55E",
+        "text": "All sources synced \u2014 13px #22C55E"
+      },
+      "right": {
+        "last_sync": "Last synced: 2 min ago \u2014 13px #9B9B9B",
+        "resync_button": {
+          "icon": "RefreshCw",
+          "label": "Resync All",
+          "style": "secondary"
+        }
+      }
+    },
+    "three_column_layout": {
+      "sources_panel": {
+        "width": "280px",
+        "background": "#FFFFFF",
+        "border_right": "1px solid #E8E8E4",
+        "padding": "16px",
+        "title": "Data Sources \u2014 14px bold",
+        "add_button": {
+          "label": "+ Add Source",
+          "style": "primary yellow small full-width"
+        },
+        "source_list": [
+          {
+            "icon": "Globe 16px #3B82F6",
+            "name": "acme.com",
+            "type": "Website",
+            "pages": "42 pages",
+            "status_dot": "#22C55E",
+            "size_bar": {
+              "fill": "70%",
+              "color": "#B1D8FC"
+            }
+          },
+          {
+            "icon": "FileSpreadsheet 16px green",
+            "name": "Pricing Sheet",
+            "type": "Google Sheet",
+            "rows": "128 rows",
+            "status_dot": "#22C55E"
+          },
+          {
+            "icon": "FileText 16px #F59E0B",
+            "name": "FAQ.pdf",
+            "type": "Document",
+            "chunks": "84 chunks",
+            "status_dot": "#22C55E"
+          },
+          {
+            "icon": "FileText 16px",
+            "name": "product_catalog.pdf",
+            "type": "Document",
+            "chunks": "210 chunks",
+            "status_dot": "#22C55E"
+          },
+          {
+            "icon": "Globe 16px",
+            "name": "docs.acme.com",
+            "type": "Documentation",
+            "pages": "18 pages",
+            "status_dot": "#F59E0B",
+            "status_label": "Processing..."
+          }
+        ],
+        "total_stat": {
+          "text": "Total: 464 knowledge chunks \u2014 12px #9B9B9B",
+          "graph_nodes": "1,284 graph nodes"
+        }
+      },
+      "graph_visualization": {
+        "flex": "1",
+        "background": "#F8F8F6",
+        "border_radius": "0",
+        "graph": {
+          "style": "force-directed knowledge graph, dark nodes connected by relationship edges",
+          "center_node": {
+            "label": "Acme Corp",
+            "size": "64px circle #1B1B1B white text 14px bold",
+            "glow": "subtle yellow glow"
+          },
+          "secondary_nodes": [
+            {
+              "label": "Products",
+              "size": "48px #FFE27C #1B1B1B",
+              "position": "top-center"
+            },
+            {
+              "label": "Pricing",
+              "size": "44px #B1D8FC #1B1B1B",
+              "position": "top-right"
+            },
+            {
+              "label": "Policies",
+              "size": "40px #C4B1F9",
+              "position": "right"
+            },
+            {
+              "label": "FAQ",
+              "size": "44px #F0FDF4 green border",
+              "position": "bottom-right"
+            },
+            {
+              "label": "Integrations",
+              "size": "40px #FFF9E6",
+              "position": "bottom"
+            },
+            {
+              "label": "Shipping",
+              "size": "38px #F4F4F2",
+              "position": "bottom-left"
+            },
+            {
+              "label": "Refund",
+              "size": "36px #FEF2F2 red border",
+              "position": "left"
+            }
+          ],
+          "tertiary_nodes": [
+            {
+              "label": "Business Plan",
+              "size": "32px",
+              "parent": "Pricing"
+            },
+            {
+              "label": "Enterprise",
+              "size": "32px",
+              "parent": "Pricing"
+            },
+            {
+              "label": "Starter",
+              "size": "30px",
+              "parent": "Pricing"
+            },
+            {
+              "label": "HubSpot Integration",
+              "size": "28px",
+              "parent": "Integrations"
+            },
+            {
+              "label": "Salesforce",
+              "size": "28px",
+              "parent": "Integrations"
+            }
+          ],
+          "edges": {
+            "style": "thin gray lines with relationship labels",
+            "labels": [
+              "has pricing",
+              "includes",
+              "connects to",
+              "covers",
+              "answers"
+            ],
+            "label_style": "10px #9B9B9B bg-white rounded-4 padding 2px 6px"
+          },
+          "hovered_node": {
+            "label": "Pricing",
+            "tooltip": {
+              "bg": "#1B1B1B",
+              "text": "#FFFFFF",
+              "content": "Pricing \u2014 128 rows \u00b7 Starter $49 \u00b7 Business $149 \u00b7 Enterprise Custom",
+              "border_radius": "8px"
+            }
+          }
+        },
+        "controls": {
+          "zoom_in": "ZoomIn button",
+          "zoom_out": "ZoomOut button",
+          "fit_view": "Maximize button",
+          "search": "Search nodes input"
+        }
+      },
+      "query_test_panel": {
+        "width": "320px",
+        "background": "#FFFFFF",
+        "border_left": "1px solid #E8E8E4",
+        "padding": "16px",
+        "title": "Test Knowledge Query \u2014 14px bold",
+        "query_input": {
+          "placeholder": "Ask a question as your customer would...",
+          "value": "What is the price for 100 users?",
+          "bg": "#F4F4F2",
+          "border_radius": "8px",
+          "rows": 2
+        },
+        "test_button": {
+          "label": "Test Query",
+          "icon": "Send",
+          "style": "primary yellow small"
+        },
+        "response_area": {
+          "label": "AI Response \u2014 12px #9B9B9B",
+          "response_bubble": {
+            "bg": "#F5F3FF",
+            "border": "1px solid #DDD6FE",
+            "border_radius": "10px",
+            "padding": "14px",
+            "text": "For 100 users, we recommend our *Business Plan* at $149/month (billed annually). This includes Shared Inbox, AI Chatbot, Workflow Builder, Voice Agent, and Analytics. For enterprise pricing, please contact our team. \u2014 13px #1B1B1B"
+          },
+          "sources_used": {
+            "label": "Sources used:",
+            "tags": [
+              {
+                "label": "pricing_2026.xlsx",
+                "icon": "FileSpreadsheet 12px"
+              },
+              {
+                "label": "FAQ.pdf",
+                "icon": "FileText 12px"
+              }
+            ]
+          },
+          "confidence": {
+            "label": "Confidence: 94% \u2014 12px #22C55E",
+            "bar": {
+              "fill": "94%",
+              "color": "#22C55E"
+            }
+          }
+        }
+      }
+    }
+  }
+}

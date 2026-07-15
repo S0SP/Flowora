@@ -1,0 +1,62 @@
+{
+  "module": "Broadcast",
+  "description": "Broadcast Campaigns module for sending mass WhatsApp templates to segmented contact lists.",
+  "layout_structure": {
+    "type": "Wizard / Multi-step Form",
+    "sidebar": "Standard app sidebar (Cod Gray).",
+    "main_area": "Centered content container (max-width: 800px) for step-by-step campaign creation."
+  },
+  "components": {
+    "header": {
+      "title": "Create Broadcast",
+      "stepper": {
+        "layout": "Horizontal progress bar with dots",
+        "steps": [
+          { "id": 1, "label": "Setup", "status": "completed" },
+          { "id": 2, "label": "Template", "status": "active" },
+          { "id": 3, "label": "Audience", "status": "pending" },
+          { "id": 4, "label": "Review", "status": "pending" }
+        ]
+      }
+    },
+    "step_content": {
+      "background": "colors.surface.primary",
+      "padding": "32px",
+      "border_radius": "12px",
+      "shadow": "shadows.md",
+      "elements": {
+        "template_selection": {
+          "title": "Select WhatsApp Template",
+          "grid": "2 columns of template preview cards.",
+          "card": {
+            "border": "1px solid border",
+            "hover": "border turns Kournikova",
+            "content": "Template Name, Preview text (gray bubble), Category badge (Marketing/Utility)"
+          }
+        },
+        "variables_mapping": {
+          "title": "Map Variables",
+          "description": "Map your CRM fields to the template variables.",
+          "rows": [
+            { "variable": "{{1}}", "mapping_dropdown": "Select CRM Field (e.g. First Name)" },
+            { "variable": "{{2}}", "mapping_dropdown": "Select CRM Field (e.g. Order Number)" }
+          ]
+        },
+        "preview_pane": {
+          "description": "A live mobile phone mockup showing how the message will look on WhatsApp.",
+          "location": "Floating on the right side of the screen on desktop.",
+          "style": "Rounded rectangle, light green WhatsApp background, message bubble with mapped variables."
+        }
+      }
+    },
+    "footer_actions": {
+      "layout": "Flex horizontal, justify end, gap 16px, sticky bottom, padding 16px, background surface.primary, border-top.",
+      "buttons": [
+        "Back (Ghost)",
+        "Save Draft (Secondary)",
+        "Next Step (Primary, Kournikova)"
+      ]
+    }
+  },
+  "visual_prompt_notes": "A SaaS interface showing a step-by-step 'Create Broadcast' wizard. The main area contains a white card with a clean form for selecting a WhatsApp template and mapping variables. On the right side, there is a realistic mobile phone mockup displaying a live preview of a WhatsApp message. Top of the screen shows a step progress bar (Setup -> Template -> Audience -> Review). Uses yellow (#FFE27C) for the active 'Next' button and progress indicators."
+}

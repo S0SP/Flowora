@@ -1,0 +1,42 @@
+{
+  "module": "AI Chatbot",
+  "description": "Configuration and training area for the Graph RAG powered AI Chatbot.",
+  "layout_structure": {
+    "type": "Tabs Layout",
+    "tabs": ["Knowledge Base", "Bot Persona", "Handoff Rules", "Test Bot"]
+  },
+  "components": {
+    "knowledge_base_tab": {
+      "upload_section": {
+        "style": "Dashed border dropzone, background very light gray, centered icon (upload).",
+        "text": "Drag and drop PDFs, Docs, or enter URLs to train your bot.",
+        "button": "Browse Files (Secondary)"
+      },
+      "synced_sources": {
+        "title": "Active Knowledge Sources",
+        "list": {
+          "item": {
+            "layout": "Flex space-between, padding 12px, border-bottom",
+            "left": "File Icon + Filename + Status (Green dot 'Synced')",
+            "right": "Delete Icon"
+          }
+        }
+      }
+    },
+    "bot_persona_tab": {
+      "form": {
+        "bot_name": "Input field",
+        "tone_of_voice": "Dropdown (Professional, Friendly, Humorous, Urgent)",
+        "custom_instructions": "Large Textarea: 'System Prompt instructions...'"
+      }
+    },
+    "test_bot_floating_widget": {
+      "description": "A persistent chat window mockup that allows the user to test the AI's responses instantly after changing settings.",
+      "layout": "Bottom right corner. Standard chat widget UI.",
+      "header": "Kournikova background, text 'Test your Bot'",
+      "body": "Chat bubbles",
+      "input": "Type here..."
+    }
+  },
+  "visual_prompt_notes": "A settings page for an AI chatbot within a SaaS dashboard. The main area shows a large dashed-line file upload area for 'Knowledge Base' training. Below it is a list of synced documents (PDFs and Links) with green 'synced' status dots. In the bottom right corner of the screen, a floating chat widget is open, titled 'Test your Bot', showing a mock conversation between a user and the AI. Colors: white background, yellow accents, light gray dashed lines."
+}

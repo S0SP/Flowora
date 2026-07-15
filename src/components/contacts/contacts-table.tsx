@@ -13,11 +13,16 @@ interface ContactsTableProps {
 export function ContactsTable({ contacts }: ContactsTableProps) {
   const [search, setSearch] = useState("");
 
-  const filtered = contacts.filter((c) =>
-    (c.name ?? "").toLowerCase().includes(search.toLowerCase()) ||
-    c.phone.includes(search) ||
-    (c.email ?? "").toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = contacts.filter((c) => {
+    const contactName = c.full_name ?? c.name ?? "";
+    const contactPhone = c.phone ?? "";
+    const contactEmail = c.email ?? "";
+    return (
+      contactName.toLowerCase().includes(search.toLowerCase()) ||
+      contactPhone.includes(search) ||
+      contactEmail.toLowerCase().includes(search.toLowerCase())
+    );
+  });
 
   return (
     <div className="bg-card border border-border rounded-2xl overflow-hidden">
@@ -58,11 +63,11 @@ export function ContactsTable({ contacts }: ContactsTableProps) {
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                         <span className="text-xs font-semibold text-primary">
-                          {getInitials(contact.name, contact.phone)}
+                          {getInitials(contact.full_name ?? contact.name, contact.phone)}
                         </span>
                       </div>
                       <span className="font-medium text-foreground">
-                        {contact.name ?? "Unknown"}
+                        {contact.full_name ?? contact.name ?? "Unknown"}
                       </span>
                     </div>
                   </td>

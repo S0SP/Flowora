@@ -1,0 +1,301 @@
+{
+  "meta": {
+    "screen": "04 \u2014 Leads CRM Kanban",
+    "file": "04_leads_kanban.json",
+    "subtitle": "Kanban Board with Drag-and-Drop Lead Cards + Import + Analytics Strip"
+  },
+  "image_prompt": {
+    "scene": "Leads CRM Kanban Board page. Full width horizontal scroll kanban. White page background #FAFAF8. Six kanban columns side by side. Each column has a colored header with count badge. Lead cards inside columns with contact info, stats, and tags. Drag state visible on one card. Toolbar at top with filters and import button.",
+    "page_header": {
+      "title": "Leads CRM \u2014 24px bold #1B1B1B",
+      "view_toggle": {
+        "options": [
+          {
+            "icon": "Kanban",
+            "label": "Kanban",
+            "active": true
+          },
+          {
+            "icon": "Table2",
+            "label": "Table"
+          },
+          {
+            "icon": "BarChart3",
+            "label": "Analytics"
+          }
+        ],
+        "active_bg": "#FFE27C",
+        "active_text": "#1B1B1B"
+      },
+      "right_actions": [
+        {
+          "label": "Import Leads",
+          "icon": "Upload",
+          "style": "secondary"
+        },
+        {
+          "label": "+ Add Lead",
+          "style": "primary yellow"
+        },
+        {
+          "icon": "Filter",
+          "label": "Filter"
+        },
+        {
+          "icon": "Settings2",
+          "label": "Manage Columns"
+        }
+      ]
+    },
+    "analytics_strip": {
+      "layout": "5 stat chips inline horizontal",
+      "style": "white card border rounded-8 padding 12px 20px",
+      "chips": [
+        {
+          "label": "Total Leads",
+          "value": "847"
+        },
+        {
+          "label": "This Week",
+          "value": "+124",
+          "color": "#22C55E"
+        },
+        {
+          "label": "Conversion Rate",
+          "value": "18.4%",
+          "color": "#22C55E"
+        },
+        {
+          "label": "Avg Deal Value",
+          "value": "$2,400"
+        },
+        {
+          "label": "Pipeline Value",
+          "value": "$1.2M",
+          "color": "#C4B1F9"
+        }
+      ]
+    },
+    "kanban_board": {
+      "layout": "horizontal scroll, 6 columns, each 280px wide, gap 16px",
+      "board_background": "#FAFAF8",
+      "columns": [
+        {
+          "id": "new_lead",
+          "title": "New Lead",
+          "count": 125,
+          "header_accent": "#B1D8FC",
+          "count_badge": {
+            "bg": "#B1D8FC",
+            "text": "#1B1B1B"
+          },
+          "add_card_button": "+ Add Lead",
+          "cards": [
+            {
+              "contact_name": "Rahul Sharma",
+              "avatar": "32px RS initials circle",
+              "source": "Google Sheet \u2014 11px #9B9B9B",
+              "source_icon": "GoogleSheets 12px green",
+              "phone": "+91 99887 76655 \u2014 12px #6B6B6B",
+              "tags": [
+                {
+                  "label": "Webinar",
+                  "bg": "#EFF6FF",
+                  "text": "#3B82F6"
+                }
+              ],
+              "time_added": "Just now \u2014 11px #9B9B9B",
+              "channel_icons": [
+                "WhatsApp small green",
+                "Mail small blue"
+              ],
+              "card_style": "white border rounded-10 padding 14px shadow-sm hover:shadow-md"
+            },
+            {
+              "contact_name": "Anjali Menon",
+              "source": "Form Submission",
+              "tags": [
+                {
+                  "label": "Startup"
+                }
+              ],
+              "time_added": "5 min ago"
+            },
+            {
+              "contact_name": "Michael Brown",
+              "source": "Manual Entry",
+              "time_added": "12 min ago"
+            }
+          ]
+        },
+        {
+          "id": "contacted",
+          "title": "Contacted",
+          "count": 84,
+          "header_accent": "#FFE27C",
+          "cards": [
+            {
+              "contact_name": "Emily Davis",
+              "tags": [
+                {
+                  "label": "Demo Requested",
+                  "bg": "#EFF6FF",
+                  "text": "#3B82F6"
+                }
+              ],
+              "msg_stats": {
+                "sent": "3",
+                "read": "3",
+                "replied": "2",
+                "style": "tiny icon+count row"
+              },
+              "assigned": {
+                "avatar": "20px CW",
+                "name": "Camron W."
+              }
+            },
+            {
+              "contact_name": "Chris Martin",
+              "drag_state": true,
+              "card_style": "rotate(-2deg) shadow-lg border-2 border-yellow #FFE27C \u2014 showing drag in progress",
+              "overlay_text": "Dragging to Qualified..."
+            },
+            {
+              "contact_name": "Olivia White",
+              "tags": [
+                {
+                  "label": "Price Sensitive"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "qualified",
+          "title": "Qualified",
+          "count": 44,
+          "header_accent": "#22C55E",
+          "drop_zone_active": true,
+          "drop_zone_style": "dashed border 2px #FFE27C bg #FFF9E6 rounded-10 height 80px centered text Drop Here",
+          "cards": [
+            {
+              "contact_name": "Daniel Kim",
+              "tags": [
+                {
+                  "label": "Enterprise",
+                  "bg": "#FEF2F2",
+                  "text": "#EF4444"
+                }
+              ],
+              "deal_value": "$4,800 \u2014 13px bold #22C55E",
+              "assigned": {
+                "avatar": "20px BS"
+              }
+            },
+            {
+              "contact_name": "Sophie Taylor",
+              "deal_value": "$2,400",
+              "last_activity": "Call 2h ago"
+            }
+          ]
+        },
+        {
+          "id": "demo",
+          "title": "Demo",
+          "count": 32,
+          "header_accent": "#C4B1F9",
+          "cards": [
+            {
+              "contact_name": "John Doe",
+              "avatar": "32px JD",
+              "deal_value": "$2,400",
+              "tags": [
+                {
+                  "label": "Hot",
+                  "bg": "#FEF2F2",
+                  "text": "#EF4444"
+                }
+              ],
+              "demo_date": "\ud83d\udcc5 Jan 16, 2026 3:00 PM \u2014 12px #6B6B6B",
+              "voice_call_badge": {
+                "icon": "Mic 12px #C4B1F9",
+                "text": "Voice call done"
+              }
+            }
+          ]
+        },
+        {
+          "id": "negotiation",
+          "title": "Negotiation",
+          "count": 18,
+          "header_accent": "#F59E0B",
+          "cards": [
+            {
+              "contact_name": "Sarah Wilson",
+              "deal_value": "$9,600 / year",
+              "tags": [
+                {
+                  "label": "High Value"
+                }
+              ],
+              "last_activity": "Email 1d ago"
+            }
+          ]
+        },
+        {
+          "id": "converted",
+          "title": "Converted",
+          "count": 67,
+          "header_accent": "#22C55E",
+          "cards": [
+            {
+              "contact_name": "Priya Patel",
+              "deal_value": "$4,800",
+              "converted_date": "Jan 12, 2026",
+              "celebration": "\ud83c\udf89 \u2014 16px"
+            }
+          ]
+        }
+      ]
+    },
+    "message_stats_overlay": {
+      "description": "Hovering over a lead card reveals a micro stats popup",
+      "popup": {
+        "style": "white border rounded-10 shadow-lg padding 12px 16px",
+        "width": "240px",
+        "stats": [
+          {
+            "icon": "Send 12px",
+            "label": "Sent",
+            "value": "5"
+          },
+          {
+            "icon": "Check2 12px blue",
+            "label": "Delivered",
+            "value": "5"
+          },
+          {
+            "icon": "Eye 12px",
+            "label": "Read",
+            "value": "4"
+          },
+          {
+            "icon": "EyeOff 12px amber",
+            "label": "Left on Seen",
+            "value": "1"
+          },
+          {
+            "icon": "Reply 12px green",
+            "label": "Replied",
+            "value": "3"
+          },
+          {
+            "icon": "MousePointer 12px purple",
+            "label": "CTA Clicked",
+            "value": "2"
+          }
+        ]
+      }
+    }
+  }
+}

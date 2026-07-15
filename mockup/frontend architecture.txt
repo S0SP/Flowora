@@ -1,0 +1,1187 @@
+# `flowora_frontend_stack.json` — Complete Frontend Dependency Specification
+
+```json
+{
+  "meta": {
+    "project": "Flowora",
+    "version": "1.0.0",
+    "purpose": "Complete frontend technology stack, libraries, and dependency map for the Flowora AI Communication OS. Optimized for enterprise SaaS scale, performance, DX, and maintainability.",
+    "target": "React 18 + TypeScript 5 + Vite 5 SPA with SSR-ready architecture",
+    "philosophy": "Best-in-class open-source, minimal bundle, tree-shakeable, headless-first, accessible by default, WCAG 2.1 AA compliant"
+  },
+
+  "core_framework": {
+    "runtime": {
+      "react": {
+        "package": "react",
+        "version": "^18.3.1",
+        "why": "Latest stable with concurrent rendering, automatic batching, transitions API",
+        "critical": true
+      },
+      "react_dom": {
+        "package": "react-dom",
+        "version": "^18.3.1",
+        "critical": true
+      },
+      "typescript": {
+        "package": "typescript",
+        "version": "^5.6.0",
+        "why": "Strict type safety across 400+ components, IntelliSense, prevents runtime errors",
+        "config": "strict mode + noUncheckedIndexedAccess + exactOptionalPropertyTypes"
+      }
+    },
+    "build_tool": {
+      "primary_choice": {
+        "package": "vite",
+        "version": "^5.4.0",
+        "why": "10x faster than Webpack, native ESM, lightning-fast HMR, best DX in 2025",
+        "plugins": [
+          "@vitejs/plugin-react-swc — SWC compiler 20x faster than Babel",
+          "vite-plugin-pwa — offline support for mobile companion",
+          "vite-plugin-compression — brotli + gzip production bundles",
+          "vite-tsconfig-paths — auto-resolve TS path aliases",
+          "vite-plugin-svgr — import SVGs as React components",
+          "rollup-plugin-visualizer — bundle size analysis"
+        ]
+      },
+      "alternative_for_ssr": {
+        "package": "next",
+        "version": "^15.0.0",
+        "when": "If SEO for marketing pages is critical — otherwise stick with Vite SPA"
+      }
+    },
+    "package_manager": {
+      "recommended": "pnpm",
+      "version": "^9.12.0",
+      "why": "3x faster than npm, disk-efficient content-addressable store, strict dependency resolution",
+      "alternative": "bun ^1.1.0 for even faster installs"
+    }
+  },
+
+  "routing": {
+    "primary": {
+      "package": "react-router-dom",
+      "version": "^6.28.0",
+      "why": "Industry standard, nested routes, data loaders, code splitting, lazy routes",
+      "features_used": [
+        "createBrowserRouter with data APIs",
+        "lazy() route-level code splitting",
+        "loader + action for data fetching",
+        "Outlet for nested layouts",
+        "useNavigation for pending states"
+      ]
+    },
+    "alternative": {
+      "package": "@tanstack/react-router",
+      "version": "^1.80.0",
+      "when": "If you want fully type-safe routes with autocomplete on route params — bleeding edge but excellent"
+    }
+  },
+
+  "state_management": {
+    "server_state": {
+      "package": "@tanstack/react-query",
+      "version": "^5.60.0",
+      "why": "Best-in-class async state, caching, deduplication, background refetch, optimistic updates",
+      "critical": true,
+      "companion_packages": [
+        "@tanstack/react-query-devtools — dev-only inspector",
+        "@tanstack/react-query-persist-client — localStorage cache persistence"
+      ],
+      "usage": [
+        "All API calls",
+        "Inbox conversation polling",
+        "Real-time credit balance",
+        "Contact search with infinite scroll",
+        "Workflow execution status polling"
+      ]
+    },
+    "client_state": {
+      "primary": {
+        "package": "zustand",
+        "version": "^5.0.0",
+        "why": "Tiny 1kb, no boilerplate, better than Redux for 90% of cases, works with React DevTools",
+        "usage": [
+          "UI state (sidebar collapsed, active modal)",
+          "Selected conversation, selected agent",
+          "Filter state",
+          "Draft messages in inbox",
+          "Voice call active state"
+        ],
+        "middleware": [
+          "zustand/middleware/persist — persist to localStorage",
+          "zustand/middleware/immer — immutable updates",
+          "zustand/middleware/devtools — Redux DevTools integration"
+        ]
+      },
+      "atomic_alternative": {
+        "package": "jotai",
+        "version": "^2.10.0",
+        "when": "For atom-level granular reactivity in workflow builder canvas — reduces re-renders"
+      }
+    },
+    "form_state": {
+      "package": "react-hook-form",
+      "version": "^7.54.0",
+      "why": "Best performance (uncontrolled inputs), minimal re-renders, works with any validation lib",
+      "critical": true,
+      "companions": [
+        "@hookform/resolvers — Zod/Yup adapter",
+        "@hookform/devtools — form inspector"
+      ]
+    },
+    "validation": {
+      "package": "zod",
+      "version": "^3.23.0",
+      "why": "TypeScript-first schema validation, infer types from schemas, works everywhere",
+      "usage": [
+        "All form validation",
+        "API request/response validation",
+        "Environment variable validation",
+        "Workflow node config validation"
+      ]
+    }
+  },
+
+  "ui_component_system": {
+    "philosophy": "Headless UI + Tailwind CSS + shadcn/ui pattern — own your components, no vendor lock-in",
+    "styling": {
+      "primary": {
+        "package": "tailwindcss",
+        "version": "^3.4.15",
+        "why": "Atomic CSS, zero runtime, perfect for design system tokens, JIT compilation",
+        "critical": true,
+        "plugins": [
+          "@tailwindcss/forms — form element resets",
+          "@tailwindcss/typography — prose styles for chatbot responses",
+          "@tailwindcss/container-queries — responsive components",
+          "tailwindcss-animate — pre-built animation utilities",
+          "tailwind-merge — merge conflicting classes intelligently",
+          "clsx — conditional class composition"
+        ]
+      },
+      "css_in_js_alternative": {
+        "package": "vanilla-extract",
+        "when": "If you need typed CSS with zero runtime — otherwise Tailwind is superior"
+      }
+    },
+    "headless_primitives": {
+      "primary": {
+        "package": "@radix-ui/react-*",
+        "version": "^1.1.0",
+        "why": "Unstyled accessible primitives, WCAG compliant, keyboard nav built-in",
+        "critical": true,
+        "packages_used": [
+          "@radix-ui/react-dialog — modals",
+          "@radix-ui/react-dropdown-menu — context menus, action menus",
+          "@radix-ui/react-popover — smart cards, filter dropdowns",
+          "@radix-ui/react-tooltip — hover hints throughout",
+          "@radix-ui/react-select — custom selects",
+          "@radix-ui/react-tabs — settings tabs, campaign builder",
+          "@radix-ui/react-toast — notifications",
+          "@radix-ui/react-switch — toggles",
+          "@radix-ui/react-checkbox — checkboxes",
+          "@radix-ui/react-radio-group — radio inputs",
+          "@radix-ui/react-slider — voice speed/pitch",
+          "@radix-ui/react-scroll-area — custom scrollbars",
+          "@radix-ui/react-accordion — expandable sections",
+          "@radix-ui/react-avatar — avatar with fallback",
+          "@radix-ui/react-progress — progress bars",
+          "@radix-ui/react-separator — dividers",
+          "@radix-ui/react-hover-card — user preview cards",
+          "@radix-ui/react-context-menu — right-click menus",
+          "@radix-ui/react-navigation-menu — sidebar nav",
+          "@radix-ui/react-collapsible — expand/collapse"
+        ]
+      },
+      "component_library": {
+        "package": "shadcn/ui",
+        "version": "latest (copy-paste, not installed)",
+        "why": "Copy Radix + Tailwind components into your codebase — full ownership, zero dep bloat",
+        "install_via": "npx shadcn@latest add [component]",
+        "components_to_add": [
+          "button", "card", "input", "textarea", "select", "checkbox", "radio-group",
+          "switch", "slider", "dialog", "sheet", "drawer", "dropdown-menu",
+          "popover", "tooltip", "toast", "tabs", "accordion", "avatar",
+          "badge", "progress", "table", "command", "calendar", "date-picker",
+          "form", "label", "separator", "skeleton", "alert", "alert-dialog"
+        ]
+      }
+    },
+    "icons": {
+      "primary": {
+        "package": "lucide-react",
+        "version": "^0.460.0",
+        "why": "1400+ icons, tree-shakeable, consistent stroke design matches Flowora aesthetic",
+        "critical": true,
+        "bundle_impact": "Only imports icons you use"
+      },
+      "brand_icons": {
+        "package": "simple-icons",
+        "version": "^13.15.0",
+        "why": "For WhatsApp, Google, Slack, HubSpot, Salesforce brand logos in integrations page"
+      },
+      "custom_svg": {
+        "loader": "vite-plugin-svgr",
+        "why": "Import custom SVGs (Flowora hexagon logo, illustrations) as React components with props"
+      }
+    }
+  },
+
+  "workflow_builder": {
+    "canvas_engine": {
+      "primary_choice": {
+        "package": "@xyflow/react",
+        "version": "^12.3.0",
+        "formerly": "reactflow (renamed to @xyflow/react in v12)",
+        "why": "THE industry standard for node-based editors — used by Zapier, n8n, Retool, Langflow. Handles pan/zoom/drag/connect/minimap/controls out of the box. Excellent TS support. 25k+ GitHub stars.",
+        "critical": true,
+        "features_used": [
+          "Custom node types (WhatsApp, Email, Voice, Delay, Trigger)",
+          "Custom edges with animated dots",
+          "Handle for input/output ports with validation",
+          "MiniMap for large workflows",
+          "Controls (zoom, fit view, lock)",
+          "Background dot-grid pattern",
+          "SelectionMode for multi-select",
+          "onNodesChange + onEdgesChange for state sync",
+          "isValidConnection for edge validation",
+          "reconnectEdge for edge editing"
+        ],
+        "companion_packages": [
+          "@xyflow/system — core algorithms",
+          "elkjs — auto-layout algorithm for graph tidying",
+          "dagre — alternative auto-layout for hierarchical flows"
+        ]
+      },
+      "alternatives_evaluated": {
+        "rete": "More flexible but steeper learning curve, smaller community",
+        "litegraph_js": "Great for game/audio graphs but less React-friendly",
+        "verdict": "React Flow (@xyflow/react) is the correct choice — no better option exists in 2025"
+      }
+    },
+    "auto_layout": {
+      "package": "elkjs",
+      "version": "^0.9.3",
+      "why": "Eclipse Layout Kernel — best algorithm for auto-arranging workflow nodes when user clicks Auto Layout"
+    },
+    "node_drag_drop_from_palette": {
+      "package": "@dnd-kit/core",
+      "version": "^6.1.0",
+      "why": "For dragging nodes FROM palette INTO the React Flow canvas (React Flow handles internal drag)"
+    }
+  },
+
+  "kanban_board": {
+    "primary_choice": {
+      "package": "@dnd-kit/core",
+      "version": "^6.1.0",
+      "why": "Modern accessible drag-and-drop, replaces deprecated react-beautiful-dnd. Excellent touch support, keyboard accessible, works with virtual lists.",
+      "critical": true,
+      "companion_packages": [
+        "@dnd-kit/sortable — sortable lists and grids",
+        "@dnd-kit/utilities — helper utilities",
+        "@dnd-kit/modifiers — restrict axis, snap to grid, etc"
+      ]
+    },
+    "alternatives_evaluated": {
+      "react_beautiful_dnd": "DEPRECATED — do not use in new projects",
+      "pragmatic_drag_and_drop": "Atlassian's replacement, very good but more low-level than @dnd-kit",
+      "verdict": "@dnd-kit is the correct choice — best DX and community support"
+    },
+    "features": [
+      "Sortable columns (reorder Kanban columns)",
+      "Draggable cards between columns (lead status change)",
+      "Multi-select drag (bulk move leads)",
+      "Touch support for mobile Kanban",
+      "Keyboard accessibility (Space to pick up, arrows to move)",
+      "Custom drag overlay with rotation animation"
+    ]
+  },
+
+  "data_tables": {
+    "primary_choice": {
+      "package": "@tanstack/react-table",
+      "version": "^8.20.0",
+      "why": "Headless table logic — sorting, filtering, pagination, grouping, column resize/pin/reorder, row selection. You provide the markup, it provides the brain. Best-in-class.",
+      "critical": true,
+      "usage": [
+        "Contacts table (all leads)",
+        "Team & Agents table",
+        "Campaign analytics table",
+        "Audit log table",
+        "API keys table",
+        "Webhooks table",
+        "Call recordings table"
+      ]
+    },
+    "virtual_scrolling": {
+      "package": "@tanstack/react-virtual",
+      "version": "^3.10.0",
+      "why": "Render 100,000+ rows without lag — critical for contacts table with millions of leads",
+      "critical_when": "Any list > 100 items"
+    },
+    "spreadsheet_grid_alternative": {
+      "package": "ag-grid-react",
+      "version": "^32.3.0",
+      "when": "Only if you need Excel-like editing — otherwise TanStack Table is lighter and freer"
+    }
+  },
+
+  "charts_analytics": {
+    "primary": {
+      "package": "recharts",
+      "version": "^2.13.0",
+      "why": "Declarative React charts, easy customization to match brand colors, good for dashboards",
+      "usage": [
+        "Dashboard line/area charts",
+        "Campaign performance bar charts",
+        "Analytics conversation over time",
+        "Channel distribution donut chart",
+        "Credit usage donut"
+      ]
+    },
+    "advanced_alternative": {
+      "package": "visx",
+      "version": "^3.11.0",
+      "why": "Airbnb's low-level charting primitives — use for custom viz like the Graph RAG knowledge graph",
+      "when": "Complex custom visualizations"
+    },
+    "graph_rag_visualization": {
+      "package": "reactflow (@xyflow/react)",
+      "reuse": true,
+      "why": "Reuse React Flow for the knowledge graph visualization in Graph RAG page",
+      "alternative": "react-force-graph — for true force-directed graph if hierarchical layout isn't right"
+    },
+    "sparklines": {
+      "package": "@tremor/react",
+      "version": "^3.18.0",
+      "why": "Beautiful dashboard components with sparklines, KPI cards — optional supplement to Recharts"
+    }
+  },
+
+  "chat_inbox_ui": {
+    "message_list": {
+      "package": "react-virtuoso",
+      "version": "^4.12.0",
+      "why": "Best virtualized list for reversed chat scrolling, sticky message groups, auto-scroll to bottom",
+      "critical_for": "Shared inbox with 1000+ message history"
+    },
+    "emoji_picker": {
+      "package": "emoji-picker-react",
+      "version": "^4.12.0",
+      "why": "Complete emoji picker with search, categories, skin tones, dark/light theme"
+    },
+    "mentions": {
+      "package": "@tiptap/extension-mention",
+      "version": "^2.10.0",
+      "why": "@mention teammates in internal notes on conversations"
+    },
+    "rich_text_editor": {
+      "package": "@tiptap/react",
+      "version": "^2.10.0",
+      "why": "Headless rich text for internal notes, campaign templates. Extensible with own toolbar.",
+      "extensions": [
+        "@tiptap/starter-kit",
+        "@tiptap/extension-mention",
+        "@tiptap/extension-link",
+        "@tiptap/extension-image",
+        "@tiptap/extension-placeholder"
+      ]
+    },
+    "file_uploads": {
+      "package": "react-dropzone",
+      "version": "^14.3.0",
+      "why": "Drag-drop file upload for WhatsApp media messages (images, videos, PDFs, docs)"
+    },
+    "attachment_preview": {
+      "package": "react-pdf",
+      "version": "^9.1.0",
+      "why": "Preview PDF attachments in chat",
+      "supplement": "react-player for video/audio preview"
+    }
+  },
+
+  "voice_agent_ui": {
+    "audio_visualization": {
+      "package": "wavesurfer.js",
+      "version": "^7.8.0",
+      "why": "Waveform visualization for call recordings playback with regions/markers",
+      "companion": "@wavesurfer/react — React wrapper"
+    },
+    "live_audio_waveform": {
+      "package": "react-mic-recorder",
+      "or": "custom Web Audio API implementation",
+      "why": "Real-time waveform during active AI voice call"
+    },
+    "audio_playback": {
+      "package": "react-h5-audio-player",
+      "version": "^3.9.0",
+      "why": "Playback controls for voice sample previews when selecting voice agent"
+    },
+    "webrtc_calls": {
+      "package": "livekit-client",
+      "version": "^2.7.0",
+      "why": "If in-app calling from browser to voice agent is needed. Abstracts WebRTC complexity.",
+      "alternative": "twilio-video for Twilio-based calls"
+    },
+    "speech_recognition_preview": {
+      "package": "react-speech-recognition",
+      "version": "^3.10.0",
+      "why": "Preview mic input in voice agent testing UI"
+    }
+  },
+
+  "real_time_features": {
+    "websocket": {
+      "primary": {
+        "package": "socket.io-client",
+        "version": "^4.8.0",
+        "why": "Battle-tested WebSocket with fallbacks, room-based subscriptions for inbox updates",
+        "critical": true,
+        "usage": [
+          "Real-time inbox message updates",
+          "Agent presence (online/away/offline)",
+          "Typing indicators",
+          "Workflow execution live logs",
+          "Credit balance updates",
+          "Notification pushes"
+        ]
+      },
+      "lightweight_alternative": {
+        "package": "partysocket",
+        "version": "^1.0.2",
+        "when": "If using Cloudflare Workers/Durable Objects backend — auto-reconnecting native WS"
+      }
+    },
+    "server_sent_events": {
+      "package": "@microsoft/fetch-event-source",
+      "version": "^2.0.1",
+      "why": "SSE for AI chatbot streaming responses (token-by-token like ChatGPT)"
+    },
+    "notifications": {
+      "package": "sonner",
+      "version": "^1.7.0",
+      "why": "Modern toast notification library — beautiful animations, promise-based, stacking",
+      "why_over_react_toastify": "Better DX, smaller bundle, better default styling"
+    },
+    "web_push": {
+      "package": "workbox-window",
+      "version": "^7.3.0",
+      "why": "Service worker registration for browser push notifications"
+    }
+  },
+
+  "animations": {
+    "primary": {
+      "package": "framer-motion",
+      "version": "^11.13.0",
+      "why": "Best-in-class React animation library — spring physics, layout animations, gestures, SVG paths",
+      "critical": true,
+      "usage": [
+        "Modal enter/exit animations",
+        "Sidebar collapse/expand",
+        "Kanban card drag rotation",
+        "Workflow node hover scale",
+        "Toast slide-in from right",
+        "Page transitions",
+        "Loading skeleton pulse",
+        "Success confetti"
+      ]
+    },
+    "lightweight_alternative": {
+      "package": "motion",
+      "version": "^11.13.0",
+      "note": "framer-motion renamed to 'motion' in late 2024 — same library"
+    },
+    "css_animations": {
+      "package": "tailwindcss-animate",
+      "why": "Pre-built keyframes (fade, slide, zoom, spin) via Tailwind classes"
+    },
+    "confetti": {
+      "package": "canvas-confetti",
+      "version": "^1.9.0",
+      "why": "Workflow activation success animation with brand-colored particles"
+    },
+    "lottie": {
+      "package": "lottie-react",
+      "version": "^2.4.0",
+      "why": "Empty states, loading states, onboarding illustrations — designer-friendly animations from After Effects"
+    }
+  },
+
+  "utility_libraries": {
+    "date_time": {
+      "primary": {
+        "package": "date-fns",
+        "version": "^4.1.0",
+        "why": "Modular (tree-shakeable), immutable, TS-first — better than moment.js and dayjs for large apps"
+      },
+      "date_picker": {
+        "package": "react-day-picker",
+        "version": "^9.4.0",
+        "why": "Best headless date picker, works with shadcn/ui Calendar component, keyboard accessible",
+        "usage": "Campaign scheduling, reminder date selection, business hours"
+      },
+      "timezone": {
+        "package": "@date-fns/tz",
+        "version": "^1.2.0",
+        "why": "Timezone handling for global users (Asia/Kolkata, America/New_York, etc)"
+      }
+    },
+    "phone_number": {
+      "package": "libphonenumber-js",
+      "version": "^1.11.0",
+      "why": "Validate + format WhatsApp phone numbers with country codes",
+      "companion": "react-phone-number-input — pre-built phone input component"
+    },
+    "csv_excel": {
+      "csv_parser": {
+        "package": "papaparse",
+        "version": "^5.4.0",
+        "why": "Import contacts from CSV files, handles large files with streaming"
+      },
+      "excel": {
+        "package": "xlsx",
+        "version": "^0.18.5",
+        "why": "Import/export Excel files for contacts and analytics reports"
+      },
+      "export": {
+        "package": "file-saver",
+        "version": "^2.0.5",
+        "why": "Trigger downloads for exported CSV/Excel/PDF"
+      }
+    },
+    "pdf_generation": {
+      "package": "@react-pdf/renderer",
+      "version": "^4.0.0",
+      "why": "Generate PDF invoices, analytics reports, campaign summaries on client"
+    },
+    "clipboard": {
+      "package": "react-use",
+      "version": "^17.5.0",
+      "why": "Massive collection of hooks (useCopyToClipboard, useDebounce, useLocalStorage, etc)",
+      "top_hooks_used": [
+        "useCopyToClipboard — copy API keys, invite links",
+        "useDebounce — search inputs",
+        "useLocalStorage — user preferences",
+        "useMediaQuery — responsive breakpoints",
+        "useHover — smart card hover states",
+        "useKeyPress — keyboard shortcuts",
+        "useClickAway — close dropdowns on outside click",
+        "useNetworkState — offline banner",
+        "useIntersection — lazy load below-fold content"
+      ]
+    },
+    "hotkeys": {
+      "package": "react-hotkeys-hook",
+      "version": "^4.6.0",
+      "why": "Keyboard shortcuts throughout app (Cmd+K search, / focus, Esc close modal)"
+    },
+    "command_palette": {
+      "package": "cmdk",
+      "version": "^1.0.4",
+      "why": "Cmd+K command palette (jump to any page, search contacts, run actions) — used by Linear, Vercel, Raycast",
+      "critical": true
+    },
+    "color_manipulation": {
+      "package": "culori",
+      "version": "^4.0.1",
+      "why": "Color space conversions, generate palettes for tag colors, avatar gradients"
+    },
+    "id_generation": {
+      "package": "nanoid",
+      "version": "^5.0.0",
+      "why": "Unique IDs for React keys, temp IDs before server assigns, smaller than uuid"
+    },
+    "immer": {
+      "package": "immer",
+      "version": "^10.1.0",
+      "why": "Immutable state updates via mutable syntax — used inside zustand + react-hook-form"
+    },
+    "lodash_alternative": {
+      "package": "es-toolkit",
+      "version": "^1.27.0",
+      "why": "Modern lodash — 97% smaller, TS-first, faster. Use instead of lodash.",
+      "top_utilities": ["debounce", "throttle", "groupBy", "chunk", "pick", "omit", "cloneDeep"]
+    }
+  },
+
+  "api_networking": {
+    "http_client": {
+      "primary": {
+        "package": "axios",
+        "version": "^1.7.9",
+        "why": "Interceptors for auth token refresh, request/response transformation, cancel tokens",
+        "used_with": "@tanstack/react-query"
+      },
+      "lightweight_alternative": {
+        "package": "ky",
+        "version": "^1.7.0",
+        "why": "Modern fetch wrapper, 5kb, retries, timeouts — use if bundle size is critical"
+      }
+    },
+    "graphql_optional": {
+      "package": "@tanstack/graphql-request",
+      "when": "Only if backend exposes GraphQL — REST + React Query is fine for Flowora"
+    },
+    "type_generation": {
+      "package": "openapi-typescript",
+      "version": "^7.4.0",
+      "why": "Auto-generate TS types from backend OpenAPI schema — zero drift between FE and BE"
+    },
+    "mock_server_dev": {
+      "package": "msw",
+      "version": "^2.6.0",
+      "why": "Mock Service Worker for dev + tests — intercept fetch/xhr, no backend needed for FE dev"
+    }
+  },
+
+  "auth_security": {
+    "auth_provider_options": {
+      "clerk": {
+        "package": "@clerk/clerk-react",
+        "version": "^5.15.0",
+        "why": "Fastest to integrate, built-in UI, MFA, org management, session management",
+        "recommended": true
+      },
+      "auth0": {
+        "package": "@auth0/auth0-react",
+        "version": "^2.2.4",
+        "why": "Enterprise SSO, SAML, more customization"
+      },
+      "supabase_auth": {
+        "package": "@supabase/auth-helpers-react",
+        "when": "If Supabase is backend"
+      },
+      "custom_jwt": {
+        "package": "jwt-decode",
+        "version": "^4.0.0",
+        "why": "If rolling own auth — decode JWT client-side"
+      }
+    },
+    "otp_input": {
+      "package": "input-otp",
+      "version": "^1.4.0",
+      "why": "Beautiful OTP input for 2FA, phone verification"
+    },
+    "sanitization": {
+      "package": "dompurify",
+      "version": "^3.2.0",
+      "why": "Sanitize user-generated HTML in chat messages, campaign templates to prevent XSS"
+    }
+  },
+
+  "google_sheets_integration": {
+    "oauth": {
+      "package": "@react-oauth/google",
+      "version": "^0.12.1",
+      "why": "Google OAuth for Sheets access authorization in workflow trigger config"
+    },
+    "google_apis": {
+      "package": "gapi-script",
+      "when": "If direct client-side Sheets API calls needed — usually done server-side"
+    },
+    "recommended_pattern": "OAuth on client, API calls on server for security"
+  },
+
+  "email_smtp_ui": {
+    "email_template_editor": {
+      "primary": {
+        "package": "@usewaypoint/email-builder",
+        "why": "Drag-drop email template builder for campaign email node"
+      },
+      "alternative_1": {
+        "package": "react-email",
+        "version": "^3.0.0",
+        "why": "Write emails as React components — great DX, preview built-in"
+      },
+      "alternative_2": {
+        "package": "grapesjs",
+        "version": "^0.22.0",
+        "why": "Most powerful visual email builder — heavier but more flexible"
+      }
+    },
+    "email_preview_render": {
+      "package": "@react-email/render",
+      "version": "^1.0.0",
+      "why": "Server-render email templates to HTML for live preview"
+    }
+  },
+
+  "search": {
+    "client_side_fuzzy": {
+      "package": "fuse.js",
+      "version": "^7.0.0",
+      "why": "Fuzzy search for contacts, templates, integrations within already-loaded data"
+    },
+    "server_side": {
+      "recommendation": "Use backend Elasticsearch/Meilisearch/Typesense — query via React Query",
+      "package": "typesense-instantsearch-adapter — if using Typesense"
+    }
+  },
+
+  "internationalization": {
+    "package": "react-i18next",
+    "version": "^15.1.0",
+    "why": "i18n for multi-language support (English, Hindi, Arabic, Spanish per your requirements)",
+    "companion": [
+      "i18next — core library",
+      "i18next-browser-languagedetector — auto-detect user language",
+      "i18next-http-backend — lazy-load translation files"
+    ],
+    "rtl_support": {
+      "package": "tailwindcss-rtl",
+      "why": "RTL layout for Arabic — mirrors sidebar, chat bubbles"
+    }
+  },
+
+  "performance": {
+    "code_splitting": "React.lazy() + Suspense — built-in, no library needed",
+    "image_optimization": {
+      "package": "@unpic/react",
+      "version": "^0.1.15",
+      "why": "Universal image component with lazy loading, blur placeholders, responsive srcset"
+    },
+    "bundle_analysis": {
+      "package": "rollup-plugin-visualizer",
+      "version": "^5.12.0",
+      "why": "Visualize bundle size, find bloat"
+    },
+    "web_vitals": {
+      "package": "web-vitals",
+      "version": "^4.2.4",
+      "why": "Track LCP, FID, CLS, INP — send to analytics"
+    },
+    "memoization": {
+      "package": "use-memo-one",
+      "when": "Only if React's useMemo isn't enough — usually not needed"
+    }
+  },
+
+  "accessibility": {
+    "focus_management": {
+      "package": "react-focus-lock",
+      "version": "^2.13.0",
+      "why": "Trap focus inside modals, sheets, popovers — required for WCAG compliance"
+    },
+    "screen_reader_announce": {
+      "package": "@react-aria/live-announcer",
+      "why": "Announce dynamic changes to screen readers (new message received, workflow activated)"
+    },
+    "a11y_testing": {
+      "package": "@axe-core/react",
+      "version": "^4.10.0",
+      "why": "Dev-time accessibility auditing — logs violations to console"
+    }
+  },
+
+  "monitoring_observability": {
+    "error_tracking": {
+      "package": "@sentry/react",
+      "version": "^8.42.0",
+      "why": "Production error tracking, source maps, performance monitoring, session replay",
+      "critical": true
+    },
+    "analytics": {
+      "package": "posthog-js",
+      "version": "^1.194.0",
+      "why": "Product analytics, feature flags, session replay, A/B testing — open source alternative to Amplitude/Mixpanel"
+    },
+    "logging": {
+      "package": "loglevel",
+      "version": "^1.9.0",
+      "why": "Minimal logging library, level-based (debug/info/warn/error)"
+    }
+  },
+
+  "testing": {
+    "unit_component": {
+      "package": "vitest",
+      "version": "^2.1.0",
+      "why": "Vite-native test runner, 10x faster than Jest, same API",
+      "companions": [
+        "@testing-library/react ^16.1.0 — component testing",
+        "@testing-library/user-event ^14.5.0 — realistic user interactions",
+        "@testing-library/jest-dom ^6.6.0 — DOM matchers",
+        "@vitest/ui — visual test dashboard",
+        "@vitest/coverage-v8 — coverage reports"
+      ]
+    },
+    "e2e": {
+      "package": "@playwright/test",
+      "version": "^1.49.0",
+      "why": "Cross-browser E2E testing, better than Cypress in 2025 — faster, multi-tab support, mobile emulation"
+    },
+    "visual_regression": {
+      "package": "@storybook/test-runner",
+      "version": "^0.20.0",
+      "why": "Snapshot every Storybook story to catch visual regressions"
+    },
+    "storybook": {
+      "package": "storybook",
+      "version": "^8.4.0",
+      "why": "Component development in isolation, design system documentation, visual QA"
+    }
+  },
+
+  "code_quality": {
+    "linter": {
+      "primary": {
+        "package": "eslint",
+        "version": "^9.16.0",
+        "config": "eslint-config-flat with typescript-eslint"
+      },
+      "modern_alternative": {
+        "package": "biome",
+        "version": "^1.9.0",
+        "why": "Rust-based, 25x faster than ESLint+Prettier combined, single tool for lint + format"
+      }
+    },
+    "formatter": {
+      "package": "prettier",
+      "version": "^3.4.0",
+      "plugins": [
+        "prettier-plugin-tailwindcss — auto-sort Tailwind classes"
+      ]
+    },
+    "git_hooks": {
+      "package": "husky",
+      "version": "^9.1.0",
+      "companion": "lint-staged ^15.2.0 — run linters on staged files only"
+    },
+    "commit_convention": {
+      "package": "@commitlint/cli",
+      "version": "^19.6.0",
+      "why": "Enforce conventional commits for changelog generation"
+    }
+  },
+
+  "developer_experience": {
+    "type_safety": {
+      "package": "ts-reset",
+      "version": "^0.6.1",
+      "why": "Better default TS types for JSON.parse, Array.filter, fetch, etc"
+    },
+    "hot_module_reload": "Vite built-in — no library needed",
+    "env_validation": {
+      "package": "@t3-oss/env-core",
+      "version": "^0.11.0",
+      "why": "Type-safe environment variables with Zod validation — fails at build if missing"
+    }
+  },
+
+  "mobile_specific": {
+    "note": "For mobile companion app — if built as PWA use above stack. If native, use React Native separately.",
+    "pwa": {
+      "package": "vite-plugin-pwa",
+      "version": "^0.21.0",
+      "why": "Turn Flowora into installable PWA with offline support"
+    },
+    "gestures": {
+      "package": "@use-gesture/react",
+      "version": "^10.3.0",
+      "why": "Touch gestures for mobile — swipe to archive chat, pull to refresh"
+    },
+    "haptics": {
+      "package": "haptic-feedback",
+      "when": "PWA on iOS — vibration API for mobile taps"
+    }
+  },
+
+  "specific_feature_mapping": {
+    "01_dashboard": ["recharts", "framer-motion", "@tanstack/react-query"],
+    "02_shared_inbox": [
+      "@xyflow/react (no, misread)",
+      "react-virtuoso — message list virtualization",
+      "socket.io-client — real-time messages",
+      "@tiptap/react — message composer",
+      "react-dropzone — media uploads",
+      "emoji-picker-react",
+      "@radix-ui/react-* — all popovers, dropdowns, dialogs"
+    ],
+    "03_contacts_crm": [
+      "@tanstack/react-table",
+      "@tanstack/react-virtual — for 100k+ contacts",
+      "fuse.js — search",
+      "papaparse — CSV import"
+    ],
+    "04_leads_kanban": [
+      "@dnd-kit/core + @dnd-kit/sortable — drag-drop kanban",
+      "framer-motion — card animations",
+      "@radix-ui/react-hover-card — quick preview"
+    ],
+    "05_workflow_builder": [
+      "@xyflow/react — CORE canvas",
+      "elkjs — auto-layout",
+      "@dnd-kit/core — drag nodes from palette",
+      "zustand — canvas state management",
+      "react-hook-form + zod — node config validation"
+    ],
+    "06_campaign_builder": [
+      "@tiptap/react — template editor",
+      "react-day-picker — schedule picker",
+      "react-hook-form",
+      "papaparse — recipient CSV upload"
+    ],
+    "07_ai_chatbot": [
+      "@microsoft/fetch-event-source — SSE streaming responses",
+      "react-dropzone — knowledge doc upload",
+      "@tiptap/react — behavior prompt editor"
+    ],
+    "08_voice_agent": [
+      "wavesurfer.js + @wavesurfer/react — call recording playback",
+      "react-h5-audio-player — voice sample preview",
+      "recharts — voice analytics",
+      "livekit-client — in-browser voice testing (optional)"
+    ],
+    "09_knowledge_graph": [
+      "@xyflow/react — graph visualization",
+      "elkjs — hierarchical layout",
+      "OR react-force-graph — for physics-based graph"
+    ],
+    "10_billing_credits": [
+      "recharts — usage donut",
+      "@stripe/react-stripe-js — payment (if Stripe backend)",
+      "@react-pdf/renderer — invoice PDFs"
+    ],
+    "11_team_agents": [
+      "@tanstack/react-table",
+      "react-hook-form",
+      "@radix-ui/react-dialog — invite modal"
+    ],
+    "12_settings": [
+      "react-hook-form + zod",
+      "@radix-ui/react-tabs — settings navigation",
+      "input-otp — 2FA setup"
+    ],
+    "13_integrations": [
+      "@react-oauth/google — Sheets OAuth",
+      "simple-icons — brand logos"
+    ],
+    "14_onboarding": [
+      "framer-motion — step transitions",
+      "react-hook-form",
+      "canvas-confetti — success animation"
+    ],
+    "15_mobile_companion": [
+      "vite-plugin-pwa",
+      "@use-gesture/react",
+      "react-virtuoso"
+    ],
+    "16_micro_interactions": [
+      "framer-motion — all animations",
+      "canvas-confetti",
+      "lottie-react — complex animations",
+      "sonner — toasts"
+    ]
+  },
+
+  "final_package_json_snapshot": {
+    "dependencies": {
+      "@dnd-kit/core": "^6.1.0",
+      "@dnd-kit/sortable": "^8.0.0",
+      "@dnd-kit/utilities": "^3.2.2",
+      "@hookform/resolvers": "^3.9.1",
+      "@microsoft/fetch-event-source": "^2.0.1",
+      "@radix-ui/react-accordion": "^1.2.1",
+      "@radix-ui/react-alert-dialog": "^1.1.2",
+      "@radix-ui/react-avatar": "^1.1.1",
+      "@radix-ui/react-checkbox": "^1.1.2",
+      "@radix-ui/react-dialog": "^1.1.2",
+      "@radix-ui/react-dropdown-menu": "^2.1.2",
+      "@radix-ui/react-hover-card": "^1.1.2",
+      "@radix-ui/react-label": "^2.1.0",
+      "@radix-ui/react-popover": "^1.1.2",
+      "@radix-ui/react-progress": "^1.1.0",
+      "@radix-ui/react-radio-group": "^1.2.1",
+      "@radix-ui/react-scroll-area": "^1.2.1",
+      "@radix-ui/react-select": "^2.1.2",
+      "@radix-ui/react-separator": "^1.1.0",
+      "@radix-ui/react-slider": "^1.2.1",
+      "@radix-ui/react-switch": "^1.1.1",
+      "@radix-ui/react-tabs": "^1.1.1",
+      "@radix-ui/react-toast": "^1.2.2",
+      "@radix-ui/react-tooltip": "^1.1.4",
+      "@react-oauth/google": "^0.12.1",
+      "@react-pdf/renderer": "^4.0.0",
+      "@sentry/react": "^8.42.0",
+      "@t3-oss/env-core": "^0.11.0",
+      "@tanstack/react-query": "^5.60.0",
+      "@tanstack/react-query-devtools": "^5.60.0",
+      "@tanstack/react-table": "^8.20.0",
+      "@tanstack/react-virtual": "^3.10.0",
+      "@tiptap/react": "^2.10.0",
+      "@tiptap/starter-kit": "^2.10.0",
+      "@tiptap/extension-mention": "^2.10.0",
+      "@tiptap/extension-link": "^2.10.0",
+      "@tiptap/extension-placeholder": "^2.10.0",
+      "@unpic/react": "^0.1.15",
+      "@wavesurfer/react": "^1.0.7",
+      "@xyflow/react": "^12.3.0",
+      "axios": "^1.7.9",
+      "canvas-confetti": "^1.9.0",
+      "clsx": "^2.1.1",
+      "cmdk": "^1.0.4",
+      "culori": "^4.0.1",
+      "date-fns": "^4.1.0",
+      "dompurify": "^3.2.0",
+      "elkjs": "^0.9.3",
+      "emoji-picker-react": "^4.12.0",
+      "es-toolkit": "^1.27.0",
+      "file-saver": "^2.0.5",
+      "framer-motion": "^11.13.0",
+      "fuse.js": "^7.0.0",
+      "immer": "^10.1.0",
+      "input-otp": "^1.4.0",
+      "jotai": "^2.10.0",
+      "libphonenumber-js": "^1.11.0",
+      "lottie-react": "^2.4.0",
+      "lucide-react": "^0.460.0",
+      "nanoid": "^5.0.0",
+      "papaparse": "^5.4.0",
+      "posthog-js": "^1.194.0",
+      "react": "^18.3.1",
+      "react-day-picker": "^9.4.0",
+      "react-dom": "^18.3.1",
+      "react-dropzone": "^14.3.0",
+      "react-focus-lock": "^2.13.0",
+      "react-h5-audio-player": "^3.9.0",
+      "react-hook-form": "^7.54.0",
+      "react-hotkeys-hook": "^4.6.0",
+      "react-i18next": "^15.1.0",
+      "react-pdf": "^9.1.0",
+      "react-phone-number-input": "^3.4.9",
+      "react-router-dom": "^6.28.0",
+      "react-use": "^17.5.0",
+      "react-virtuoso": "^4.12.0",
+      "recharts": "^2.13.0",
+      "socket.io-client": "^4.8.0",
+      "sonner": "^1.7.0",
+      "tailwind-merge": "^2.5.0",
+      "tailwindcss-animate": "^1.0.7",
+      "wavesurfer.js": "^7.8.0",
+      "web-vitals": "^4.2.4",
+      "xlsx": "^0.18.5",
+      "zod": "^3.23.0",
+      "zustand": "^5.0.0"
+    },
+    "devDependencies": {
+      "@axe-core/react": "^4.10.0",
+      "@playwright/test": "^1.49.0",
+      "@testing-library/jest-dom": "^6.6.0",
+      "@testing-library/react": "^16.1.0",
+      "@testing-library/user-event": "^14.5.0",
+      "@types/node": "^22.10.0",
+      "@types/react": "^18.3.12",
+      "@types/react-dom": "^18.3.1",
+      "@vitejs/plugin-react-swc": "^3.7.0",
+      "@vitest/coverage-v8": "^2.1.0",
+      "@vitest/ui": "^2.1.0",
+      "autoprefixer": "^10.4.20",
+      "eslint": "^9.16.0",
+      "husky": "^9.1.0",
+      "lint-staged": "^15.2.0",
+      "openapi-typescript": "^7.4.0",
+      "postcss": "^8.4.49",
+      "prettier": "^3.4.0",
+      "prettier-plugin-tailwindcss": "^0.6.9",
+      "rollup-plugin-visualizer": "^5.12.0",
+      "storybook": "^8.4.0",
+      "tailwindcss": "^3.4.15",
+      "ts-reset": "^0.6.1",
+      "typescript": "^5.6.0",
+      "typescript-eslint": "^8.17.0",
+      "vite": "^5.4.0",
+      "vite-plugin-compression": "^0.5.1",
+      "vite-plugin-pwa": "^0.21.0",
+      "vite-plugin-svgr": "^4.3.0",
+      "vite-tsconfig-paths": "^5.1.0",
+      "vitest": "^2.1.0"
+    }
+  },
+
+  "folder_structure_recommendation": {
+    "src/": {
+      "app/": "App shell, providers, router",
+      "features/": "Feature-based modules (dashboard, inbox, workflow, voice-agent, etc)",
+      "components/": {
+        "ui/": "shadcn/ui primitives (button, card, input)",
+        "shared/": "Shared composite components (StatCard, EmptyState, PageHeader)"
+      },
+      "lib/": {
+        "api/": "Axios instance, interceptors, endpoints",
+        "hooks/": "Shared custom hooks",
+        "utils/": "Pure utility functions",
+        "constants/": "App-wide constants"
+      },
+      "stores/": "Zustand stores",
+      "styles/": "Global CSS, Tailwind config",
+      "types/": "Global TS types",
+      "assets/": "SVGs, images, fonts"
+    }
+  },
+
+  "critical_decisions_summary": {
+    "framework": "React 18 + TypeScript + Vite — non-negotiable",
+    "styling": "Tailwind CSS + shadcn/ui — copy-paste component ownership",
+    "state": "TanStack Query (server) + Zustand (client) — do NOT use Redux",
+    "forms": "react-hook-form + zod — best performance and DX",
+    "workflow_builder": "@xyflow/react (React Flow v12) — no better option exists",
+    "kanban": "@dnd-kit — NOT react-beautiful-dnd (deprecated)",
+    "tables": "@tanstack/react-table + @tanstack/react-virtual — for 100k+ rows",
+    "charts": "Recharts (default) + visx (complex custom)",
+    "animation": "framer-motion — non-negotiable for polish",
+    "real_time": "socket.io-client + SSE for AI streaming",
+    "voice": "wavesurfer.js + livekit-client (optional)",
+    "commands": "cmdk for Cmd+K palette — Linear-style UX"
+  },
+
+  "estimated_bundle_size": {
+    "initial_load": "~180KB gzipped (with code splitting)",
+    "full_app": "~850KB gzipped",
+    "target": "LCP < 2.5s on 4G, TTI < 3.5s"
+  },
+
+  "do_not_use": {
+    "moment_js": "Use date-fns — moment is deprecated and huge",
+    "react_beautiful_dnd": "Use @dnd-kit — Atlassian deprecated this",
+    "redux_toolkit_for_ui_state": "Use Zustand — Redux is overkill",
+    "material_ui_or_ant_design": "Use shadcn/ui — MUI/AntD lock you in and are heavy",
+    "styled_components_or_emotion": "Use Tailwind — CSS-in-JS has runtime cost",
+    "formik": "Use react-hook-form — Formik is slower with many fields",
+    "lodash": "Use es-toolkit — 97% smaller",
+    "react_toastify": "Use sonner — better UX, smaller",
+    "webpack_from_scratch": "Use Vite — Webpack is legacy"
+  }
+}
+```
+
+---
+
+## Quick Add-to-Agent-Memory Summary
+
+```
+FLOWORA FRONTEND STACK — MEMORIZE THIS:
+
+CORE: React 18 + TypeScript 5 + Vite 5 + pnpm
+ROUTING: react-router-dom v6
+STATE: TanStack Query (server) + Zustand (client) + react-hook-form + Zod
+STYLING: Tailwind CSS + shadcn/ui + Radix UI primitives + lucide-react
+WORKFLOW BUILDER: @xyflow/react v12 (React Flow) + elkjs auto-layout
+KANBAN: @dnd-kit/core + @dnd-kit/sortable
+TABLES: @tanstack/react-table + @tanstack/react-virtual
+CHARTS: recharts (default) + visx (custom)
+CHAT INBOX: react-virtuoso + @tiptap/react + socket.io-client + emoji-picker-react
+VOICE AGENT: wavesurfer.js + livekit-client + react-h5-audio-player
+ANIMATIONS: framer-motion + canvas-confetti + lottie-react
+REAL-TIME: socket.io-client + @microsoft/fetch-event-source (SSE)
+FORMS: react-hook-form + zod + react-day-picker + input-otp
+UTILITIES: date-fns + es-toolkit + nanoid + cmdk + react-hotkeys-hook
+FILE HANDLING: react-dropzone + papaparse + xlsx + @react-pdf/renderer
+NOTIFICATIONS: sonner
+AUTH: @clerk/clerk-react (recommended) or @auth0/auth0-react
+MONITORING: @sentry/react + posthog-js + web-vitals
+TESTING: vitest + @testing-library/react + @playwright/test + storybook
+I18N: react-i18next + tailwindcss-rtl
+```

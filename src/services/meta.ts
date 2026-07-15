@@ -17,6 +17,30 @@ async function getMetaKeys() {
   };
 }
 
+export async function initiateWhatsAppCall(phone: string) {
+  const keys = await getMetaKeys();
+
+  const res = await fetch(`${META_API}/${keys.meta_phone_number_id}/calls`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${keys.meta_access_token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      messaging_product: "whatsapp",
+      to: phone.replace("+", ""),
+      type: "voice_call"
+    }),
+  });
+
+  const data = await res.json();
+  return {
+    ok: res.ok,
+    error: data.error?.message ?? null,
+  };
+}
+
+
 export async function sendWhatsAppTemplate(
   phone: string,
   templateName: string,
@@ -73,3 +97,71 @@ export async function sendWhatsAppText(phone: string, message: string) {
     error: data.error?.message ?? null,
   };
 }
+
+export async function getWhatsAppSipCredentials() {
+  const keys = await getMetaKeys();
+  const token = keys.meta_access_token;
+  const phoneId = keys.meta_phone_number_id;
+
+  // 1. Fetch display phone number details
+  const numRes = await fetch(`${META_API}/${phoneId}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!numRes.ok) {
+    throw new Error(`Failed to fetch WhatsApp phone number details: ${await numRes.text()}`);
+  }
+  const numData = await numRes.json();
+  const phoneNumber = numData.display_phone_number.replace(/\D/g, "");
+
+  // 2. Fetch SIP settings
+  const settingsRes = await fetch(`${META_API}/${phoneId}/settings?include_sip_credentials=true`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!settingsRes.ok) {
+    throw new Error(`Failed to fetch WhatsApp SIP settings: ${await settingsRes.text()}`);
+  }
+  const settingsData = await settingsRes.json();
+
+  let sipPassword = settingsData.calling?.sip?.servers?.[0]?.sip_user_password;
+
+  // 3. If calling or SIP is disabled, enable them
+  if (settingsData.calling?.status !== "ENABLED" || settingsData.calling?.sip?.status !== "ENABLED" || !sipPassword) {
+    console.log("[Meta Service] Enabling WhatsApp calling and SIP settings...");
+    const enableRes = await fetch(`${META_API}/${phoneId}/settings`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        calling: {
+          status: "ENABLED",
+          call_icon_visibility: "DEFAULT",
+          callback_permission_status: "ENABLED"
+        }
+      })
+    });
+    if (!enableRes.ok) {
+      console.warn("[Meta Service] Failed to enable calling settings:", await enableRes.text());
+    }
+
+    // Fetch credentials again after enabling
+    const refetchRes = await fetch(`${META_API}/${phoneId}/settings?include_sip_credentials=true`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (refetchRes.ok) {
+      const refetchData = await refetchRes.json();
+      sipPassword = refetchData.calling?.sip?.servers?.[0]?.sip_user_password;
+    }
+  }
+
+  if (!sipPassword) {
+    throw new Error("WhatsApp SIP password is not set on Meta. Please configure SIP settings in your WhatsApp Manager or App Dashboard.");
+  }
+
+  return {
+    phoneNumber,
+    sipPassword,
+  };
+}
+

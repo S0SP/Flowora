@@ -1,0 +1,613 @@
+{
+  "meta": {
+    "screen": "12 \u2014 Settings",
+    "file": "12_settings.json",
+    "version": "1.0.0",
+    "subtitle": "Settings Hub: Workspace, WhatsApp API, Integrations, Billing, Notifications, Security"
+  },
+  "image_prompt": {
+    "composition": "Ultra-wide 16:9 desktop at 8K. Left sidebar #1B1B1B with Settings item active yellow. Right side shows Settings hub with left sub-navigation panel and main content panel. Two-column settings layout. Clean white surfaces. All text razor sharp. Enterprise SaaS quality.",
+    "layout_structure": {
+      "type": "three_column",
+      "column_1_sidebar": "240px #1B1B1B main nav active Settings",
+      "column_2_settings_subnav": {
+        "width": "220px",
+        "bg": "#FFFFFF",
+        "border_right": "1px solid #E8E8E4",
+        "padding": "24px 0"
+      },
+      "column_3_content": {
+        "bg": "#FAFAF8",
+        "padding": "32px",
+        "flex": 1
+      }
+    },
+    "settings_subnav": {
+      "header": {
+        "title": "Settings \u2014 16px 700 #1B1B1B padding 0 20px margin-bottom 16px"
+      },
+      "nav_groups": [
+        {
+          "group_label": "WORKSPACE \u2014 10px 600 #9B9B9B uppercase padding 0 20px margin-bottom 8px",
+          "items": [
+            {
+              "icon": "Building2 16px",
+              "label": "General",
+              "active": true,
+              "style": "bg #FFFBEB text #1B1B1B left bar 3px #FFE27C"
+            },
+            {
+              "icon": "Users 16px",
+              "label": "Team & Agents",
+              "active": false
+            },
+            {
+              "icon": "Shield 16px",
+              "label": "Roles & Permissions",
+              "active": false
+            },
+            {
+              "icon": "Bell 16px",
+              "label": "Notifications",
+              "active": false
+            }
+          ]
+        },
+        {
+          "group_label": "CHANNELS \u2014 10px 600 #9B9B9B uppercase",
+          "items": [
+            {
+              "icon": "MessageCircle 16px",
+              "label": "WhatsApp Business",
+              "active": false
+            },
+            {
+              "icon": "Mail 16px",
+              "label": "Email (SMTP)",
+              "active": false
+            },
+            {
+              "icon": "Phone 16px",
+              "label": "Voice & Calling",
+              "active": false
+            }
+          ]
+        },
+        {
+          "group_label": "AI & AUTOMATION",
+          "items": [
+            {
+              "icon": "Bot 16px",
+              "label": "AI Chatbot",
+              "active": false
+            },
+            {
+              "icon": "Mic 16px",
+              "label": "Voice Agent",
+              "active": false
+            },
+            {
+              "icon": "GitBranch 16px",
+              "label": "Workflow Engine",
+              "active": false
+            }
+          ]
+        },
+        {
+          "group_label": "BILLING",
+          "items": [
+            {
+              "icon": "CreditCard 16px",
+              "label": "Billing & Credits",
+              "active": false
+            },
+            {
+              "icon": "Receipt 16px",
+              "label": "Invoices",
+              "active": false
+            }
+          ]
+        },
+        {
+          "group_label": "DEVELOPER",
+          "items": [
+            {
+              "icon": "Key 16px",
+              "label": "API Keys",
+              "active": false
+            },
+            {
+              "icon": "Webhook 16px",
+              "label": "Webhooks",
+              "active": false
+            },
+            {
+              "icon": "Code2 16px",
+              "label": "Integrations",
+              "active": false
+            }
+          ]
+        },
+        {
+          "group_label": "SECURITY",
+          "items": [
+            {
+              "icon": "Lock 16px",
+              "label": "Security",
+              "active": false
+            },
+            {
+              "icon": "FileText 16px",
+              "label": "Audit Log",
+              "active": false
+            }
+          ]
+        }
+      ],
+      "nav_item_style_inactive": "padding 10px 20px flex items-center gap 10px text 14px #6B6B6B hover bg #F5F5F0 cursor pointer"
+    },
+    "general_settings_content": {
+      "page_title": "General Settings \u2014 22px 700 #1B1B1B",
+      "page_subtitle": "Configure your workspace name, timezone, and preferences \u2014 14px #6B6B6B margin-bottom 28px",
+      "sections": [
+        {
+          "section_title": "Workspace Identity \u2014 15px 600 #1B1B1B",
+          "section_card": {
+            "style": "white bg border 1px #E8E8E4 border-radius 12px padding 24px shadow card margin-bottom 20px"
+          },
+          "fields": [
+            {
+              "label": "Workspace Name \u2014 13px 600 #1B1B1B",
+              "input": {
+                "value": "Acme Corp",
+                "style": "border 1px #E8E8E4 border-radius 8px padding 10px 14px font 14px width 100%"
+              }
+            },
+            {
+              "label": "Workspace Logo \u2014 13px 600 #1B1B1B",
+              "upload_area": {
+                "style": "dashed border 2px #E8E8E4 border-radius 8px padding 24px text-center bg #FAFAF8",
+                "icon": "Upload 24px #9B9B9B",
+                "text": "Drop logo here or click to upload \u2014 13px #9B9B9B",
+                "subtext": "PNG, JPG up to 2MB. Recommended 200x200px \u2014 11px #9B9B9B"
+              }
+            },
+            {
+              "label": "Website URL \u2014 13px 600 #1B1B1B",
+              "input": {
+                "value": "https://acme.com",
+                "type": "url"
+              }
+            },
+            {
+              "label": "Industry \u2014 13px 600 #1B1B1B",
+              "select": {
+                "options": [
+                  "SaaS",
+                  "E-commerce",
+                  "Real Estate",
+                  "Healthcare",
+                  "Education",
+                  "Fintech"
+                ],
+                "selected": "SaaS"
+              }
+            }
+          ]
+        },
+        {
+          "section_title": "Localization \u2014 15px 600 #1B1B1B",
+          "section_card": "same card style",
+          "fields": [
+            {
+              "label": "Timezone",
+              "select": {
+                "selected": "Asia/Kolkata (UTC +5:30)",
+                "options": [
+                  "...all timezones..."
+                ]
+              }
+            },
+            {
+              "label": "Date Format",
+              "select": {
+                "selected": "DD/MM/YYYY",
+                "options": [
+                  "MM/DD/YYYY",
+                  "DD/MM/YYYY",
+                  "YYYY-MM-DD"
+                ]
+              }
+            },
+            {
+              "label": "Language",
+              "select": {
+                "selected": "English (US)",
+                "options": [
+                  "English (US)",
+                  "Hindi",
+                  "Arabic",
+                  "Spanish"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "section_title": "Business Hours \u2014 15px 600 #1B1B1B",
+          "section_card": "same card style",
+          "business_hours_builder": {
+            "description": "Set your business hours so the AI chatbot knows when to route to a human agent \u2014 13px #6B6B6B margin-bottom 16px",
+            "days_rows": [
+              {
+                "day": "Monday",
+                "enabled": true,
+                "open": "09:00 AM",
+                "close": "06:00 PM"
+              },
+              {
+                "day": "Tuesday",
+                "enabled": true,
+                "open": "09:00 AM",
+                "close": "06:00 PM"
+              },
+              {
+                "day": "Wednesday",
+                "enabled": true,
+                "open": "09:00 AM",
+                "close": "06:00 PM"
+              },
+              {
+                "day": "Thursday",
+                "enabled": true,
+                "open": "09:00 AM",
+                "close": "06:00 PM"
+              },
+              {
+                "day": "Friday",
+                "enabled": true,
+                "open": "09:00 AM",
+                "close": "06:00 PM"
+              },
+              {
+                "day": "Saturday",
+                "enabled": false,
+                "label": "Closed"
+              },
+              {
+                "day": "Sunday",
+                "enabled": false,
+                "label": "Closed"
+              }
+            ],
+            "day_row_style": "flex row items-center gap 16px padding 12px 0 border-bottom 1px #F0F0EC",
+            "toggle_style": "pill toggle switch 36px wide yellow when on gray when off",
+            "time_picker_style": "border 1px #E8E8E4 border-radius 6px padding 6px 10px font 13px"
+          }
+        }
+      ],
+      "save_bar": {
+        "position": "bottom sticky bar",
+        "style": "white bg border-top 1px #E8E8E4 padding 16px 32px flex justify-end gap 12px",
+        "cancel_button": "outlined border #E8E8E4 text #1B1B1B",
+        "save_button": {
+          "label": "Save Changes",
+          "bg": "#FFE27C",
+          "text_color": "#1B1B1B",
+          "font_weight": "600",
+          "shadow": "0 2px 8px rgba(255,226,124,0.4)"
+        }
+      }
+    },
+    "whatsapp_api_settings_tab": {
+      "note": "This view shows when WhatsApp Business nav item is selected",
+      "content": {
+        "page_title": "WhatsApp Business API \u2014 22px 700",
+        "connection_status_banner": {
+          "connected_state": {
+            "style": "bg #F0FDF4 border 1px #86EFAC border-radius 10px padding 16px flex row items-center gap 12px",
+            "icon": "CheckCircle 20px #22C55E",
+            "text": "Connected to WhatsApp Business API \u2014 14px 600 #15803D",
+            "subtext": "Phone: +91 98765 43210 \u00b7 Business Account: Acme Corp \u2014 13px #16A34A",
+            "disconnect_link": "Disconnect \u2014 13px #EF4444 underline cursor-pointer ml-auto"
+          }
+        },
+        "api_details_form": {
+          "fields": [
+            {
+              "label": "Phone Number ID",
+              "value": "1234567890123456",
+              "type": "read_only_with_copy"
+            },
+            {
+              "label": "WhatsApp Business Account ID",
+              "value": "9876543210987654",
+              "type": "read_only_with_copy"
+            },
+            {
+              "label": "Access Token",
+              "value": "EAABs...masked...",
+              "type": "masked_with_reveal_eye"
+            },
+            {
+              "label": "Webhook Verify Token",
+              "value": "flowora_wh_abc123",
+              "type": "read_only_with_copy"
+            },
+            {
+              "label": "Webhook URL",
+              "value": "https://api.flowora.io/webhooks/whatsapp",
+              "type": "read_only_with_copy"
+            }
+          ]
+        },
+        "reconnect_button": {
+          "label": "Reconnect via Meta Business",
+          "icon": "RefreshCw 16px",
+          "style": "outlined border #E8E8E4 bg white text #1B1B1B border-radius 8px"
+        }
+      }
+    },
+    "api_keys_tab": {
+      "note": "View when API Keys nav item selected",
+      "page_title": "API Keys \u2014 22px 700",
+      "page_subtitle": "Use these keys to integrate Flowora with your external systems \u2014 14px #6B6B6B",
+      "create_key_button": {
+        "label": "+ Create New Key",
+        "bg": "#FFE27C",
+        "text_color": "#1B1B1B"
+      },
+      "keys_table": {
+        "columns": [
+          "Name",
+          "Key Prefix",
+          "Created",
+          "Last Used",
+          "Status",
+          "Actions"
+        ],
+        "rows": [
+          {
+            "name": "Production Key \u2014 14px 600 #1B1B1B",
+            "prefix": "flw_live_abc...xyz \u2014 13px #9B9B9B font-mono",
+            "created": "Jan 12, 2025",
+            "last_used": "2 hours ago",
+            "status": {
+              "dot": "#22C55E",
+              "label": "Active"
+            },
+            "actions": "Copy icon + Revoke button"
+          },
+          {
+            "name": "Test Key \u2014 14px 600 #1B1B1B",
+            "prefix": "flw_test_def...uvw \u2014 13px #9B9B9B font-mono",
+            "created": "Jan 15, 2025",
+            "last_used": "5 days ago",
+            "status": {
+              "dot": "#22C55E",
+              "label": "Active"
+            },
+            "actions": "Copy icon + Revoke button"
+          }
+        ]
+      },
+      "new_key_modal": {
+        "title": "Create New API Key \u2014 18px 700",
+        "fields": [
+          {
+            "label": "Key Name",
+            "placeholder": "e.g. Zapier Integration"
+          },
+          {
+            "label": "Permissions",
+            "type": "checkbox_group",
+            "options": [
+              "Read Contacts",
+              "Send Messages",
+              "Manage Campaigns",
+              "Full Access"
+            ]
+          },
+          {
+            "label": "Expiry",
+            "type": "select",
+            "options": [
+              "Never",
+              "30 days",
+              "90 days",
+              "1 year"
+            ]
+          }
+        ],
+        "generate_button": {
+          "label": "Generate Key",
+          "bg": "#FFE27C"
+        },
+        "success_state": {
+          "banner": "green bg showing full key once with copy button \u2014 note: key shown only once"
+        }
+      }
+    },
+    "billing_tab": {
+      "note": "View when Billing & Credits selected \u2014 mirrors 10_billing_credits.json but embedded in settings layout"
+    },
+    "notifications_tab": {
+      "page_title": "Notification Preferences \u2014 22px 700",
+      "notification_groups": [
+        {
+          "group": "Inbox & Conversations",
+          "items": [
+            {
+              "label": "New conversation assigned to me",
+              "in_app": true,
+              "email": true,
+              "push": true
+            },
+            {
+              "label": "Customer reply received",
+              "in_app": true,
+              "email": false,
+              "push": true
+            },
+            {
+              "label": "Chat transferred to me",
+              "in_app": true,
+              "email": true,
+              "push": false
+            }
+          ]
+        },
+        {
+          "group": "Campaigns",
+          "items": [
+            {
+              "label": "Campaign published successfully",
+              "in_app": true,
+              "email": true,
+              "push": false
+            },
+            {
+              "label": "Campaign failed",
+              "in_app": true,
+              "email": true,
+              "push": true
+            }
+          ]
+        },
+        {
+          "group": "AI & Workflows",
+          "items": [
+            {
+              "label": "Workflow execution error",
+              "in_app": true,
+              "email": true,
+              "push": true
+            },
+            {
+              "label": "New lead captured via workflow",
+              "in_app": true,
+              "email": false,
+              "push": false
+            }
+          ]
+        },
+        {
+          "group": "Billing",
+          "items": [
+            {
+              "label": "Credits running low (< 20%)",
+              "in_app": true,
+              "email": true,
+              "push": true
+            },
+            {
+              "label": "Credits exhausted",
+              "in_app": true,
+              "email": true,
+              "push": true
+            }
+          ]
+        }
+      ],
+      "toggle_style": "pill switch yellow on gray off",
+      "column_headers": [
+        "In-App",
+        "Email",
+        "Push"
+      ],
+      "channel_header_style": "12px 600 #9B9B9B uppercase text-center"
+    },
+    "security_tab": {
+      "page_title": "Security Settings \u2014 22px 700",
+      "sections": [
+        {
+          "title": "Two-Factor Authentication",
+          "status": "Enabled",
+          "status_color": "#22C55E",
+          "toggle": "on yellow",
+          "description": "Require 2FA for all admin logins \u2014 13px #6B6B6B"
+        },
+        {
+          "title": "Session Management",
+          "active_sessions_table": {
+            "columns": [
+              "Device",
+              "Location",
+              "Last Active",
+              "Action"
+            ],
+            "rows": [
+              {
+                "device": "Chrome \u2014 MacBook Pro",
+                "location": "Mumbai, IN",
+                "last_active": "Now \u2014 green",
+                "action": "This device"
+              },
+              {
+                "device": "Firefox \u2014 Windows 11",
+                "location": "Delhi, IN",
+                "last_active": "2 hours ago",
+                "action": "Revoke button outlined red"
+              }
+            ]
+          }
+        },
+        {
+          "title": "Password",
+          "fields": [
+            {
+              "label": "Current Password",
+              "type": "password"
+            },
+            {
+              "label": "New Password",
+              "type": "password"
+            },
+            {
+              "label": "Confirm Password",
+              "type": "password"
+            }
+          ],
+          "save_button": {
+            "label": "Update Password",
+            "style": "outlined #1B1B1B"
+          }
+        },
+        {
+          "title": "Audit Log",
+          "description": "Track all actions taken in your workspace \u2014 13px #6B6B6B",
+          "view_log_button": {
+            "label": "View Audit Log",
+            "icon": "ExternalLink 14px",
+            "style": "outlined"
+          },
+          "recent_log_preview": {
+            "items": [
+              {
+                "action": "Robert Fox invited Darrell Steward",
+                "time": "2h ago"
+              },
+              {
+                "action": "Campaign 'Webinar Blast' created by Sarah Wilson",
+                "time": "5h ago"
+              },
+              {
+                "action": "WhatsApp API reconnected by Robert Fox",
+                "time": "1d ago"
+              }
+            ],
+            "item_style": "flex row justify-between padding 10px 0 border-bottom 1px #F0F0EC font 13px #6B6B6B"
+          }
+        }
+      ]
+    }
+  },
+  "rendering_settings": {
+    "resolution": "7680x4320 8K",
+    "style": "photorealistic SaaS UI screenshot",
+    "font_rendering": "crisp subpixel antialiasing",
+    "no_blur": true,
+    "all_text_sharp": true
+  },
+  "negative_prompt": "blur, dark mode unless sidebar, sketch, watercolor, neon, 3D, mobile, missing form fields, illegible text, cropped panels"
+}

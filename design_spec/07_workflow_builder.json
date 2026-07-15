@@ -1,0 +1,48 @@
+{
+  "module": "Workflow Builder",
+  "description": "Drag-and-drop automation builder connecting Google Sheets, WhatsApp templates, Emails, and Voice Agent nodes.",
+  "layout_structure": {
+    "type": "Infinite Canvas / Diagram Editor",
+    "topbar": "Workflow Name (editable), 'Publish' button (Primary, Kournikova).",
+    "sidebar": "Left sidebar containing draggable nodes. Collapsible.",
+    "main_area": "A large canvas with a subtle dot grid pattern."
+  },
+  "components": {
+    "node_sidebar": {
+      "categories": [
+        {
+          "name": "Triggers",
+          "items": ["Google Sheet Row Added", "Tag Added to Contact", "Incoming WhatsApp Msg"]
+        },
+        {
+          "name": "Actions",
+          "items": ["Send WhatsApp Template", "Send Email", "Trigger Voice Call", "Add/Remove Tag"]
+        },
+        {
+          "name": "Logic",
+          "items": ["Delay", "If/Else Condition", "A/B Test Split"]
+        }
+      ]
+    },
+    "canvas_nodes": {
+      "style": "Rounded rectangular cards (radius 8px), white background, subtle shadow.",
+      "header": "Colored strip at the top (Triggers = Blue, Actions = Yellow, Logic = Lavender). Icon + Node Title.",
+      "body": "Brief summary of settings (e.g., 'Template: Welcome_Message').",
+      "ports": "Small circular handles on the top/bottom or left/right for connecting edges.",
+      "states": {
+        "selected": "Border becomes bold Kournikova.",
+        "error": "Border red, small warning triangle icon."
+      }
+    },
+    "edges": {
+      "style": "Smooth bezier curves (gray stroke, 2px wide) connecting node ports. Arrowhead at the destination.",
+      "hover": "Stroke becomes Kournikova and slightly thicker."
+    },
+    "configuration_drawer": {
+      "location": "Sliding in from the right edge when a node is clicked.",
+      "content": "Specific form inputs for the selected node (e.g., mapping Google Sheet columns to WhatsApp template variables).",
+      "actions": ["Save", "Delete Node (Ghost, Red)"]
+    }
+  },
+  "visual_prompt_notes": "A visual drag-and-drop workflow builder on a dotted canvas background. The canvas shows a flowchart connecting different blocks: A 'Trigger' block (Google Sheet), connected by curved lines to an 'Action' block (WhatsApp Template), which splits into a 'Delay' block and a 'Voice Agent Call' block. The blocks are white cards with colored top-borders (blue, yellow, lavender). A left sidebar shows a menu of draggable nodes. Professional, airy, SaaS aesthetic."
+}

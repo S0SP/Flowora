@@ -1,0 +1,342 @@
+/**
+ * QStash Job: Execute a single workflow step (node).
+ * Handles condition branching, delay scheduling, and all node types.
+ * Called by QStash with an optional delay for drip campaigns.
+ */
+
+import { NextRequest, NextResponse } from "next/server"
+import { createAdminClient } from "@/lib/supabase/server"
+import { enqueue } from "@/lib/qstash"
+
+export const runtime    = "nodejs"
+export const maxDuration = 60
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json()
+    const {
+      workflowId,
+      workspaceId,
+      nodeId,
+      triggerData,
+      runId,
+      visitedNodeIds = [],
+      // Branch context: which handle brought us here
+      incomingBranchType = null,
+    } = body
+
+    if (!workflowId || !workspaceId || !nodeId) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+    }
+
+    const admin = await createAdminClient()
+
+    const { data: workflow } = await admin
+      .from("workflows")
+      .select("nodes, edges, status")
+      .eq("id", workflowId)
+      .eq("workspace_id", workspaceId)
+      .single()
+
+    if (!workflow || workflow.status !== "active") {
+      return NextResponse.json({ message: "Workflow inactive or not found" })
+    }
+
+    const nodes: any[] = workflow.nodes ?? []
+    const edges: any[] = workflow.edges ?? []
+
+    const currentNode = nodes.find(n => n.id === nodeId)
+    if (!currentNode) {
+      return NextResponse.json({ message: "Node not found" })
+    }
+
+    const nodeData = currentNode.data ?? {}
+    const nodeType = nodeData.subtype ?? nodeData.type ?? currentNode.type ?? ""
+
+    // ── Build edge map ──────────────────────────────────────────────────────
+    const edgeMap = buildEdgeMap(edges)
+    const newVisited = [...visitedNodeIds, nodeId]
+
+    // ── Evaluate condition ──────────────────────────────────────────────────
+    let condResult: boolean | null = null
+    let execResult: any = {}
+
+    if (nodeType === "condition") {
+      condResult = evaluateCondition(nodeData, { triggerData })
+      execResult = { condition: condResult }
+    } else {
+      try {
+        execResult = await executeNode(currentNode, triggerData, workspaceId, admin)
+      } catch (err: any) {
+        console.error(`[workflow-step] Node ${nodeId} error:`, err.message)
+        execResult = { error: err.message }
+      }
+    }
+
+    // ── Resolve next nodes ──────────────────────────────────────────────────
+    const nextNodeIds = resolveNextNodes(
+      nodeId,
+      nodeType,
+      nodeData,
+      condResult,
+      edgeMap,
+      new Set(newVisited)
+    )
+
+    // ── Enqueue next steps ──────────────────────────────────────────────────
+    for (const nextNodeId of nextNodeIds) {
+      const nextNode = nodes.find(n => n.id === nextNodeId)
+      if (!nextNode) continue
+
+      const nextType = nextNode.data?.subtype ?? nextNode.data?.type ?? nextNode.type ?? ""
+
+      if (nextType === "delay") {
+        // Calculate delay, then enqueue nodes AFTER the delay node
+        const d = nextNode.data ?? {}
+        const totalSec =
+          (d.delayDays    ?? 0) * 86400 +
+          (d.delayHours   ?? 0) * 3600  +
+          (d.delayMinutes ?? 0) * 60
+
+        const afterDelayIds = getNextFromEdgeMap(nextNodeId, edgeMap, new Set([...newVisited, nextNodeId]))
+
+        for (const afterId of afterDelayIds) {
+          await enqueue(
+            "/api/jobs/workflow-step",
+            { workflowId, workspaceId, nodeId: afterId, triggerData, runId, visitedNodeIds: [...newVisited, nextNodeId] },
+            { delay: totalSec > 0 ? totalSec : undefined, retries: 3 }
+          )
+        }
+      } else {
+        // Enqueue immediately
+        await enqueue(
+          "/api/jobs/workflow-step",
+          { workflowId, workspaceId, nodeId: nextNodeId, triggerData, runId, visitedNodeIds: newVisited },
+          { retries: 3 }
+        )
+      }
+    }
+
+    // Update run progress
+    try {
+      await admin.from("workflow_runs")
+        .update({ steps_completed: newVisited.length })
+        .eq("id", runId)
+    } catch {}
+
+    return NextResponse.json({ ok: true, nodeId, result: execResult, nextNodeIds })
+  } catch (err: any) {
+    console.error("[jobs/workflow-step]", err)
+    return NextResponse.json({ error: err.message }, { status: 500 })
+  }
+}
+
+// ── Shared Utilities (duplicated from trigger route for QStash isolation) ─────
+
+function buildEdgeMap(edges: any[]): Map<string, string[]> {
+  const map = new Map<string, string[]>()
+  for (const edge of edges) {
+    const key = `${edge.source}::${edge.sourceHandle ?? "*"}`
+    if (!map.has(key)) map.set(key, [])
+    map.get(key)!.push(edge.target)
+  }
+  return map
+}
+
+function getNextFromEdgeMap(nodeId: string, edgeMap: Map<string, string[]>, visited: Set<string>): string[] {
+  const output   = edgeMap.get(`${nodeId}::output`) ?? []
+  const wildcard = edgeMap.get(`${nodeId}::*`)       ?? []
+  return [...new Set([...output, ...wildcard])].filter(id => !visited.has(id))
+}
+
+function evaluateCondition(data: any, context: Record<string, any>): boolean {
+  const triggerData = context.triggerData ?? {}
+  const field       = data.field    ?? ""
+  const operator    = data.operator ?? "equals"
+  const expected    = data.value    ?? ""
+  const parts       = field.split(".")
+  const simple      = parts[parts.length - 1]
+  const actual      = triggerData[field] ?? triggerData[simple] ?? context[field] ?? ""
+
+  switch (operator) {
+    case "equals":      return String(actual).toLowerCase() === String(expected).toLowerCase()
+    case "not_equals":  return String(actual).toLowerCase() !== String(expected).toLowerCase()
+    case "contains":    return String(actual).toLowerCase().includes(String(expected).toLowerCase())
+    case "starts_with": return String(actual).toLowerCase().startsWith(String(expected).toLowerCase())
+    case "not_empty":   return actual !== null && actual !== undefined && String(actual).trim() !== ""
+    case "is_empty":    return actual === null || actual === undefined || String(actual).trim() === ""
+    case "gt":          return Number(actual) > Number(expected)
+    case "lt":          return Number(actual) < Number(expected)
+    default:            return false
+  }
+}
+
+function resolveNextNodes(
+  nodeId:      string,
+  nodeType:    string,
+  nodeData:    any,
+  condResult:  boolean | null,
+  edgeMap:     Map<string, string[]>,
+  visited:     Set<string>
+): string[] {
+  const nextIds: string[] = []
+
+  if (nodeType === "condition") {
+    const branches: any[] = nodeData.branches ?? [
+      { id: "true",     type: "true"     },
+      { id: "false",    type: "false"    },
+      { id: "fallback", type: "fallback" },
+    ]
+
+    if (condResult === true) {
+      const trueBranch = branches.find(b => b.type === "true")
+      if (trueBranch) {
+        nextIds.push(...(edgeMap.get(`${nodeId}::${trueBranch.id}`) ?? []))
+      }
+    } else {
+      const falseBranch    = branches.find(b => b.type === "false")
+      const fallbackBranch = branches.find(b => b.type === "fallback")
+
+      const falseTargets = falseBranch
+        ? (edgeMap.get(`${nodeId}::${falseBranch.id}`) ?? [])
+        : []
+
+      if (falseTargets.length > 0) {
+        nextIds.push(...falseTargets)
+      } else if (fallbackBranch) {
+        nextIds.push(...(edgeMap.get(`${nodeId}::${fallbackBranch.id}`) ?? []))
+      }
+
+      // Custom branches also evaluated
+      for (const cb of branches.filter(b => b.type === "custom")) {
+        nextIds.push(...(edgeMap.get(`${nodeId}::${cb.id}`) ?? []))
+      }
+    }
+  } else {
+    // Standard: output handle then wildcard
+    const output   = edgeMap.get(`${nodeId}::output`) ?? []
+    const wildcard = edgeMap.get(`${nodeId}::*`)       ?? []
+    nextIds.push(...output, ...wildcard)
+
+    // WhatsApp button branches
+    if (nodeType === "whatsapp") {
+      for (const branch of nodeData.branches ?? []) {
+        nextIds.push(...(edgeMap.get(`${nodeId}::${branch.id}`) ?? []))
+      }
+    }
+  }
+
+  return [...new Set(nextIds)].filter(id => !visited.has(id))
+}
+
+// ── Node Executor ──────────────────────────────────────────────────────────────
+async function executeNode(node: any, triggerData: any, workspaceId: string, admin: any): Promise<any> {
+  const data     = node.data ?? {}
+  const nodeType = data.subtype ?? data.type ?? node.type ?? ""
+
+  function sub(str: string): string {
+    if (!str) return ""
+    return str.replace(/\{\{(\w+(?:\.\w+)*)\}\}/g, (_, key) => {
+      const simple = key.split(".").pop()
+      return triggerData?.[key] ?? triggerData?.[simple] ?? ""
+    })
+  }
+
+  async function getWAConn() {
+    const { data: conn } = await admin
+      .from("channel_connections")
+      .select("config")
+      .eq("workspace_id", workspaceId)
+      .eq("type", "whatsapp")
+      .maybeSingle()
+    const cfg = conn?.config as any
+    return {
+      phoneNumId: cfg?.phoneNumberId ?? cfg?.phone_number_id ?? process.env.META_PHONE_NUMBER_ID ?? "",
+      token:      cfg?.accessToken   ?? cfg?.access_token    ?? process.env.META_ACCESS_TOKEN    ?? "",
+    }
+  }
+
+  switch (nodeType) {
+    case "trigger": case "google_sheet": case "webhook": case "form":
+      return { triggered: true }
+
+    case "whatsapp":
+    case "whatsapp_message": {
+      const phone = sub(data.toPhone ?? triggerData?.phone ?? "").replace(/\D/g, "")
+      if (!phone) return { skipped: "no phone" }
+
+      const { phoneNumId, token } = await getWAConn()
+      if (!phoneNumId || !token) return { error: "no credentials" }
+
+      const template = data.templateName ?? data.template
+      const msgText  = sub(data.message ?? data.body ?? "")
+
+      const body = template
+        ? { messaging_product: "whatsapp", to: phone, type: "template", template: { name: template, language: { code: data.templateLanguage ?? "en" } } }
+        : { messaging_product: "whatsapp", to: phone, type: "text", text: { body: msgText } }
+
+      const res = await fetch(`https://graph.facebook.com/v18.0/${phoneNumId}/messages`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      })
+      if (!res.ok) throw new Error(`WhatsApp send failed: ${res.status}`)
+      return { sent: true, phone }
+    }
+
+    case "email": {
+      const { sendMail } = await import("@/services/mailer")
+      const to = sub(data.toEmail ?? triggerData?.email ?? "")
+      if (!to) return { skipped: "no email" }
+      await sendMail(
+        {
+          smtp_host:       data.smtpHost   ?? process.env.SMTP_HOST ?? "",
+          smtp_port:       parseInt(data.smtpPort ?? process.env.SMTP_PORT ?? "587"),
+          smtp_user:       data.smtpUser   ?? process.env.SMTP_USER ?? "",
+          smtp_password:   data.smtpPass   ?? process.env.SMTP_PASS ?? "",
+          email_from_name: data.fromName   ?? "Flowra",
+          email_from:      data.fromEmail  ?? process.env.SMTP_USER ?? "",
+        },
+        to,
+        sub(data.subject ?? "Hello"),
+        sub(data.html ?? data.body ?? "<p>Hello!</p>")
+      )
+      return { sent: true, to }
+    }
+
+    case "voice": case "voice_call": {
+      const phone = sub(data.toPhone ?? triggerData?.phone ?? "").replace(/\D/g, "")
+      if (!phone) return { skipped: "no phone" }
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
+      const res = await fetch(`${baseUrl}/api/voice/dial`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ toNumber: phone, agentType: data.agentType ?? "livekit", voiceId: data.voiceId ?? "anushka", systemPrompt: data.systemPrompt }),
+      })
+      if (!res.ok) throw new Error("Voice dial failed")
+      return { called: true, phone }
+    }
+
+    case "update_crm": case "crm": {
+      const phone = (triggerData?.phone ?? "").replace(/\D/g, "")
+      if (!phone) return { skipped: "no phone" }
+      await admin.from("contacts").upsert({
+        workspace_id: workspaceId,
+        phone,
+        full_name:    triggerData?.name  ?? "",
+        email:        triggerData?.email ?? "",
+        stage:        data.stage ?? "new_lead",
+      }, { onConflict: "workspace_id,phone" })
+      return { updated: true, stage: data.stage }
+    }
+
+    case "condition":
+      return { handled_by_router: true }
+
+    case "delay":
+      return { delayed: true }
+
+    default:
+      return { skipped: `unknown: ${nodeType}` }
+  }
+}

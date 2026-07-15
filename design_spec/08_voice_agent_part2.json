@@ -1,0 +1,360 @@
+{
+  "meta": {
+    "screen": "08 \u2014 AI Voice Agent",
+    "part": 2,
+    "subtitle": "Company Data Upload + Agent Scope Definition + Call Settings + Recording Log",
+    "file": "08_voice_agent_part2.json"
+  },
+  "image_prompt": {
+    "company_data_section": {
+      "title": "Company Knowledge \u2014 16px bold #1B1B1B",
+      "subtitle": "Your AI voice agent uses this data to answer questions accurately during calls \u2014 13px #6B6B6B",
+      "notice_banner": {
+        "bg": "#F5F3FF",
+        "border": "1px solid #DDD6FE",
+        "border_radius": "10px",
+        "padding": "12px 16px",
+        "icon": "Sparkles 16px #C4B1F9",
+        "text": "Your AI voice agent is fully abstracted \u2014 it does not reveal which AI or voice model it uses. Customers only experience your brand. \u2014 13px #6B6B6B"
+      },
+      "upload_area": {
+        "style": "dashed border-2 border-#E8E8E4 rounded-12 padding 40px center bg-#FAFAF8",
+        "icon": "Upload 32px #9B9B9B center",
+        "title": "Drop your company files here \u2014 15px #1B1B1B",
+        "subtitle": "PDF, DOCX, Google Sheet, Google Doc, CSV, TXT \u2014 13px #9B9B9B",
+        "or_divider": "\u2014 or \u2014 12px #9B9B9B",
+        "paste_url_input": {
+          "placeholder": "Paste a URL or Google Drive link...",
+          "bg": "#FFFFFF",
+          "border": "1px solid #E8E8E4",
+          "border_radius": "8px",
+          "width": "100%"
+        },
+        "add_button": {
+          "label": "Add Source",
+          "style": "primary yellow"
+        }
+      },
+      "uploaded_files": [
+        {
+          "icon": "FileText 20px #F59E0B",
+          "name": "product_catalog.pdf",
+          "size": "3.2 MB",
+          "status": "Processed \u2713",
+          "status_color": "#22C55E",
+          "remove": "X icon"
+        },
+        {
+          "icon": "FileSpreadsheet 20px green",
+          "name": "pricing_2026.xlsx",
+          "size": "480 KB",
+          "status": "Processed \u2713"
+        },
+        {
+          "icon": "Globe 20px #3B82F6",
+          "name": "https://acme.com",
+          "size": "42 pages crawled",
+          "status": "Synced \u2713"
+        },
+        {
+          "icon": "FileText 20px",
+          "name": "faq_document.docx",
+          "size": "156 KB",
+          "status": "Processing... \u2014 orange spinner"
+        }
+      ]
+    },
+    "scope_definition": {
+      "title": "Agent Scope \u2014 16px bold #1B1B1B",
+      "subtitle": "Define what your AI voice agent can and cannot do \u2014 13px #6B6B6B",
+      "sections": [
+        {
+          "label": "Agent Objective",
+          "textarea": {
+            "value": "The AI agent's primary goal is to call new leads from the webinar funnel, introduce Acme Corp's products, answer pricing questions, handle objections, and book demo calls. If unable to resolve, escalate to a human agent.",
+            "rows": 3,
+            "height": "80px"
+          }
+        },
+        {
+          "label": "Topics Agent CAN Handle",
+          "tag_input": {
+            "tags": [
+              {
+                "label": "Product Information",
+                "bg": "#F0FDF4",
+                "text": "#22C55E",
+                "remove": "\u00d7"
+              },
+              {
+                "label": "Pricing Queries"
+              },
+              {
+                "label": "Demo Booking"
+              },
+              {
+                "label": "General FAQ"
+              },
+              {
+                "label": "Webinar Details"
+              }
+            ],
+            "add_input": "Type and press Enter \u2014 placeholder"
+          }
+        },
+        {
+          "label": "Topics Agent CANNOT Handle (Escalate)",
+          "tag_input": {
+            "tags": [
+              {
+                "label": "Legal Queries",
+                "bg": "#FEF2F2",
+                "text": "#EF4444"
+              },
+              {
+                "label": "Billing Disputes"
+              },
+              {
+                "label": "Technical Support"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Escalation Action",
+          "select": {
+            "value": "Transfer to available human agent in Shared Inbox"
+          }
+        }
+      ]
+    },
+    "call_settings": {
+      "title": "Call Settings \u2014 16px bold",
+      "settings": [
+        {
+          "label": "Voice Speed",
+          "control": {
+            "type": "slider",
+            "min": "Slow 0.5\u00d7",
+            "max": "Fast 2.0\u00d7",
+            "value": "1.0\u00d7 \u2014 Normal",
+            "fill_color": "#FFE27C",
+            "percent": "50%"
+          }
+        },
+        {
+          "label": "Pitch",
+          "control": {
+            "type": "slider",
+            "value": "0% \u2014 Neutral",
+            "percent": "50%"
+          }
+        },
+        {
+          "label": "Emotion / Tone",
+          "control": {
+            "type": "select",
+            "value": "Friendly & Professional"
+          }
+        },
+        {
+          "label": "Calling Hours",
+          "control": {
+            "type": "time range",
+            "from": "9:00 AM",
+            "to": "7:00 PM",
+            "timezone": "IST"
+          }
+        },
+        {
+          "label": "Max Attempts",
+          "control": {
+            "type": "number stepper",
+            "value": 3,
+            "note": "Retries if no answer \u2014 12px #9B9B9B"
+          }
+        },
+        {
+          "label": "Retry Interval",
+          "control": {
+            "type": "select",
+            "value": "60 minutes between attempts"
+          }
+        },
+        {
+          "label": "Call Recording",
+          "control": {
+            "type": "toggle ON",
+            "label": "Record all calls",
+            "color": "#22C55E"
+          }
+        },
+        {
+          "label": "Auto Transcription",
+          "control": {
+            "type": "toggle ON",
+            "label": "Transcribe recordings",
+            "color": "#22C55E"
+          }
+        },
+        {
+          "label": "Do Not Call List",
+          "button": {
+            "label": "Manage DNC List",
+            "icon": "List",
+            "style": "secondary"
+          }
+        }
+      ]
+    },
+    "call_recordings_log": {
+      "title": "Call Recordings \u2014 16px bold",
+      "filter_row": {
+        "date_range": "Last 7 Days",
+        "status_filter": "All Calls",
+        "search": "Search by name or number"
+      },
+      "table": {
+        "columns": [
+          "Contact",
+          "Phone",
+          "Type",
+          "Duration",
+          "Status",
+          "Outcome",
+          "Date",
+          "Recording",
+          "Transcript"
+        ],
+        "rows": [
+          {
+            "contact": {
+              "avatar": "32px SW",
+              "name": "Sarah Wilson"
+            },
+            "phone": "+1 555 234 5678",
+            "type": "Phone Call",
+            "duration": "3m 42s",
+            "status": {
+              "label": "Completed",
+              "color": "#22C55E"
+            },
+            "outcome": {
+              "label": "Booked Demo \u2713",
+              "color": "#22C55E"
+            },
+            "date": "Jan 14, 10:32 AM",
+            "recording_button": {
+              "icon": "Play 14px",
+              "waveform_mini": "12 bars #C4B1F9",
+              "duration": "3:42"
+            },
+            "transcript_button": {
+              "icon": "FileText 14px",
+              "label": "View",
+              "style": "ghost"
+            }
+          },
+          {
+            "contact": {
+              "name": "John Doe"
+            },
+            "phone": "+91 98765 43210",
+            "type": "WhatsApp Call",
+            "duration": "2m 18s",
+            "status": {
+              "label": "Completed",
+              "color": "#22C55E"
+            },
+            "outcome": {
+              "label": "Interested",
+              "color": "#F59E0B"
+            }
+          },
+          {
+            "contact": {
+              "name": "Rakesh Sharma"
+            },
+            "duration": "0m 0s",
+            "status": {
+              "label": "No Answer",
+              "color": "#9B9B9B"
+            },
+            "outcome": {
+              "label": "Retry scheduled",
+              "color": "#F59E0B"
+            }
+          },
+          {
+            "contact": {
+              "name": "Priya Patel"
+            },
+            "duration": "4m 55s",
+            "status": {
+              "label": "Completed",
+              "color": "#22C55E"
+            },
+            "outcome": {
+              "label": "Converted \u2b50",
+              "color": "#22C55E"
+            }
+          }
+        ]
+      }
+    },
+    "transcript_modal": {
+      "state": "User clicks View Transcript for Sarah Wilson call",
+      "modal": {
+        "width": "680px",
+        "height": "520px",
+        "border_radius": "16px",
+        "padding": "24px"
+      },
+      "header": {
+        "title": "Call Transcript \u2014 18px bold",
+        "contact": "Sarah Wilson \u00b7 Jan 14, 10:32 AM \u00b7 3m 42s",
+        "download_button": {
+          "icon": "Download",
+          "label": "Download",
+          "style": "secondary small"
+        }
+      },
+      "audio_player": {
+        "style": "full-width player bar",
+        "play_button": "Play circle #FFE27C 40px",
+        "waveform": "200px wide waveform visualization #C4B1F9 bars",
+        "timestamp": "1:24 / 3:42",
+        "speed_control": "1.0\u00d7 dropdown"
+      },
+      "transcript": {
+        "style": "scrollable chat-style transcript",
+        "messages": [
+          {
+            "speaker": "AI Agent (Sophia)",
+            "time": "0:02",
+            "text": "Hello, am I speaking with Sarah Wilson?",
+            "speaker_color": "#C4B1F9"
+          },
+          {
+            "speaker": "Sarah Wilson",
+            "time": "0:05",
+            "text": "Yes, this is Sarah.",
+            "speaker_color": "#1B1B1B"
+          },
+          {
+            "speaker": "AI Agent (Sophia)",
+            "time": "0:07",
+            "text": "Hi Sarah! I'm Aria from Acme Corp. You recently registered interest in our webinar on AI for Business Growth. I'd love to tell you more and see if it's a good fit for your team.",
+            "speaker_color": "#C4B1F9"
+          },
+          {
+            "speaker": "Sarah Wilson",
+            "time": "0:24",
+            "text": "Sure, sounds interesting. What's it about?",
+            "speaker_color": "#1B1B1B"
+          }
+        ]
+      }
+    }
+  }
+}

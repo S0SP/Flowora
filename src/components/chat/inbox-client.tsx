@@ -4,8 +4,10 @@ import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Contact, Message } from "@/types";
 import { formatRelativeTime, getInitials, cn } from "@/lib/utils";
-import { Send, Search, Loader2, MessageSquareOff } from "lucide-react";
+import { Send, Search, Loader2, MessageSquareOff, Phone, Video } from "lucide-react";
 import { toast } from "sonner";
+import { WhatsAppCallDialog } from "./WhatsAppCallDialog";
+import { IncomingCallRingUI } from "./IncomingCallRingUI";
 
 interface InboxClientProps {
   initialContacts: Contact[];
@@ -21,11 +23,28 @@ export function InboxClient({ initialContacts }: InboxClientProps) {
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [search, setSearch] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  const [showCallDialog, setShowCallDialog] = useState(false);
+  const [callType, setCallType] = useState<"audio" | "video">("audio");
+  
+  // State for incoming hybrid transfers
+  const [incomingTransfer, setIncomingTransfer] = useState<{roomName: string, phone: string, workspaceId: string} | null>(null);
 
-  const filteredContacts = contacts.filter((c) =>
-    (c.name ?? c.phone).toLowerCase().includes(search.toLowerCase()) ||
-    c.phone.includes(search)
-  );
+  const filteredContacts = contacts.filter((c) => {
+    const contactName = c.full_name ?? c.name ?? c.phone ?? "Unknown";
+    const contactPhone = c.phone ?? "";
+    return (
+      contactName.toLowerCase().includes(search.toLowerCase()) ||
+      contactPhone.includes(search)
+    );
+  });
+
+  // Auto select first contact if none is selected
+  useEffect(() => {
+    if (!selectedContact && contacts.length > 0) {
+      setSelectedContact(contacts[0]);
+    }
+  }, [contacts, selectedContact]);
 
   // Load messages when contact selected
   useEffect(() => {
@@ -84,6 +103,24 @@ export function InboxClient({ initialContacts }: InboxClientProps) {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
+  // Realtime subscription for incoming call transfers (Dashboard Ringing)
+  useEffect(() => {
+    const ringChannel = supabase.channel("dashboard:ringing")
+      .on(
+        "broadcast",
+        { event: "incoming_transfer" },
+        (payload) => {
+          if (payload.payload) {
+            setIncomingTransfer(payload.payload as any);
+            toast.info("Incoming call transfer request...");
+          }
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(ringChannel); };
+  }, []);
+
   const sendReply = async () => {
     if (!replyText.trim() || !selectedContact) return;
     setSending(true);
@@ -115,160 +152,201 @@ export function InboxClient({ initialContacts }: InboxClientProps) {
     }
   };
 
+  const handleCall = (type: "audio" | "video") => {
+    setCallType(type);
+    setShowCallDialog(true);
+  };
+
   return (
-    <div className="flex h-[calc(100vh-8rem)] bg-card border border-border rounded-2xl overflow-hidden animate-fade-in">
-      {/* Contacts sidebar */}
-      <div className="w-72 shrink-0 border-r border-border flex flex-col">
-        <div className="p-3 border-b border-border">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search contacts..."
-              className="w-full pl-8 pr-3 py-2 bg-background border border-input rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            />
+    <>
+      <div className="flex h-[calc(100vh-8rem)] bg-card border border-border rounded-2xl overflow-hidden animate-fade-in">
+        {/* Contacts sidebar */}
+        <div className="w-72 shrink-0 border-r border-border flex flex-col">
+          <div className="p-3 border-b border-border">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search contacts..."
+                className="w-full pl-8 pr-3 py-2 bg-background border border-input rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto scrollbar-thin">
+            {filteredContacts.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-center p-4">
+                <p className="text-xs text-muted-foreground">No contacts yet</p>
+              </div>
+            ) : (
+              filteredContacts.map((contact) => (
+                <button
+                  key={contact.id}
+                  onClick={() => setSelectedContact(contact)}
+                  className={cn(
+                    "w-full flex items-center gap-3 p-3 hover:bg-muted/40 transition-colors text-left border-b border-border/50",
+                    selectedContact?.id === contact.id && "bg-muted/60"
+                  )}
+                >
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <span className="text-xs font-semibold text-primary">
+                      {getInitials(contact.full_name ?? contact.name, contact.phone)}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium text-foreground truncate">
+                        {contact.full_name ?? contact.name ?? contact.phone}
+                      </p>
+                      <span className="text-xs text-muted-foreground shrink-0 ml-1">
+                        {formatRelativeTime(contact.last_message_at)}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate mt-0.5">{contact.phone}</p>
+                  </div>
+                </button>
+              ))
+            )}
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto scrollbar-thin">
-          {filteredContacts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center p-4">
-              <p className="text-xs text-muted-foreground">No contacts yet</p>
+        {/* Chat area */}
+        <div className="flex-1 flex flex-col">
+          {!selectedContact ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
+              <div className="w-14 h-14 rounded-2xl bg-muted/50 flex items-center justify-center mb-4">
+                <MessageSquareOff className="w-6 h-6 text-muted-foreground" />
+              </div>
+              <p className="text-sm font-medium text-foreground">Select a conversation</p>
+              <p className="text-xs text-muted-foreground mt-1">Choose a contact from the sidebar to start chatting</p>
             </div>
           ) : (
-            filteredContacts.map((contact) => (
-              <button
-                key={contact.id}
-                onClick={() => setSelectedContact(contact)}
-                className={cn(
-                  "w-full flex items-center gap-3 p-3 hover:bg-muted/40 transition-colors text-left border-b border-border/50",
-                  selectedContact?.id === contact.id && "bg-muted/60"
-                )}
-              >
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                  <span className="text-xs font-semibold text-primary">
-                    {getInitials(contact.name, contact.phone)}
-                  </span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-foreground truncate">
-                      {contact.name ?? contact.phone}
-                    </p>
-                    <span className="text-xs text-muted-foreground shrink-0 ml-1">
-                      {formatRelativeTime(contact.last_message_at)}
+            <>
+              {/* Chat header */}
+              <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+                    <span className="text-xs font-semibold text-primary">
+                      {getInitials(selectedContact.full_name ?? selectedContact.name, selectedContact.phone)}
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground truncate mt-0.5">{contact.phone}</p>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">
+                      {selectedContact.full_name ?? selectedContact.name ?? selectedContact.phone}
+                    </p>
+                    <p className="text-xs text-muted-foreground">{selectedContact.phone}</p>
+                  </div>
                 </div>
-              </button>
-            ))
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleCall("video")}
+                    className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <Video className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleCall("audio")}
+                    className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <Phone className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Messages */}
+              <div className="flex-1 overflow-y-auto scrollbar-thin p-4 space-y-3">
+                {loadingMessages ? (
+                  <div className="flex items-center justify-center h-full">
+                    <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                  </div>
+                ) : messages.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full">
+                    <p className="text-xs text-muted-foreground">No messages yet</p>
+                  </div>
+                ) : (
+                  messages.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={cn(
+                        "flex",
+                        msg.direction === "outbound" ? "justify-end" : "justify-start"
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          "max-w-[70%] px-3.5 py-2.5 rounded-2xl text-sm",
+                          msg.direction === "outbound"
+                            ? "bg-primary text-primary-foreground rounded-br-sm"
+                            : "bg-muted text-foreground rounded-bl-sm"
+                        )}
+                      >
+                        <p>{msg.content}</p>
+                        <p className={cn(
+                          "text-xs mt-1",
+                          msg.direction === "outbound" ? "text-primary-foreground/60 text-right" : "text-muted-foreground"
+                        )}>
+                          {new Date(msg.sent_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
+                          {msg.direction === "outbound" && (
+                            <span className="ml-1">
+                              {msg.status === "read" ? "✓✓" : msg.status === "delivered" ? "✓✓" : "✓"}
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Reply box */}
+              <div className="p-3 border-t border-border">
+                <div className="flex items-end gap-2">
+                  <textarea
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Type a message... (Enter to send)"
+                    rows={1}
+                    className="flex-1 px-3 py-2.5 bg-background border border-input rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring max-h-32 scrollbar-thin"
+                    style={{ minHeight: "40px" }}
+                  />
+                  <button
+                    onClick={sendReply}
+                    disabled={sending || !replyText.trim()}
+                    className="w-10 h-10 flex items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl transition-all disabled:opacity-50 shrink-0"
+                  >
+                    {sending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Send className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+            </>
           )}
         </div>
       </div>
+      
+      {selectedContact && (
+        <WhatsAppCallDialog
+          open={showCallDialog}
+          onOpenChange={setShowCallDialog}
+          contact={selectedContact}
+          callType={callType}
+        />
+      )}
 
-      {/* Chat area */}
-      <div className="flex-1 flex flex-col">
-        {!selectedContact ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
-            <div className="w-14 h-14 rounded-2xl bg-muted/50 flex items-center justify-center mb-4">
-              <MessageSquareOff className="w-6 h-6 text-muted-foreground" />
-            </div>
-            <p className="text-sm font-medium text-foreground">Select a conversation</p>
-            <p className="text-xs text-muted-foreground mt-1">Choose a contact from the sidebar to start chatting</p>
-          </div>
-        ) : (
-          <>
-            {/* Chat header */}
-            <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
-              <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-xs font-semibold text-primary">
-                  {getInitials(selectedContact.name, selectedContact.phone)}
-                </span>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-foreground">
-                  {selectedContact.name ?? selectedContact.phone}
-                </p>
-                <p className="text-xs text-muted-foreground">{selectedContact.phone}</p>
-              </div>
-            </div>
-
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto scrollbar-thin p-4 space-y-3">
-              {loadingMessages ? (
-                <div className="flex items-center justify-center h-full">
-                  <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-                </div>
-              ) : messages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full">
-                  <p className="text-xs text-muted-foreground">No messages yet</p>
-                </div>
-              ) : (
-                messages.map((msg) => (
-                  <div
-                    key={msg.id}
-                    className={cn(
-                      "flex",
-                      msg.direction === "outbound" ? "justify-end" : "justify-start"
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "max-w-[70%] px-3.5 py-2.5 rounded-2xl text-sm",
-                        msg.direction === "outbound"
-                          ? "bg-primary text-primary-foreground rounded-br-sm"
-                          : "bg-muted text-foreground rounded-bl-sm"
-                      )}
-                    >
-                      <p>{msg.content}</p>
-                      <p className={cn(
-                        "text-xs mt-1",
-                        msg.direction === "outbound" ? "text-primary-foreground/60 text-right" : "text-muted-foreground"
-                      )}>
-                        {new Date(msg.sent_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
-                        {msg.direction === "outbound" && (
-                          <span className="ml-1">
-                            {msg.status === "read" ? "✓✓" : msg.status === "delivered" ? "✓✓" : "✓"}
-                          </span>
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                ))
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Reply box */}
-            <div className="p-3 border-t border-border">
-              <div className="flex items-end gap-2">
-                <textarea
-                  value={replyText}
-                  onChange={(e) => setReplyText(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Type a message... (Enter to send)"
-                  rows={1}
-                  className="flex-1 px-3 py-2.5 bg-background border border-input rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring max-h-32 scrollbar-thin"
-                  style={{ minHeight: "40px" }}
-                />
-                <button
-                  onClick={sendReply}
-                  disabled={sending || !replyText.trim()}
-                  className="w-10 h-10 flex items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl transition-all disabled:opacity-50 shrink-0"
-                >
-                  {sending ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Send className="w-4 h-4" />
-                  )}
-                </button>
-              </div>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
+      {incomingTransfer && (
+        <IncomingCallRingUI
+          roomName={incomingTransfer.roomName}
+          phone={incomingTransfer.phone}
+          workspaceId={incomingTransfer.workspaceId}
+          onClose={() => setIncomingTransfer(null)}
+        />
+      )}
+    </>
   );
 }

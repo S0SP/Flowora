@@ -1,0 +1,288 @@
+{
+  "meta": {
+    "screen": "01 \u2014 Main Dashboard",
+    "part": 2,
+    "subtitle": "KPI Stat Cards + AI Usage Strip + Recent Activity Feed + Live Inbox Preview",
+    "file": "01_dashboard_part2.json"
+  },
+  "image_prompt": {
+    "scene": "Dashboard main content area, below the greeting header. White background #FAFAF8. Contains a 4-column KPI stat card row, an AI usage bar, a two-column section with Recent Activities and Live Inbox Overview, then Campaign Performance analytics.",
+    "kpi_stat_cards": {
+      "layout": "4 equal-width cards in a horizontal row, gap 16px, margin-top 24px",
+      "card_style": {
+        "background": "#FFFFFF",
+        "border": "1px solid #E8E8E4",
+        "border_radius": "12px",
+        "padding": "20px",
+        "shadow": "0 1px 3px rgba(0,0,0,0.06)"
+      },
+      "cards": [
+        {
+          "label": "Conversations",
+          "label_style": "12px #6B6B6B font-weight 500",
+          "value": "1,280",
+          "value_style": "28px Inter Bold #1B1B1B",
+          "change": "+12.5%",
+          "change_style": "13px #22C55E font-weight 600",
+          "change_label": "vs yesterday \u2014 12px #9B9B9B",
+          "icon": {
+            "name": "MessageCircle",
+            "bg": "#F0FDF4",
+            "color": "#22C55E",
+            "size": "36x36px circle"
+          },
+          "sparkline": "tiny 7-day upward trend line #B1D8FC"
+        },
+        {
+          "label": "Open Chats",
+          "value": "132",
+          "change": "+8.2%",
+          "change_color": "#22C55E",
+          "icon": {
+            "name": "Inbox",
+            "bg": "#EFF6FF",
+            "color": "#3B82F6"
+          },
+          "sparkline": "slight upward #B1D8FC"
+        },
+        {
+          "label": "Today's Leads",
+          "value": "86",
+          "change": "+15.7%",
+          "change_color": "#22C55E",
+          "icon": {
+            "name": "UserPlus",
+            "bg": "#FFF9E6",
+            "color": "#F59E0B"
+          },
+          "sparkline": "steep upward #FFE27C"
+        },
+        {
+          "label": "Revenue",
+          "value": "$24,680",
+          "change": "+10.8%",
+          "change_color": "#22C55E",
+          "icon": {
+            "name": "DollarSign",
+            "bg": "#F0FDF4",
+            "color": "#22C55E"
+          },
+          "sparkline": "upward #22C55E at 20% opacity"
+        }
+      ]
+    },
+    "ai_usage_strip": {
+      "layout": "3-column horizontal strip, margin-top 16px",
+      "card_style": {
+        "background": "#FFFFFF",
+        "border": "1px solid #E8E8E4",
+        "border_radius": "12px",
+        "padding": "16px 20px"
+      },
+      "columns": [
+        {
+          "label": "AI Usage",
+          "icon": "Cpu 16px #C4B1F9",
+          "value": "92%",
+          "value_style": "24px bold #1B1B1B",
+          "subtext": "of 10,000 credits used \u2014 12px #6B6B6B",
+          "progress_bar": {
+            "width": "100%",
+            "height": "6px",
+            "fill_percent": "92%",
+            "fill": "linear-gradient(90deg, #FFE27C 0%, #FFC800 100%)",
+            "track": "#F4F4F2",
+            "border_radius": "9999px"
+          },
+          "sub_badges": [
+            {
+              "label": "11,000 credits used",
+              "color": "#6B6B6B"
+            },
+            {
+              "label": "\u26a0 Refill soon",
+              "color": "#F59E0B"
+            }
+          ]
+        },
+        {
+          "label": "Voice Calls",
+          "icon": "Phone 16px #C4B1F9",
+          "value": "156",
+          "subtext": "+13.3% vs yesterday",
+          "subtext_color": "#22C55E",
+          "detail": "Avg. call: 3m 24s \u2014 12px #9B9B9B"
+        },
+        {
+          "label": "AI Chatbot",
+          "icon": "Bot 16px #C4B1F9",
+          "value": "1,024",
+          "subtext": "Resolved \u2014 12px #6B6B6B",
+          "detail": "Response Time: 38s avg \u2014 12px #9B9B9B",
+          "badge": {
+            "label": "38s",
+            "bg": "#F0FDF4",
+            "text": "#22C55E"
+          }
+        }
+      ]
+    },
+    "two_column_section": {
+      "layout": "2 columns, left 55% right 45%, gap 16px, margin-top 16px",
+      "recent_activities": {
+        "card_style": "white border rounded-12 padding 20px",
+        "header": {
+          "title": "Recent Activities \u2014 16px bold #1B1B1B",
+          "action_link": "View All \u2014 13px #6B6B6B underline"
+        },
+        "items": [
+          {
+            "icon": "UserPlus 16px green bg #F0FDF4 circle 32px",
+            "text": "New lead John Doe added from Google Sheet \u2014 13px #1B1B1B",
+            "meta": "Google Sheet Sync \u00b7 2 min ago \u2014 12px #9B9B9B"
+          },
+          {
+            "icon": "MessageCircle 16px blue bg #EFF6FF circle 32px",
+            "text": "WhatsApp message sent to +1 (857) 456-2310 \u2014 13px #1B1B1B",
+            "meta": "Webinar Campaign \u00b7 8 min ago \u2014 12px #9B9B9B"
+          },
+          {
+            "icon": "Phone 16px lavender bg circle 32px",
+            "text": "Voice call completed with Sarah \u2014 13px #1B1B1B",
+            "meta": "AI Voice Agent \u00b7 21 min ago \u2014 12px #9B9B9B",
+            "badge": {
+              "text": "Converted",
+              "bg": "#F0FDF4",
+              "color": "#22C55E"
+            }
+          },
+          {
+            "icon": "Workflow 16px yellow bg circle 32px",
+            "text": "Workflow Webinar Reminder activated \u2014 13px #1B1B1B",
+            "meta": "Automation \u00b7 45 min ago \u2014 12px #9B9B9B"
+          },
+          {
+            "icon": "Mail 16px sky blue bg circle 32px",
+            "text": "Email campaign Demo Follow-Up sent to 340 contacts \u2014 13px #1B1B1B",
+            "meta": "Campaign \u00b7 1h ago \u2014 12px #9B9B9B"
+          }
+        ]
+      },
+      "live_inbox_overview": {
+        "card_style": "white border rounded-12 padding 20px",
+        "header": {
+          "title": "Live Inbox Overview \u2014 16px bold #1B1B1B",
+          "live_badge": {
+            "dot": "8px circle #22C55E pulse animation",
+            "text": "Live \u2014 12px #22C55E"
+          }
+        },
+        "chart": {
+          "type": "area sparkline",
+          "height": "80px",
+          "color": "#B1D8FC",
+          "fill": "rgba(177,216,252,0.2)",
+          "x_axis_labels": "12 AM  3 AM  6 AM  9 AM  12 PM  3 PM  6 PM  9 PM",
+          "y_axis": "hidden"
+        },
+        "stats_row": {
+          "items": [
+            {
+              "label": "Active",
+              "value": "48",
+              "color": "#22C55E"
+            },
+            {
+              "label": "Waiting",
+              "value": "17",
+              "color": "#F59E0B"
+            },
+            {
+              "label": "Resolved",
+              "value": "267",
+              "color": "#6B6B6B"
+            },
+            {
+              "label": "Bot Handling",
+              "value": "53",
+              "color": "#C4B1F9"
+            }
+          ],
+          "layout": "4 equal columns horizontal"
+        }
+      }
+    },
+    "campaign_performance": {
+      "layout": "full-width card, margin-top 16px",
+      "card_style": "white border rounded-12 padding 20px",
+      "header": {
+        "title": "Campaign Performance \u2014 16px bold",
+        "subtitle": "Last 7 days \u2014 13px #9B9B9B",
+        "filter_buttons": [
+          "All",
+          "WhatsApp",
+          "Email",
+          "Voice"
+        ],
+        "active_filter": {
+          "bg": "#FFE27C",
+          "text": "#1B1B1B",
+          "border_radius": "6px"
+        },
+        "inactive_filter": {
+          "bg": "transparent",
+          "text": "#6B6B6B"
+        }
+      },
+      "table": {
+        "columns": [
+          "Campaign Name",
+          "Type",
+          "Sent",
+          "Delivered",
+          "Open",
+          "Click",
+          "Status"
+        ],
+        "rows": [
+          {
+            "name": "Webinar Campaign",
+            "type_badge": {
+              "icon": "WhatsApp logo 12px",
+              "label": "WhatsApp",
+              "bg": "#F0FDF4",
+              "text": "#22C55E"
+            },
+            "sent": "3,245",
+            "delivered": "3,102",
+            "open": "1,782",
+            "click": "932",
+            "status": {
+              "label": "Active",
+              "bg": "#F0FDF4",
+              "text": "#22C55E",
+              "dot": "#22C55E"
+            }
+          },
+          {
+            "name": "Product Demo Campaign",
+            "type_badge": {
+              "label": "Email",
+              "bg": "#EFF6FF",
+              "text": "#3B82F6"
+            },
+            "sent": "1,800",
+            "delivered": "1,668",
+            "open": "982",
+            "click": "521",
+            "status": {
+              "label": "Completed",
+              "bg": "#F4F4F2",
+              "text": "#6B6B6B"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

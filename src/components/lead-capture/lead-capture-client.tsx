@@ -34,7 +34,6 @@ import { formatDate } from "@/lib/utils";
 
 // Zod schema matching database migrations
 const schema = z.object({
-  name: z.string().optional().default("Untitled Workflow"),
   sheet_url: z.string().url("Must be a valid URL (e.g. https://docs.google.com/spreadsheets/...)"),
   phone_column: z.string().min(1, "Phone column name is required"),
   name_column: z.string().optional().nullable(),
@@ -90,7 +89,6 @@ interface Lead {
   processed_at: string | null;
   error_message: string | null;
   channel_status: ChannelStatus | null;
-  lead_capture_settings_id: string;
   created_at: string;
 }
 
@@ -273,7 +271,6 @@ export function LeadCaptureClient() {
   const [saving, setSaving] = useState(false);
   const [toggling, setToggling] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [deleting, setDeleting] = useState(false);
   const [activeTab, setActiveTab] = useState<"sheet" | "whatsapp" | "smtp" | "email_template" | "voice">("sheet");
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">("desktop");
 
@@ -281,11 +278,6 @@ export function LeadCaptureClient() {
   const [loadingTemplates, setLoadingTemplates] = useState(false);
   const [capturedLeads, setCapturedLeads] = useState<Lead[]>([]);
   const [settingsId, setSettingsId] = useState<string | null>(null);
-
-  // Multi-workflow state
-  interface WorkflowSummary { id: string; name: string; is_active: boolean; }
-  const [workflows, setWorkflows] = useState<WorkflowSummary[]>([]);
-  const [selectedWorkflowId, setSelectedWorkflowId] = useState<string | null>(null);
 
   // Live activity feed (derived from polling the leads queue)
   const [activity, setActivity] = useState<ActivityEntry[]>([]);
@@ -359,7 +351,7 @@ export function LeadCaptureClient() {
     }
   };
 
-  // Fetch settings & lead history logs — now returns an array of workflows
+  // Fetch settings & lead history logs
   const fetchSettingsAndLeads = async (showToast = false) => {
     if (showToast) setRefreshing(true);
     try {
@@ -367,60 +359,41 @@ export function LeadCaptureClient() {
       if (!res.ok) throw new Error("Failed to load settings");
       const { settings, leads } = await res.json();
 
-      // Multi-workflow: settings is now an array
-      const workflowsList: WorkflowSummary[] = (settings || []).map((s: any) => ({
-        id: s.id,
-        name: s.name || "Untitled Workflow",
-        is_active: s.is_active,
-      }));
-      setWorkflows(workflowsList);
-
-      // Auto-select the first workflow if none is selected
-      const targetId = selectedWorkflowId || workflowsList[0]?.id;
-      if (targetId && targetId !== selectedWorkflowId) {
-        setSelectedWorkflowId(targetId);
-      }
-
-      // Find and populate the selected workflow's settings
-      const selected = (settings || []).find((s: any) => s.id === (targetId || selectedWorkflowId));
-      if (selected) {
-        setSettingsId(selected.id);
+      if (settings) {
+        setSettingsId(settings.id);
         reset({
-          sheet_url: selected.sheet_url,
-          phone_column: selected.phone_column,
-          name_column: selected.name_column,
-          email_column: selected.email_column,
-          template_name: selected.template_name,
-          template_language: selected.template_language,
-          delay_minutes: selected.delay_minutes,
-          is_active: selected.is_active,
-          whatsapp_enabled: selected.whatsapp_enabled !== false,
-          email_enabled: !!selected.email_enabled,
-          smtp_host: selected.smtp_host,
-          smtp_port: selected.smtp_port || 587,
-          smtp_user: selected.smtp_user,
-          smtp_password: selected.smtp_password,
-          email_from_name: selected.email_from_name,
-          email_from: selected.email_from,
-          email_subject: selected.email_subject,
-          email_template_id: selected.email_template_id || "welcome",
-          email_logo_url: selected.email_logo_url,
-          email_brand_name: selected.email_brand_name || "My Agency",
-          email_title: selected.email_title,
-          email_body: selected.email_body,
-          email_button_text: selected.email_button_text,
-          email_button_url: selected.email_button_url,
-          email_footer: selected.email_footer,
-          voice_enabled: !!selected.voice_enabled,
-          voice_agent_type: selected.voice_agent_type || "livekit",
-          voice_id: selected.voice_id || "anushka",
-          voice_prompt: selected.voice_prompt,
+          sheet_url: settings.sheet_url,
+          phone_column: settings.phone_column,
+          name_column: settings.name_column,
+          email_column: settings.email_column,
+          template_name: settings.template_name,
+          template_language: settings.template_language,
+          delay_minutes: settings.delay_minutes,
+          is_active: settings.is_active,
+          whatsapp_enabled: settings.whatsapp_enabled !== false,
+          email_enabled: !!settings.email_enabled,
+          smtp_host: settings.smtp_host,
+          smtp_port: settings.smtp_port || 587,
+          smtp_user: settings.smtp_user,
+          smtp_password: settings.smtp_password,
+          email_from_name: settings.email_from_name,
+          email_from: settings.email_from,
+          email_subject: settings.email_subject,
+          email_template_id: settings.email_template_id || "welcome",
+          email_logo_url: settings.email_logo_url,
+          email_brand_name: settings.email_brand_name || "My Agency",
+          email_title: settings.email_title,
+          email_body: settings.email_body,
+          email_button_text: settings.email_button_text,
+          email_button_url: settings.email_button_url,
+          email_footer: settings.email_footer,
+          voice_enabled: !!settings.voice_enabled,
+          voice_agent_type: settings.voice_agent_type || "livekit",
+          voice_id: settings.voice_id || "anushka",
+          voice_prompt: settings.voice_prompt,
         });
       }
-
-      const freshLeads: Lead[] = (leads || []).filter(
-        (l: Lead) => !targetId || l.lead_capture_settings_id === targetId
-      );
+      const freshLeads: Lead[] = leads || [];
 
       // Diff against the previous poll to build a live activity feed.
       const now = new Date();
@@ -471,58 +444,6 @@ export function LeadCaptureClient() {
     fetchTemplates();
     fetchSettingsAndLeads();
   }, []);
-
-  // When user selects a different workflow, reload its settings
-  useEffect(() => {
-    if (selectedWorkflowId && workflows.length > 0) {
-      fetchSettingsAndLeads();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedWorkflowId]);
-
-  // Create a new blank workflow
-  const handleNewWorkflow = async () => {
-    setSaving(true);
-    try {
-      const res = await fetch("/api/lead-capture", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: `Workflow ${workflows.length + 1}`,
-          sheet_url: "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID",
-          phone_column: "phone",
-          is_active: false,
-          whatsapp_enabled: true,
-        }),
-      });
-      if (!res.ok) throw new Error("Failed to create workflow");
-      const data = await res.json();
-      setSelectedWorkflowId(data.settings.id);
-      toast.success("New workflow created");
-      fetchSettingsAndLeads();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to create workflow");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // Delete a workflow
-  const handleDeleteWorkflow = async (id: string) => {
-    if (!confirm("Delete this workflow? This cannot be undone.")) return;
-    setDeleting(true);
-    try {
-      const res = await fetch(`/api/lead-capture?id=${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to delete workflow");
-      if (selectedWorkflowId === id) setSelectedWorkflowId(null);
-      toast.success("Workflow deleted");
-      fetchSettingsAndLeads();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to delete workflow");
-    } finally {
-      setDeleting(false);
-    }
-  };
 
   // Live polling: while the page is open, kick the queue processor and then
   // refresh, every 10s — so progress shows in near real time without waiting
@@ -718,342 +639,6 @@ export function LeadCaptureClient() {
   return (
     <div className="space-y-6">
       
-      {/* Dynamic Style Block for SVG Pulsing connection lines */}
-      <style>{`
-        @keyframes flowing-dash {
-          to {
-            stroke-dashoffset: -20;
-          }
-        }
-        .flowing-wire {
-          stroke-dasharray: 6, 4;
-          animation: flowing-dash 0.8s linear infinite;
-        }
-        .pulsing-glow {
-          box-shadow: 0 0 12px rgba(255, 226, 124, 0.4);
-        }
-      `}</style>
-
-      {/* WORKFLOW SELECTOR */}
-      <div className="bg-card border border-border rounded-2xl p-4 shadow-sm">
-        <div className="flex items-center justify-between gap-3 mb-3">
-          <div className="flex items-center gap-2">
-            <Layout className="w-4 h-4 text-primary" />
-            <span className="text-sm font-semibold text-foreground">Workflows</span>
-            <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-              {workflows.length}
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={handleNewWorkflow}
-            disabled={saving}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-all disabled:opacity-50"
-          >
-            <Play className="w-3 h-3 fill-primary-foreground" />
-            New Workflow
-          </button>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {workflows.map((wf) => (
-            <div
-              key={wf.id}
-              onClick={() => setSelectedWorkflowId(wf.id)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-xl border cursor-pointer transition-all group ${
-                selectedWorkflowId === wf.id
-                  ? "border-primary bg-primary/10 text-foreground"
-                  : "border-border hover:border-primary/30 text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <span className={`w-2 h-2 rounded-full ${wf.is_active ? "bg-primary animate-pulse" : "bg-muted-foreground/30"}`} />
-              <span className="text-xs font-medium truncate max-w-[140px]">{wf.name}</span>
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); handleDeleteWorkflow(wf.id); }}
-                disabled={deleting}
-                className="opacity-0 group-hover:opacity-100 ml-1 text-muted-foreground hover:text-destructive transition-all"
-                title="Delete workflow"
-              >
-                <XCircle className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          ))}
-          {workflows.length === 0 && (
-            <p className="text-xs text-muted-foreground py-2">No workflows yet. Create one to get started.</p>
-          )}
-        </div>
-      </div>
-
-      {/* SECTION 1: INTERACTIVE WORKFLOW VISUALIZATION */}
-      <div className="bg-card border border-border rounded-2xl p-6 shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between gap-2 mb-6 border-b border-border pb-3">
-          <div className="flex items-center gap-2">
-            <Layout className="w-5 h-5 text-primary" />
-            <div>
-              <h3 className="font-semibold text-sm text-foreground">Interactive Workflow Pipeline</h3>
-              <p className="text-[11px] text-muted-foreground">Visualise how leads travel from your Google Sheet to customer devices.</p>
-            </div>
-          </div>
-
-          {/* Quick pause/resume — applies instantly without saving the whole form */}
-          <button
-            type="button"
-            onClick={toggleAutomation}
-            disabled={toggling || !settingsId}
-            title={!settingsId ? "Save your configuration first" : isActive ? "Pause the workflow" : "Resume the workflow"}
-            className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-              isActive
-                ? "bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/15"
-                : "bg-primary/10 text-primary border-primary/20 hover:bg-primary/15"
-            }`}
-          >
-            {toggling ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            ) : isActive ? (
-              <Pause className="w-3.5 h-3.5 fill-destructive" />
-            ) : (
-              <Play className="w-3.5 h-3.5 fill-primary" />
-            )}
-            {toggling ? "Updating…" : isActive ? "Pause Workflow" : "Resume Workflow"}
-          </button>
-        </div>
-
-        <div className="relative py-6 px-2">
-
-          {/* Desktop: horizontal flow with CSS connectors */}
-          <div className="hidden md:grid md:grid-cols-[auto_auto_1fr] items-center gap-4">
-
-            {/* Node 1: Google Sheet Source */}
-            <div className={`bg-background border rounded-xl p-3.5 flex items-start gap-3 transition-all w-56 ${
-              isActive ? "border-primary/40 shadow-sm shadow-primary/5 ring-1 ring-primary/10" : "border-border"
-            }`}>
-              <div className={`p-2.5 rounded-lg shrink-0 ${isActive ? "bg-primary/10 text-primary animate-pulse" : "bg-muted text-muted-foreground"}`}>
-                <FileSpreadsheet className="w-5 h-5" />
-              </div>
-              <div className="overflow-hidden min-w-0">
-                <h4 className="text-xs font-semibold text-foreground">1. Google Sheet Source</h4>
-                <p className="text-[10px] text-muted-foreground truncate mt-0.5" title={sheetUrl || "Paste Sheet Link"}>
-                  {sheetUrl ? sheetUrl.replace(/https:\/\/(docs\.)?google\.com\/spreadsheets\/d\//, "").slice(0, 15) + "..." : "Setup Sheet Link"}
-                </p>
-                <span className={`inline-block mt-1 text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${
-                  isActive ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
-                }`}>
-                  {isActive ? "Active Listening" : "Paused"}
-                </span>
-              </div>
-            </div>
-
-            {/* Arrow connector 1 */}
-            <div className="flex items-center justify-center w-8">
-              <div className="flex-1 h-0.5" style={{
-                background: isActive
-                  ? "linear-gradient(90deg, hsl(47,100%,74%), hsl(47,100%,60%))"
-                  : "hsl(0,0%,85%)"
-              }} />
-              <svg width="8" height="12" viewBox="0 0 8 12" className="shrink-0">
-                <path d="M1 1L6 6L1 11" stroke={isActive ? "hsl(47,100%,65%)" : "hsl(0,0%,80%)"} strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
-
-            {/* Center column: Timer + branches */}
-            <div className="flex flex-col gap-3">
-              {/* Node 2: Delay Timer */}
-              <div className={`bg-background border rounded-xl p-3.5 flex items-start gap-3 transition-all w-44 ${
-                isActive ? "border-primary/30 shadow-sm" : "border-border"
-              }`}>
-                <div className={`p-2.5 rounded-lg shrink-0 ${isActive ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
-                  <Clock className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-semibold text-foreground">2. Queue Delay</h4>
-                  <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">
-                    {Number(delayMinutes) > 0 ? `Wait ${delayMinutes} minutes` : "Trigger Instantly"}
-                  </p>
-                  <span className="text-[9px] text-muted-foreground/60 block mt-1">Deduplication active</span>
-                </div>
-              </div>
-
-              {/* Branch connectors (vertical lines from timer to channels) */}
-              <div className="flex gap-3 pl-6">
-                {/* Vertical connector from center */}
-                <div className="flex flex-col items-center">
-                  <div className="w-0.5 h-3" style={{
-                    background: isActive ? "hsl(47,100%,70%)" : "hsl(0,0%,85%)"
-                  }} />
-                </div>
-              </div>
-
-              {/* Channel nodes */}
-              <div className="flex flex-col gap-2.5">
-                {/* Node 3: WhatsApp */}
-                <div className={`bg-background border rounded-xl p-3 flex items-start gap-3 transition-all ${
-                  whatsappEnabled !== false ? (isActive ? "border-emerald-500/40 shadow-sm text-foreground" : "border-border") : "opacity-40 border-dashed"
-                }`}>
-                  <div className={`p-2 rounded-lg shrink-0 ${
-                    whatsappEnabled !== false ? (isActive ? "bg-emerald-500/10 text-emerald-500" : "bg-muted text-muted-foreground") : "bg-muted text-muted-foreground"
-                  }`}>
-                    <MessageSquare className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0 overflow-hidden">
-                    <h4 className="text-xs font-semibold">WhatsApp channel</h4>
-                    <p className="text-[9px] text-muted-foreground truncate mt-0.5">
-                      {whatsappEnabled !== false ? (templateName ? `Template: ${templateName}` : "Setup Template") : "Disabled"}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Node 4: SMTP Email */}
-                <div className={`bg-background border rounded-xl p-3 flex items-start gap-3 transition-all ${
-                  emailEnabled ? (isActive ? "border-sky-400/40 shadow-sm text-foreground" : "border-border") : "opacity-40 border-dashed"
-                }`}>
-                  <div className={`p-2 rounded-lg shrink-0 ${
-                    emailEnabled ? (isActive ? "bg-sky-400/10 text-sky-500 animate-pulse" : "bg-muted text-muted-foreground") : "bg-muted text-muted-foreground"
-                  }`}>
-                    <Mail className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0 overflow-hidden">
-                    <h4 className="text-xs font-semibold">SMTP Email channel</h4>
-                    <p className="text-[9px] text-muted-foreground truncate mt-0.5">
-                      {emailEnabled ? `Preset: ${selectedEmailTemplateId}` : "Disabled"}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Node 5: Voice Call */}
-                <div className={`bg-background border rounded-xl p-3 flex items-start gap-3 transition-all ${
-                  voiceEnabled ? (isActive ? "border-purple-400/40 shadow-sm text-foreground" : "border-border") : "opacity-40 border-dashed"
-                }`}>
-                  <div className={`p-2 rounded-lg shrink-0 ${
-                    voiceEnabled ? (isActive ? "bg-purple-400/10 text-purple-400 animate-pulse" : "bg-muted text-muted-foreground") : "bg-muted text-muted-foreground"
-                  }`}>
-                    <Headphones className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0 overflow-hidden">
-                    <h4 className="text-xs font-semibold">Voice Agent channel</h4>
-                    <p className="text-[9px] text-muted-foreground truncate mt-0.5">
-                      {voiceEnabled ? `Engine: ${voiceAgentType === "gemini" ? "Gemini" : "LiveKit"}` : "Disabled"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Mobile: vertical stacked flow */}
-          <div className="flex flex-col md:hidden gap-3">
-            {/* Node 1: Google Sheet Source */}
-            <div className={`bg-background border rounded-xl p-3.5 flex items-start gap-3 transition-all ${
-              isActive ? "border-primary/40 shadow-sm shadow-primary/5 ring-1 ring-primary/10" : "border-border"
-            }`}>
-              <div className={`p-2.5 rounded-lg shrink-0 ${isActive ? "bg-primary/10 text-primary animate-pulse" : "bg-muted text-muted-foreground"}`}>
-                <FileSpreadsheet className="w-5 h-5" />
-              </div>
-              <div className="overflow-hidden min-w-0">
-                <h4 className="text-xs font-semibold text-foreground">1. Google Sheet Source</h4>
-                <p className="text-[10px] text-muted-foreground truncate mt-0.5">
-                  {sheetUrl ? sheetUrl.replace(/https:\/\/(docs\.)?google\.com\/spreadsheets\/d\//, "").slice(0, 15) + "..." : "Setup Sheet Link"}
-                </p>
-                <span className={`inline-block mt-1 text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${
-                  isActive ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
-                }`}>
-                  {isActive ? "Active Listening" : "Paused"}
-                </span>
-              </div>
-            </div>
-
-            {/* Mobile connector arrow */}
-            <div className="flex justify-center">
-              <div className="flex flex-col items-center">
-                <div className="w-0.5 h-4" style={{ background: isActive ? "hsl(47,100%,70%)" : "hsl(0,0%,85%)" }} />
-                <svg width="12" height="8" viewBox="0 0 12 8">
-                  <path d="M1 1L6 6L11 1" stroke={isActive ? "hsl(47,100%,65%)" : "hsl(0,0%,80%)"} strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-            </div>
-
-            {/* Node 2: Delay Timer */}
-            <div className={`bg-background border rounded-xl p-3.5 flex items-start gap-3 transition-all ${
-              isActive ? "border-primary/30 shadow-sm" : "border-border"
-            }`}>
-              <div className={`p-2.5 rounded-lg shrink-0 ${isActive ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
-                <Clock className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="text-xs font-semibold text-foreground">2. Queue Delay</h4>
-                <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">
-                  {Number(delayMinutes) > 0 ? `Wait ${delayMinutes} minutes` : "Trigger Instantly"}
-                </p>
-                <span className="text-[9px] text-muted-foreground/60 block mt-1">Deduplication active</span>
-              </div>
-            </div>
-
-            {/* Mobile connector */}
-            <div className="flex justify-center">
-              <div className="flex flex-col items-center">
-                <div className="w-0.5 h-4" style={{ background: isActive ? "hsl(47,100%,70%)" : "hsl(0,0%,85%)" }} />
-                <svg width="12" height="8" viewBox="0 0 12 8">
-                  <path d="M1 1L6 6L11 1" stroke={isActive ? "hsl(47,100%,65%)" : "hsl(0,0%,80%)"} strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-            </div>
-
-            {/* Channel nodes */}
-            <div className="flex flex-col gap-2.5">
-              {/* WhatsApp */}
-              <div className={`bg-background border rounded-xl p-3 flex items-start gap-3 transition-all ${
-                whatsappEnabled !== false ? (isActive ? "border-emerald-500/40 shadow-sm text-foreground" : "border-border") : "opacity-40 border-dashed"
-              }`}>
-                <div className={`p-2 rounded-lg shrink-0 ${
-                  whatsappEnabled !== false ? (isActive ? "bg-emerald-500/10 text-emerald-500" : "bg-muted text-muted-foreground") : "bg-muted text-muted-foreground"
-                }`}>
-                  <MessageSquare className="w-4 h-4" />
-                </div>
-                <div className="min-w-0 overflow-hidden">
-                  <h4 className="text-xs font-semibold">WhatsApp channel</h4>
-                  <p className="text-[9px] text-muted-foreground truncate mt-0.5">
-                    {whatsappEnabled !== false ? (templateName ? `Template: ${templateName}` : "Setup Template") : "Disabled"}
-                  </p>
-                </div>
-              </div>
-
-              {/* Email */}
-              <div className={`bg-background border rounded-xl p-3 flex items-start gap-3 transition-all ${
-                emailEnabled ? (isActive ? "border-sky-400/40 shadow-sm text-foreground" : "border-border") : "opacity-40 border-dashed"
-              }`}>
-                <div className={`p-2 rounded-lg shrink-0 ${
-                  emailEnabled ? (isActive ? "bg-sky-400/10 text-sky-500" : "bg-muted text-muted-foreground") : "bg-muted text-muted-foreground"
-                }`}>
-                  <Mail className="w-4 h-4" />
-                </div>
-                <div className="min-w-0 overflow-hidden">
-                  <h4 className="text-xs font-semibold">SMTP Email channel</h4>
-                  <p className="text-[9px] text-muted-foreground truncate mt-0.5">
-                    {emailEnabled ? `Preset: ${selectedEmailTemplateId}` : "Disabled"}
-                  </p>
-                </div>
-              </div>
-
-              {/* Voice */}
-              <div className={`bg-background border rounded-xl p-3 flex items-start gap-3 transition-all ${
-                voiceEnabled ? (isActive ? "border-purple-400/40 shadow-sm text-foreground" : "border-border") : "opacity-40 border-dashed"
-              }`}>
-                <div className={`p-2 rounded-lg shrink-0 ${
-                  voiceEnabled ? (isActive ? "bg-purple-400/10 text-purple-400" : "bg-muted text-muted-foreground") : "bg-muted text-muted-foreground"
-                }`}>
-                  <Headphones className="w-4 h-4" />
-                </div>
-                <div className="min-w-0 overflow-hidden">
-                  <h4 className="text-xs font-semibold">Voice Agent channel</h4>
-                  <p className="text-[9px] text-muted-foreground truncate mt-0.5">
-                    {voiceEnabled ? `Engine: ${voiceAgentType === "gemini" ? "Gemini" : "LiveKit"}` : "Disabled"}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* SECTION 2: WORKFLOW CONFIGURATION & CAPTURED LEADS LIST */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         
@@ -1074,7 +659,7 @@ export function LeadCaptureClient() {
                   activeTab === "sheet" ? "bg-background text-foreground shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                <FileSpreadsheet className="w-3.5 h-3.5 text-primary" />
+                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-500" />
                 Sheet Config
               </button>
               <button
@@ -1124,17 +709,6 @@ export function LeadCaptureClient() {
               {/* TAB 1: Google Sheet configurations */}
               {activeTab === "sheet" && (
                 <div className="space-y-4 animate-fade-in">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      Workflow Name
-                    </label>
-                    <input
-                      {...register("name")}
-                      placeholder="e.g. Summer Campaign Leads"
-                      className="w-full px-3 py-2.5 bg-background border border-input rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                    />
-                  </div>
-
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                       Google Sheet URL
@@ -1275,44 +849,11 @@ export function LeadCaptureClient() {
 
                   {emailEnabled && (
                     <div className="space-y-4 pt-1">
-                      <div className="bg-amber-500/10 p-3 rounded-xl border border-amber-500/20 flex gap-2">
-                        <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                        <p className="text-[10px] text-amber-700 leading-normal">
-                          <strong>Gmail Setup:</strong> Enter <strong>smtp.gmail.com</strong>, port <strong>587</strong>. 
-                          You MUST use a Google <strong>App Password</strong> (not your normal Gmail password).
+                      <div className="bg-blue-500/10 p-3 rounded-xl border border-blue-500/20 flex gap-2">
+                        <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                        <p className="text-[10px] text-blue-700 leading-normal">
+                          <strong>Workspace SMTP Integrated:</strong> This lead capture form will automatically use the global SMTP configuration saved in your <strong>Workspace Settings &gt; Channels &gt; Email</strong>.
                         </p>
-                      </div>
-
-                      <div className="grid grid-cols-3 gap-3">
-                        <div className="col-span-2 space-y-1">
-                          <label className="text-[10px] font-semibold text-muted-foreground uppercase">SMTP Host</label>
-                          <input {...register("smtp_host")} placeholder="smtp.gmail.com" className="w-full px-2.5 py-1.5 bg-background border border-input rounded-lg text-xs" />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-semibold text-muted-foreground uppercase">SMTP Port</label>
-                          <input {...register("smtp_port")} type="number" placeholder="587" className="w-full px-2.5 py-1.5 bg-background border border-input rounded-lg text-xs" />
-                        </div>
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-semibold text-muted-foreground uppercase">SMTP User (Username)</label>
-                        <input {...register("smtp_user")} placeholder="your-agency@gmail.com" className="w-full px-2.5 py-1.5 bg-background border border-input rounded-lg text-xs" />
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-semibold text-muted-foreground uppercase">SMTP Password / App Password</label>
-                        <input {...register("smtp_password")} type="password" placeholder="••••••••••••••••" className="w-full px-2.5 py-1.5 bg-background border border-input rounded-lg text-xs" />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-semibold text-muted-foreground uppercase">From Name</label>
-                          <input {...register("email_from_name")} placeholder="My Agency Team" className="w-full px-2.5 py-1.5 bg-background border border-input rounded-lg text-xs" />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-semibold text-muted-foreground uppercase">From Email</label>
-                          <input {...register("email_from")} placeholder="team@agency.com" className="w-full px-2.5 py-1.5 bg-background border border-input rounded-lg text-xs" />
-                        </div>
                       </div>
                     </div>
                   )}
@@ -1412,7 +953,7 @@ export function LeadCaptureClient() {
                           <div className="flex items-center gap-1.5">
                             <span className="w-2.5 h-2.5 rounded-full bg-destructive/60"></span>
                             <span className="w-2.5 h-2.5 rounded-full bg-amber-500/60"></span>
-                            <span className="w-2.5 h-2.5 rounded-full bg-primary/60"></span>
+                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/60"></span>
                             <span className="text-[10px] font-bold text-muted-foreground/80 font-mono ml-2">Live Preview (John Doe)</span>
                           </div>
                           

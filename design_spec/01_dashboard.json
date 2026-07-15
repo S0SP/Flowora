@@ -1,0 +1,115 @@
+{
+  "module": "Dashboard",
+  "description": "The main landing screen upon login, providing a high-level overview of the user's business metrics, active campaigns, and recent AI interactions.",
+  "layout_structure": {
+    "sidebar": "Fixed left sidebar (Cod Gray background) containing main navigation.",
+    "topbar": "Fixed top bar with Breadcrumbs ('Home > Dashboard'), Global Search, Notifications (bell icon), and User Profile Dropdown.",
+    "content_area": "Main scrollable area, Linen/White background."
+  },
+  "sections": {
+    "hero_greeting": {
+      "type": "organism",
+      "description": "Greeting section for the user.",
+      "components": {
+        "title": "h1: 'Good morning, sumit!'",
+        "subtitle": "body_secondary: 'Here is what is happening with your campaigns today.'",
+        "action": "Primary Button (Kournikova): 'Create New Campaign'"
+      }
+    },
+    "metrics_overview": {
+      "type": "organism",
+      "description": "Row of 4 Data Cards displaying key performance indicators (KPIs).",
+      "layout": "Grid (4 columns on desktop, 2 on tablet, 1 on mobile). Gap: 24px.",
+      "cards": [
+        {
+          "title": "Total Contacts",
+          "value": "12,450",
+          "trend": {
+            "direction": "up",
+            "value": "+12%",
+            "color": "colors.accent.success"
+          },
+          "icon": "users_icon (in a subtle blue badge)"
+        },
+        {
+          "title": "Active Campaigns",
+          "value": "8",
+          "trend": {
+            "direction": "up",
+            "value": "+2",
+            "color": "colors.accent.success"
+          },
+          "icon": "megaphone_icon (in a subtle lavender badge)"
+        },
+        {
+          "title": "AI Bot Conversations",
+          "value": "1,204",
+          "trend": {
+            "direction": "up",
+            "value": "+18%",
+            "color": "colors.accent.success"
+          },
+          "icon": "robot_icon (in a subtle yellow badge)"
+        },
+        {
+          "title": "Messages Sent",
+          "value": "45,210",
+          "trend": {
+            "direction": "down",
+            "value": "-5%",
+            "color": "colors.accent.danger"
+          },
+          "icon": "message_circle_icon (in a subtle gray badge)"
+        }
+      ]
+    },
+    "main_charts_row": {
+      "type": "organism",
+      "layout": "Grid (2 columns: 2/3 width and 1/3 width). Gap: 24px. Margin-top: 32px.",
+      "columns": [
+        {
+          "name": "engagement_chart",
+          "width": "66%",
+          "title": "Engagement Overview",
+          "content": "Line chart showing 'Messages Sent' vs 'Replies Received' over the last 30 days. Smooth curves, primary line in Kournikova, secondary line in French Pass (Sky Blue)."
+        },
+        {
+          "name": "recent_activity",
+          "width": "33%",
+          "title": "Recent Activity",
+          "content": "A vertical list of recent events (e.g., 'Campaign X started', 'New lead captured via AI Voice').",
+          "components": {
+            "list_item": {
+              "icon": "Small dot or icon",
+              "title": "Event description (body_regular)",
+              "timestamp": "Time (body_small, colors.text.tertiary)"
+            }
+          }
+        }
+      ]
+    },
+    "quick_actions": {
+      "type": "organism",
+      "description": "A section at the bottom for quick access to frequent tasks.",
+      "layout": "Flex horizontal, gap 16px.",
+      "actions": [
+        {
+          "label": "Sync Contacts",
+          "icon": "refresh_icon",
+          "style": "Secondary Button"
+        },
+        {
+          "label": "Review AI Transcripts",
+          "icon": "file_text_icon",
+          "style": "Secondary Button"
+        },
+        {
+          "label": "Manage Billing",
+          "icon": "credit_card_icon",
+          "style": "Ghost Button"
+        }
+      ]
+    }
+  },
+  "visual_prompt_notes": "For image generation: Show a wide SaaS dashboard. The left sidebar is dark Cod Gray (#1B1B1B) with white text and a yellow (#FFE27C) highlight on the 'Dashboard' menu item. The main area is light (#FAF9F6) with 4 white metric cards at the top. Below them is a clean line chart with smooth lines, and a sidebar for recent activity. Use a modern sans-serif font, rounded corners (8px-12px) for cards, and subtle drop shadows."
+}

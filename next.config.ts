@@ -1,4 +1,8 @@
 import type { NextConfig } from 'next';
+import dns from 'dns';
+
+dns.setDefaultResultOrder('ipv4first');
+
 
 const nextConfig: NextConfig = {
   experimental: {
@@ -14,6 +18,14 @@ const nextConfig: NextConfig = {
   },
   typescript: {
     ignoreBuildErrors: true,
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/api/whatsapp/webhook',
+        destination: '/api/webhooks/whatsapp',
+      },
+    ];
   },
 };
 

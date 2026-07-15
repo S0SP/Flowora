@@ -1,0 +1,211 @@
+{
+  "meta": {
+    "screen": "01 \u2014 Main Dashboard",
+    "part": 3,
+    "subtitle": "Quick Actions Dropdown + Notifications Panel + Onboarding Checklist Widget",
+    "file": "01_dashboard_part3.json"
+  },
+  "image_prompt": {
+    "quick_actions_dropdown": {
+      "trigger_state": "Quick Actions button clicked, dropdown open",
+      "dropdown": {
+        "width": "280px",
+        "background": "#FFFFFF",
+        "border": "1px solid #E8E8E4",
+        "border_radius": "12px",
+        "shadow": "0 8px 24px rgba(0,0,0,0.10)",
+        "position": "top-right below button",
+        "padding": "8px",
+        "header": "Quick Actions \u2014 12px #9B9B9B uppercase tracked padding 8px 12px",
+        "items": [
+          {
+            "icon": "Workflow 16px #1B1B1B",
+            "label": "Create New Workflow \u2014 14px #1B1B1B",
+            "shortcut": "\u2318W \u2014 12px #9B9B9B",
+            "hover_bg": "#FAFAF8"
+          },
+          {
+            "icon": "Megaphone 16px #1B1B1B",
+            "label": "Launch Campaign",
+            "shortcut": "\u2318C"
+          },
+          {
+            "icon": "UserPlus 16px #1B1B1B",
+            "label": "Add Contact",
+            "shortcut": "\u2318N"
+          },
+          {
+            "icon": "Bot 16px #C4B1F9",
+            "label": "Test AI Chatbot",
+            "shortcut": "\u2318T"
+          },
+          {
+            "icon": "Mic 16px #C4B1F9",
+            "label": "Trigger Voice Call",
+            "shortcut": "\u2318V"
+          },
+          {
+            "type": "divider"
+          },
+          {
+            "icon": "Settings 16px #6B6B6B",
+            "label": "Go to Settings",
+            "shortcut": "\u2318,"
+          }
+        ]
+      }
+    },
+    "notifications_panel": {
+      "state": "Notification bell clicked, right panel slides in from right",
+      "panel": {
+        "width": "380px",
+        "position": "fixed right 0 top 56px height calc(100vh - 56px)",
+        "background": "#FFFFFF",
+        "border_left": "1px solid #E8E8E4",
+        "shadow": "-8px 0 24px rgba(0,0,0,0.06)",
+        "header": {
+          "title": "Notifications \u2014 18px bold #1B1B1B",
+          "sub": "5 unread \u2014 13px #6B6B6B",
+          "actions": [
+            {
+              "label": "Mark all read",
+              "style": "13px #6B6B6B underline"
+            },
+            {
+              "icon": "X 18px #6B6B6B close button"
+            }
+          ]
+        },
+        "filter_tabs": {
+          "items": [
+            "All",
+            "Inbox",
+            "Campaigns",
+            "Leads",
+            "System"
+          ],
+          "active": "All",
+          "active_style": "border-bottom 2px solid #FFE27C text #1B1B1B font-weight 600",
+          "inactive_style": "text #6B6B6B"
+        },
+        "notification_list": [
+          {
+            "type": "unread",
+            "icon": "UserPlus 16px green circle",
+            "title": "New lead from Google Sheet \u2014 14px bold #1B1B1B",
+            "body": "Rahul Sharma just entered your Webinar funnel \u2014 13px #6B6B6B",
+            "time": "Just now \u2014 12px #9B9B9B",
+            "unread_dot": "8px #FFE27C circle left"
+          },
+          {
+            "type": "unread",
+            "icon": "MessageCircle 16px blue circle",
+            "title": "Inbox: New message from John Doe",
+            "body": "Hello, I'm interested in your product...",
+            "time": "2 min ago"
+          },
+          {
+            "type": "unread",
+            "icon": "Phone 16px lavender circle",
+            "title": "Voice call completed \u2014 Converted",
+            "body": "Sarah Wilson booked a demo after AI voice call",
+            "time": "18 min ago",
+            "action_button": {
+              "label": "View Lead",
+              "style": "12px #FFE27C border rounded-6 px-8 py-3"
+            }
+          },
+          {
+            "type": "read",
+            "icon": "AlertCircle 16px amber circle",
+            "title": "AI Credits Low",
+            "body": "You have 7,850 / 10,000 credits remaining",
+            "time": "1h ago",
+            "action_button": {
+              "label": "Refill Credits",
+              "style": "primary small"
+            }
+          },
+          {
+            "type": "read",
+            "icon": "Workflow 16px #1B1B1B circle",
+            "title": "Workflow Webinar Lead Funnel activated",
+            "body": "All 4 nodes configured and running",
+            "time": "3h ago"
+          }
+        ]
+      }
+    },
+    "onboarding_checklist_widget": {
+      "position": "bottom-right of dashboard, collapsible card",
+      "state": "expanded",
+      "card": {
+        "width": "340px",
+        "background": "#FFFFFF",
+        "border": "1px solid #E8E8E4",
+        "border_radius": "12px",
+        "shadow": "0 4px 16px rgba(0,0,0,0.08)",
+        "padding": "20px"
+      },
+      "header": {
+        "title": "Get Started with Flowora \u2014 16px bold #1B1B1B",
+        "subtitle": "5 of 8 steps completed \u2014 13px #6B6B6B",
+        "progress": {
+          "type": "linear",
+          "height": "6px",
+          "fill_percent": "62.5%",
+          "fill": "#FFE27C",
+          "track": "#F4F4F2"
+        },
+        "close_icon": "X 16px #9B9B9B top-right"
+      },
+      "steps": [
+        {
+          "label": "Connect WhatsApp Business API",
+          "state": "completed",
+          "icon": "CheckCircle 16px #22C55E"
+        },
+        {
+          "label": "Add your first Contact",
+          "state": "completed",
+          "icon": "CheckCircle 16px #22C55E"
+        },
+        {
+          "label": "Create your first Workflow",
+          "state": "completed",
+          "icon": "CheckCircle 16px #22C55E"
+        },
+        {
+          "label": "Launch a Broadcast Campaign",
+          "state": "completed",
+          "icon": "CheckCircle 16px #22C55E"
+        },
+        {
+          "label": "Set up AI Chatbot",
+          "state": "completed",
+          "icon": "CheckCircle 16px #22C55E"
+        },
+        {
+          "label": "Configure Voice Agent",
+          "state": "in_progress",
+          "icon": "Circle 16px #FFE27C",
+          "cta": {
+            "label": "Set up now \u2192",
+            "color": "#1B1B1B",
+            "font_weight": 600
+          }
+        },
+        {
+          "label": "Upload Knowledge Base",
+          "state": "pending",
+          "icon": "Circle 16px #E8E8E4"
+        },
+        {
+          "label": "Invite your team",
+          "state": "pending",
+          "icon": "Circle 16px #E8E8E4"
+        }
+      ]
+    }
+  }
+}

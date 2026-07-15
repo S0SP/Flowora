@@ -43,13 +43,8 @@ export async function fetchGoogleSheetRows(url: string): Promise<Record<string, 
   return (parsed.data as Record<string, string>[]) || [];
 }
 
-let isSyncing = false;
-
 // 1. Sync active Google Sheets into the queue
 export async function syncActiveSheets() {
-  if (isSyncing) return { skipped: true, reason: "Already syncing" };
-  isSyncing = true;
-
   try {
     const supabase = await createAdminClient();
 
@@ -124,18 +119,11 @@ export async function syncActiveSheets() {
   } catch (err) {
     console.error("LeadCapture: unexpected sync error:", err);
     return { success: false, error: err instanceof Error ? err.message : "Unknown error" };
-  } finally {
-    isSyncing = false;
   }
 }
 
-let isProcessingLeads = false;
-
 // 2. Process and send pending messages
 export async function sendPendingLeads() {
-  if (isProcessingLeads) return { skipped: true, reason: "Already processing leads" };
-  isProcessingLeads = true;
-
   try {
     const supabase = await createAdminClient();
 
@@ -208,6 +196,46 @@ export async function sendPendingLeads() {
           throw new Error(contactError?.message ?? "Failed to upsert contact");
         }
 
+        // Auto-create lead row in New Lead stage
+        try {
+          const { data: pipeline } = await supabase
+            .from("pipelines")
+            .select("id")
+            .eq("workspace_id", lead.workspace_id)
+            .eq("is_default", true)
+            .single();
+
+          const { data: stage } = await supabase
+            .from("pipeline_stages")
+            .select("id")
+            .eq("workspace_id", lead.workspace_id)
+            .eq("name", "New Lead")
+            .limit(1)
+            .single();
+
+          const { data: existingLead } = await supabase
+            .from("leads")
+            .select("id")
+            .eq("workspace_id", lead.workspace_id)
+            .eq("contact_id", upsertedContact.id)
+            .maybeSingle();
+
+          if (!existingLead) {
+            await supabase
+              .from("leads")
+              .insert({
+                workspace_id: lead.workspace_id,
+                contact_id: upsertedContact.id,
+                pipeline_id: pipeline?.id || null,
+                stage_id: stage?.id || null,
+                status: "new",
+                value: 0,
+              });
+          }
+        } catch (leadAutoErr) {
+          console.error("LeadCapture: failed to auto-create lead row:", leadAutoErr);
+        }
+
         let waSent = false;
         let waError = null;
         let emailSent = false;
@@ -247,6 +275,24 @@ export async function sendPendingLeads() {
         // 2b. Send Email if enabled and email address is provided
         if (setting.email_enabled && lead.email) {
           try {
+            // Fetch SMTP from channel_connections
+            const { data: smtpConn } = await supabase
+              .from("channel_connections")
+              .select("config")
+              .eq("workspace_id", lead.workspace_id)
+              .eq("type", "smtp")
+              .maybeSingle();
+
+            const smtpConfig = (smtpConn?.config as any) || {};
+            const smtpHost = smtpConfig.host;
+            const smtpPort = smtpConfig.port;
+            const smtpUser = smtpConfig.user;
+            const smtpPassword = smtpConfig.password; // Assuming securely stored or decrypted elsewhere in a real prod app, but matching current config usage
+
+            if (!smtpHost || !smtpUser || !smtpPassword) {
+              throw new Error("SMTP credentials not configured in workspace settings");
+            }
+
             const emailHtml = compileEmailTemplate(
               setting.email_template_id || "welcome",
               {
@@ -267,12 +313,12 @@ export async function sendPendingLeads() {
 
             await sendMail(
               {
-                smtp_host: setting.smtp_host,
-                smtp_port: setting.smtp_port,
-                smtp_user: setting.smtp_user,
-                smtp_password: setting.smtp_password,
-                email_from_name: setting.email_from_name,
-                email_from: setting.email_from,
+                smtp_host: smtpHost,
+                smtp_port: smtpPort || 587,
+                smtp_user: smtpUser,
+                smtp_password: smtpPassword,
+                email_from_name: setting.email_from_name || smtpConfig.fromName,
+                email_from: setting.email_from || smtpConfig.fromEmail || smtpUser,
               },
               lead.email,
               setting.email_subject || "New Lead Confirmation",
@@ -433,6 +479,30 @@ export async function sendPendingLeads() {
           })
           .eq("id", lead.id);
 
+        // Auto-update lead row status to "contacted" if contacted
+        if (waSent || emailSent || voiceSent) {
+          try {
+            const { data: contactedStage } = await supabase
+              .from("pipeline_stages")
+              .select("id")
+              .eq("workspace_id", lead.workspace_id)
+              .eq("name", "Contacted")
+              .limit(1)
+              .single();
+
+            await supabase
+              .from("leads")
+              .update({
+                status: "contacted",
+                stage_id: contactedStage?.id || null,
+              })
+              .eq("workspace_id", lead.workspace_id)
+              .eq("contact_id", upsertedContact.id);
+          } catch (autoContactErr) {
+            console.error("LeadCapture: failed to auto-transition lead to contacted:", autoContactErr);
+          }
+        }
+
         // 5. Best-effort per-channel breakdown for the frontend activity panel.
         // Requires the `channel_status` column (see migration-lead-capture-channel-status.sql).
         // If the column isn't present yet, this update is ignored and the core
@@ -480,7 +550,5 @@ export async function sendPendingLeads() {
   } catch (err) {
     console.error("LeadCapture: unexpected process error:", err);
     return { success: false, error: err instanceof Error ? err.message : "Unknown error" };
-  } finally {
-    isProcessingLeads = false;
   }
 }

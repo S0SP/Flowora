@@ -1,0 +1,309 @@
+{
+  "meta": {
+    "screen": "01 \u2014 Main Dashboard",
+    "part": 1,
+    "subtitle": "Layout Shell: Sidebar Navigation + Top Bar + Greeting Header",
+    "file": "01_dashboard_part1.json",
+    "viewport": "1440x900px desktop",
+    "theme": "light"
+  },
+  "image_prompt": {
+    "scene_description": "Ultra-high-resolution 16K professional SaaS dashboard UI screenshot of Flowora, an AI Communication OS. The viewport is 1440x900px desktop browser window. The overall color ratio is: 92% white and light surfaces, 5% Cod Gray (#1B1B1B) sidebar, 3% Kournikova yellow (#FFE27C) accents. Clean, minimal, enterprise-grade design inspired by Deel and Linear.",
+    "layout_structure": {
+      "type": "three-column shell",
+      "columns": {
+        "sidebar": {
+          "width": "240px",
+          "position": "fixed left",
+          "background": "#1B1B1B",
+          "height": "100vh"
+        },
+        "main_content": {
+          "width": "calc(100vw - 240px)",
+          "background": "#FAFAF8",
+          "overflow_y": "auto"
+        }
+      }
+    },
+    "sidebar": {
+      "background_color": "#1B1B1B",
+      "width": "240px",
+      "height": "100%",
+      "padding": "0",
+      "structure": {
+        "logo_section": {
+          "height": "56px",
+          "padding": "0 16px",
+          "display": "flex align-items-center",
+          "content": {
+            "logo_icon": "Three connected hexagons in #FFE27C yellow forming a flow symbol, 32x32px",
+            "wordmark": "Flowora in Inter ExtraBold 18px #FFFFFF, tracked +1"
+          }
+        },
+        "workspace_selector": {
+          "margin": "8px 12px",
+          "background": "rgba(255,255,255,0.06)",
+          "border_radius": "8px",
+          "padding": "10px 12px",
+          "content": {
+            "company_avatar": "32x32px rounded square, gradient #FFE27C to #FFC800, letter A",
+            "company_name": "Acme Corp \u2014 14px #FFFFFF font-weight 500",
+            "plan_badge": "Pro Plan \u2014 11px #FFE27C uppercase tracked",
+            "chevron_icon": "ChevronDown 14px rgba(255,255,255,0.5) aligned right"
+          }
+        },
+        "search_button": {
+          "margin": "4px 12px",
+          "background": "rgba(255,255,255,0.06)",
+          "border_radius": "8px",
+          "padding": "8px 12px",
+          "content": "Search icon 14px rgba(255,255,255,0.4) + text Search... rgba(255,255,255,0.4) 13px + kbd shortcut \u2318K rgba(255,255,255,0.3) 11px right-aligned"
+        },
+        "navigation_sections": [
+          {
+            "section_label": null,
+            "items": [
+              {
+                "icon": "LayoutDashboard",
+                "label": "Home",
+                "state": "active",
+                "background": "#FFE27C",
+                "text_color": "#1B1B1B",
+                "icon_color": "#1B1B1B",
+                "font_weight": 600,
+                "border_radius": "8px",
+                "padding": "10px 12px",
+                "margin": "2px 12px"
+              }
+            ]
+          },
+          {
+            "section_label": "COMMUNICATE",
+            "label_style": "11px rgba(255,255,255,0.35) uppercase tracked 0.8px margin: 16px 12px 6px",
+            "items": [
+              {
+                "icon": "Inbox",
+                "label": "Shared Inbox",
+                "badge": {
+                  "value": "34",
+                  "bg": "#B1D8FC",
+                  "text": "#1B1B1B"
+                },
+                "state": "default",
+                "notification_dot": false
+              },
+              {
+                "icon": "Megaphone",
+                "label": "Broadcast Campaigns",
+                "state": "default"
+              },
+              {
+                "icon": "Users",
+                "label": "Contacts",
+                "state": "default"
+              }
+            ]
+          },
+          {
+            "section_label": "AUTOMATE",
+            "label_style": "11px rgba(255,255,255,0.35) uppercase tracked 0.8px",
+            "items": [
+              {
+                "icon": "Workflow",
+                "label": "Workflow Builder",
+                "badge": {
+                  "value": "NEW",
+                  "bg": "#FFE27C",
+                  "text": "#1B1B1B"
+                },
+                "state": "default"
+              },
+              {
+                "icon": "Bot",
+                "label": "AI Chatbot",
+                "state": "default"
+              },
+              {
+                "icon": "Mic",
+                "label": "AI Voice Agent",
+                "tint": "#C4B1F9",
+                "state": "default"
+              }
+            ]
+          },
+          {
+            "section_label": "MANAGE",
+            "label_style": "11px rgba(255,255,255,0.35) uppercase tracked 0.8px",
+            "items": [
+              {
+                "icon": "Kanban",
+                "label": "Leads CRM",
+                "state": "default"
+              },
+              {
+                "icon": "BarChart3",
+                "label": "Analytics",
+                "state": "default"
+              },
+              {
+                "icon": "BookOpen",
+                "label": "Knowledge Hub",
+                "state": "default"
+              }
+            ]
+          },
+          {
+            "section_label": "SETTINGS",
+            "label_style": "11px rgba(255,255,255,0.35) uppercase tracked 0.8px",
+            "items": [
+              {
+                "icon": "Users2",
+                "label": "Team & Agents",
+                "state": "default"
+              },
+              {
+                "icon": "Plug",
+                "label": "Integrations",
+                "state": "default"
+              },
+              {
+                "icon": "CreditCard",
+                "label": "Billing & Credits",
+                "state": "default"
+              },
+              {
+                "icon": "Settings",
+                "label": "Settings",
+                "state": "default"
+              }
+            ]
+          }
+        ],
+        "bottom_section": {
+          "position": "absolute bottom 0",
+          "width": "100%",
+          "border_top": "1px solid rgba(255,255,255,0.08)",
+          "padding": "12px",
+          "content": {
+            "user_row": {
+              "avatar": "40x40px circle, gradient orange-to-yellow, initials RF white",
+              "name": "Robert Fox \u2014 14px #FFFFFF font-weight 500",
+              "role": "Admin \u2014 12px rgba(255,255,255,0.5)",
+              "more_icon": "MoreHorizontal 16px rgba(255,255,255,0.5) right"
+            },
+            "credits_row": {
+              "label": "AI Credits \u2014 12px rgba(255,255,255,0.5)",
+              "value": "7,850 / 10,000 \u2014 12px #FFE27C font-weight 600",
+              "progress_bar": {
+                "width": "100%",
+                "height": "4px",
+                "track_bg": "rgba(255,255,255,0.1)",
+                "fill_bg": "#FFE27C",
+                "fill_percent": "78.5%",
+                "border_radius": "9999px"
+              }
+            }
+          }
+        }
+      }
+    },
+    "topbar": {
+      "height": "56px",
+      "background": "#FFFFFF",
+      "border_bottom": "1px solid #E8E8E4",
+      "padding": "0 24px",
+      "layout": "flex justify-between align-center",
+      "left_section": {
+        "breadcrumb": "Home \u2014 14px #9B9B9B / Overview \u2014 14px #1B1B1B font-weight 500"
+      },
+      "center_section": {
+        "global_search": {
+          "width": "360px",
+          "background": "#F4F4F2",
+          "border": "1px solid transparent",
+          "border_radius": "8px",
+          "padding": "8px 14px",
+          "placeholder": "Search contacts, campaigns, conversations...",
+          "icon": "Search 16px #9B9B9B left",
+          "kbd_hint": "\u2318K right-aligned 11px #9B9B9B"
+        }
+      },
+      "right_section": {
+        "items": [
+          {
+            "type": "icon_button",
+            "icon": "Bell",
+            "badge": {
+              "value": "5",
+              "bg": "#EF4444",
+              "text": "#FFFFFF",
+              "size": "16px"
+            },
+            "tooltip": "Notifications"
+          },
+          {
+            "type": "icon_button",
+            "icon": "HelpCircle",
+            "tooltip": "Help & Docs"
+          },
+          {
+            "type": "icon_button",
+            "icon": "Settings",
+            "tooltip": "Settings"
+          },
+          {
+            "type": "divider",
+            "width": "1px",
+            "height": "24px",
+            "bg": "#E8E8E4"
+          },
+          {
+            "type": "user_avatar",
+            "avatar": "36x36px circle gradient yellow-orange initials RF",
+            "name": "Robert Fox",
+            "role_badge": "Admin",
+            "chevron": "ChevronDown 12px #9B9B9B"
+          }
+        ]
+      }
+    },
+    "greeting_header": {
+      "position": "top of content area below topbar",
+      "padding": "24px 24px 0",
+      "layout": "flex justify-between align-start",
+      "left": {
+        "greeting": "Good Morning, Robert \ud83d\udc4b \u2014 28px Inter Bold #1B1B1B",
+        "subtitle": "Your AI handled 342 conversations overnight. Here's your overview. \u2014 15px #6B6B6B",
+        "date": "Wednesday, 14 January 2026 \u2014 13px #9B9B9B margin-top 4px"
+      },
+      "right": {
+        "quick_actions_button": {
+          "label": "Quick Actions",
+          "icon": "Zap left",
+          "background": "#FFE27C",
+          "text": "#1B1B1B",
+          "font_weight": 600,
+          "border_radius": "8px",
+          "padding": "10px 18px",
+          "shadow": "0 2px 8px rgba(255,226,124,0.4)",
+          "dropdown_indicator": "ChevronDown 12px"
+        },
+        "secondary_button": {
+          "label": "Create Workflow",
+          "icon": "Plus left",
+          "background": "#FFFFFF",
+          "border": "1px solid #E8E8E4",
+          "border_radius": "8px",
+          "padding": "10px 18px",
+          "margin_right": "8px"
+        }
+      }
+    }
+  },
+  "rendering": {
+    "resolution": "3840x2160 downscaled to 16K equivalent clarity",
+    "style": "pixel-perfect professional SaaS dashboard, clean minimal enterprise UI",
+    "text": "all text crisp, perfectly readable, no blur",
+    "negative": "no blur, no distortion, no watermark, no sketch style, no 3D effects"
+  }
+}

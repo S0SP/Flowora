@@ -1,0 +1,392 @@
+{
+  "meta": {
+    "screen": "13 \u2014 Integrations",
+    "file": "13_integrations.json",
+    "version": "1.0.0",
+    "subtitle": "Integration Hub: Connected apps, OAuth flow, Webhook manager, API status"
+  },
+  "image_prompt": {
+    "composition": "Ultra-wide 16:9 desktop 8K screenshot. Left sidebar dark. Main area shows Integration Hub full page. Card grid of integration logos. Connected vs available states. Clean white surface. All logos crisp. Professional enterprise SaaS.",
+    "page_header": {
+      "title": "Integrations \u2014 24px 700 #1B1B1B",
+      "subtitle": "Connect Flowora with your favourite tools to automate your workflow \u2014 14px #6B6B6B",
+      "search_bar": {
+        "placeholder": "Search integrations...",
+        "width": "280px",
+        "border": "1px solid #E8E8E4",
+        "border_radius": "8px",
+        "icon_left": "Search 16px #9B9B9B"
+      },
+      "filter_tabs": [
+        {
+          "label": "All",
+          "active": true
+        },
+        {
+          "label": "Connected",
+          "count": "6"
+        },
+        {
+          "label": "CRM",
+          "active": false
+        },
+        {
+          "label": "Sheets & Data",
+          "active": false
+        },
+        {
+          "label": "E-commerce",
+          "active": false
+        },
+        {
+          "label": "Communication",
+          "active": false
+        },
+        {
+          "label": "Payment",
+          "active": false
+        }
+      ],
+      "tab_style": "pill tabs bg #F5F5F0 border-radius 20px padding 6px 14px font 13px gap 8px"
+    },
+    "connected_section": {
+      "section_title": "Connected \u2014 14px 600 #1B1B1B margin-bottom 16px",
+      "grid": "3 columns grid gap 16px",
+      "cards": [
+        {
+          "logo": "Google Sheets icon 32px",
+          "name": "Google Sheets \u2014 15px 600 #1B1B1B",
+          "description": "Poll sheets for new leads and trigger workflows automatically \u2014 13px #6B6B6B",
+          "status_badge": {
+            "label": "Connected",
+            "bg": "#F0FDF4",
+            "text": "#15803D",
+            "dot": "#22C55E"
+          },
+          "connected_account": "acme@gmail.com \u2014 12px #9B9B9B",
+          "last_sync": "Last sync: 2 min ago \u2014 11px #9B9B9B",
+          "actions": {
+            "configure_button": "Configure \u2014 outlined border #E8E8E4 text #1B1B1B font 13px border-radius 6px",
+            "disconnect_button": "Disconnect \u2014 text only #EF4444 font 13px"
+          },
+          "card_style": "white bg border 1px #E8E8E4 border-radius 12px padding 20px shadow card"
+        },
+        {
+          "logo": "HubSpot orange logo 32px",
+          "name": "HubSpot CRM",
+          "description": "Sync contacts, deals, and pipeline data with HubSpot in real time",
+          "status_badge": {
+            "label": "Connected",
+            "bg": "#F0FDF4",
+            "text": "#15803D",
+            "dot": "#22C55E"
+          },
+          "connected_account": "acme-hubspot.com",
+          "last_sync": "Last sync: 15 min ago",
+          "actions": {
+            "configure_button": "Configure",
+            "disconnect_button": "Disconnect"
+          }
+        },
+        {
+          "logo": "Salesforce cloud logo 32px",
+          "name": "Salesforce",
+          "description": "Push WhatsApp leads directly into Salesforce CRM and update status",
+          "status_badge": {
+            "label": "Connected",
+            "bg": "#F0FDF4",
+            "text": "#15803D",
+            "dot": "#22C55E"
+          },
+          "connected_account": "acme.salesforce.com",
+          "last_sync": "Last sync: 1h ago",
+          "actions": {
+            "configure_button": "Configure",
+            "disconnect_button": "Disconnect"
+          }
+        },
+        {
+          "logo": "Shopify bag icon 32px",
+          "name": "Shopify",
+          "description": "Show order history in shared inbox smart cards for e-commerce context",
+          "status_badge": {
+            "label": "Connected",
+            "bg": "#F0FDF4",
+            "text": "#15803D",
+            "dot": "#22C55E"
+          },
+          "connected_account": "acme-store.myshopify.com",
+          "last_sync": "Last sync: 30 min ago",
+          "actions": {
+            "configure_button": "Configure",
+            "disconnect_button": "Disconnect"
+          }
+        },
+        {
+          "logo": "Slack logo 32px",
+          "name": "Slack",
+          "description": "Receive workflow alerts and new lead notifications in your Slack channel",
+          "status_badge": {
+            "label": "Connected",
+            "bg": "#F0FDF4",
+            "text": "#15803D",
+            "dot": "#22C55E"
+          },
+          "connected_account": "#flowora-alerts channel",
+          "last_sync": "Active",
+          "actions": {
+            "configure_button": "Configure",
+            "disconnect_button": "Disconnect"
+          }
+        },
+        {
+          "logo": "Stripe S logo 32px",
+          "name": "Stripe",
+          "description": "Track payment events and send WhatsApp payment confirmations",
+          "status_badge": {
+            "label": "Connected",
+            "bg": "#F0FDF4",
+            "text": "#15803D",
+            "dot": "#22C55E"
+          },
+          "connected_account": "pk_live_...xyz",
+          "last_sync": "Active webhook",
+          "actions": {
+            "configure_button": "Configure",
+            "disconnect_button": "Disconnect"
+          }
+        }
+      ]
+    },
+    "available_section": {
+      "section_title": "Available Integrations \u2014 14px 600 #1B1B1B margin-bottom 16px margin-top 32px",
+      "grid": "4 columns grid gap 16px",
+      "cards": [
+        {
+          "logo": "WooCommerce logo 32px",
+          "name": "WooCommerce",
+          "description": "Connect your WooCommerce store for order and customer sync",
+          "status_badge": {
+            "label": "Not Connected",
+            "bg": "#F5F5F0",
+            "text": "#6B6B6B"
+          },
+          "connect_button": {
+            "label": "Connect",
+            "bg": "#FFE27C",
+            "text_color": "#1B1B1B",
+            "border_radius": "6px",
+            "font": "13px 600"
+          }
+        },
+        {
+          "logo": "Zapier zap icon 32px",
+          "name": "Zapier",
+          "description": "Build automated zaps using Flowora triggers and actions",
+          "status_badge": {
+            "label": "Not Connected",
+            "bg": "#F5F5F0",
+            "text": "#6B6B6B"
+          },
+          "connect_button": {
+            "label": "Connect",
+            "bg": "#FFE27C"
+          }
+        },
+        {
+          "logo": "Pipedrive logo 32px",
+          "name": "Pipedrive",
+          "description": "Sync pipeline stages and deal data with Pipedrive CRM",
+          "status_badge": {
+            "label": "Not Connected",
+            "bg": "#F5F5F0",
+            "text": "#6B6B6B"
+          },
+          "connect_button": {
+            "label": "Connect",
+            "bg": "#FFE27C"
+          }
+        },
+        {
+          "logo": "Zoho Z logo 32px",
+          "name": "Zoho CRM",
+          "description": "Two-way sync of leads and contacts with Zoho CRM",
+          "status_badge": {
+            "label": "Not Connected",
+            "bg": "#F5F5F0",
+            "text": "#6B6B6B"
+          },
+          "connect_button": {
+            "label": "Connect",
+            "bg": "#FFE27C"
+          }
+        },
+        {
+          "logo": "Razorpay logo 32px",
+          "name": "Razorpay",
+          "description": "Trigger WhatsApp payment links and confirmation messages",
+          "status_badge": {
+            "label": "Not Connected",
+            "bg": "#F5F5F0",
+            "text": "#6B6B6B"
+          },
+          "connect_button": {
+            "label": "Connect",
+            "bg": "#FFE27C"
+          }
+        },
+        {
+          "logo": "Calendly logo 32px",
+          "name": "Calendly",
+          "description": "Send WhatsApp booking confirmations and reminders via Calendly",
+          "status_badge": {
+            "label": "Not Connected",
+            "bg": "#F5F5F0",
+            "text": "#6B6B6B"
+          },
+          "connect_button": {
+            "label": "Connect",
+            "bg": "#FFE27C"
+          }
+        },
+        {
+          "logo": "Notion N logo 32px",
+          "name": "Notion",
+          "description": "Sync lead notes and conversation summaries to Notion pages",
+          "status_badge": {
+            "label": "Coming Soon",
+            "bg": "#FFFBEB",
+            "text": "#D97706"
+          },
+          "connect_button": {
+            "label": "Notify Me",
+            "style": "outlined border #E8E8E4 text #6B6B6B"
+          }
+        },
+        {
+          "logo": "Make (Integromat) logo 32px",
+          "name": "Make (Integromat)",
+          "description": "Advanced automation scenarios using Make with Flowora modules",
+          "status_badge": {
+            "label": "Coming Soon",
+            "bg": "#FFFBEB",
+            "text": "#D97706"
+          },
+          "connect_button": {
+            "label": "Notify Me",
+            "style": "outlined border #E8E8E4 text #6B6B6B"
+          }
+        }
+      ],
+      "available_card_style": "white bg border 1px #E8E8E4 border-radius 12px padding 20px shadow card"
+    },
+    "oauth_connect_modal": {
+      "trigger": "Click Connect on any not-connected card",
+      "overlay": "rgba(0,0,0,0.4) backdrop-blur 4px",
+      "modal": {
+        "width": "440px",
+        "bg": "#FFFFFF",
+        "border_radius": "16px",
+        "padding": "32px",
+        "shadow": "0 20px 60px rgba(0,0,0,0.15)"
+      },
+      "content": {
+        "integration_logo": "48px logo integration being connected",
+        "title": "Connect WooCommerce \u2014 20px 700 #1B1B1B",
+        "subtitle": "Authorize Flowora to access your WooCommerce store \u2014 14px #6B6B6B",
+        "permission_list": {
+          "title": "Flowora will be able to: \u2014 13px 600 #1B1B1B margin-bottom 10px",
+          "items": [
+            {
+              "icon": "Check 14px #22C55E",
+              "text": "Read customer orders and contact info"
+            },
+            {
+              "icon": "Check 14px #22C55E",
+              "text": "Receive new order webhook events"
+            },
+            {
+              "icon": "Check 14px #22C55E",
+              "text": "Display order history in shared inbox"
+            }
+          ],
+          "item_style": "flex row gap 10px items-center font 13px #6B6B6B padding 6px 0"
+        },
+        "form_fields": [
+          {
+            "label": "Store URL",
+            "placeholder": "https://yourstore.com"
+          },
+          {
+            "label": "Consumer Key",
+            "placeholder": "ck_..."
+          },
+          {
+            "label": "Consumer Secret",
+            "placeholder": "cs_...",
+            "type": "password"
+          }
+        ],
+        "footer_buttons": {
+          "cancel": "outlined Cancel",
+          "connect": {
+            "label": "Connect WooCommerce",
+            "bg": "#FFE27C",
+            "text_color": "#1B1B1B"
+          }
+        }
+      }
+    },
+    "webhooks_section": {
+      "position": "below integration grid as expandable section",
+      "header": {
+        "title": "Webhooks \u2014 16px 600 #1B1B1B",
+        "subtitle": "Configure inbound webhooks to trigger Flowora workflows from external tools \u2014 13px #6B6B6B",
+        "add_webhook_button": {
+          "label": "+ Add Webhook",
+          "bg": "#FFE27C",
+          "text_color": "#1B1B1B"
+        }
+      },
+      "webhooks_table": {
+        "columns": [
+          "Webhook Name",
+          "Endpoint URL",
+          "Events",
+          "Status",
+          "Actions"
+        ],
+        "rows": [
+          {
+            "name": "Typeform Lead Capture",
+            "url": "https://api.flowora.io/wh/tf_abc123 \u2014 font-mono 12px",
+            "events": "form_submitted",
+            "status": {
+              "dot": "#22C55E",
+              "label": "Active"
+            },
+            "actions": "Copy URL + Edit + Delete"
+          },
+          {
+            "name": "Shopify Order Created",
+            "url": "https://api.flowora.io/wh/sh_xyz789",
+            "events": "orders/create, orders/paid",
+            "status": {
+              "dot": "#22C55E",
+              "label": "Active"
+            },
+            "actions": "Copy URL + Edit + Delete"
+          }
+        ]
+      }
+    }
+  },
+  "rendering_settings": {
+    "resolution": "7680x4320 8K",
+    "style": "photorealistic UI mockup",
+    "font_rendering": "subpixel crisp",
+    "no_blur": true,
+    "logos": "crisp vector-quality integration logos"
+  },
+  "negative_prompt": "blur, dark bg main area, missing logos, illegible text, mobile layout, sketch, neon, 3D effects"
+}

@@ -9,7 +9,15 @@ export async function POST(req: NextRequest) {
     if (authError || !user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const body = await req.json();
-    const { toNumber, agentType = "livekit", voiceId = "anushka", systemPrompt } = body;
+    const {
+      toNumber,
+      agentType = "livekit",
+      voiceId = "anushka",
+      systemPrompt,
+      deepgramLanguage,
+      sarvamLanguage,
+      languagePreset,
+    } = body;
 
     if (!toNumber || !/^[0-9+\s\-()]{6,15}$/.test(toNumber.replace(/\s/g, ""))) {
       return NextResponse.json({ error: "Invalid phone number" }, { status: 400 });
@@ -41,6 +49,9 @@ export async function POST(req: NextRequest) {
       voiceId,
       systemPrompt,
       callId: callRecord.id,
+      deepgramLanguage,
+      sarvamLanguage,
+      languagePreset,
     });
 
     // Update call record with LiveKit details

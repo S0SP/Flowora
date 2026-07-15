@@ -1,0 +1,298 @@
+{
+  "meta": {
+    "screen": "14 \u2014 Onboarding Flow",
+    "file": "14_onboarding_flow.json",
+    "version": "1.0.0",
+    "subtitle": "New User Onboarding: Welcome \u2192 Connect WhatsApp \u2192 Import Contacts \u2192 First Workflow \u2192 Go Live"
+  },
+  "image_prompt": {
+    "composition": "Full-page 8K ultra-wide desktop screenshot. Multi-step onboarding wizard. Clean white centered layout with progress steps at top. Each step shown as a card. Yellow primary actions. Minimal elegant design matching Flowora brand. All text crisp and sharp.",
+    "onboarding_wrapper": {
+      "bg": "#FAFAF8",
+      "min_height": "100vh",
+      "layout": "centered column max-width 680px margin auto padding 48px 0"
+    },
+    "top_logo": {
+      "position": "top center",
+      "logo": "Flowora hexagon logo 28px + wordmark Flowora 20px 700 #1B1B1B",
+      "margin_bottom": "40px"
+    },
+    "progress_stepper": {
+      "position": "top of card area",
+      "style": "horizontal flex row gap 0 connected by line",
+      "steps": [
+        {
+          "number": "1",
+          "label": "Welcome",
+          "state": "completed",
+          "style": "circle 32px bg #FFE27C text #1B1B1B font 14px 700 + connecting line #FFE27C"
+        },
+        {
+          "number": "2",
+          "label": "Connect WhatsApp",
+          "state": "active",
+          "style": "circle 32px border 2px #FFE27C bg white text #1B1B1B + connecting line #E8E8E4"
+        },
+        {
+          "number": "3",
+          "label": "Import Contacts",
+          "state": "upcoming",
+          "style": "circle 32px border 2px #E8E8E4 bg white text #9B9B9B"
+        },
+        {
+          "number": "4",
+          "label": "First Workflow",
+          "state": "upcoming",
+          "style": "same upcoming"
+        },
+        {
+          "number": "5",
+          "label": "Go Live",
+          "state": "upcoming",
+          "style": "same upcoming"
+        }
+      ],
+      "step_label_style": "12px 500 below circle margin-top 6px",
+      "connecting_line": "2px horizontal line between circles"
+    },
+    "steps": [
+      {
+        "step": 1,
+        "title": "Welcome to Flowora \ud83d\udc4b \u2014 24px 700 #1B1B1B text-center",
+        "subtitle": "Your AI-powered WhatsApp, Email & Voice communication platform. Let's get you set up in 5 minutes. \u2014 15px #6B6B6B text-center",
+        "card": {
+          "bg": "#FFFFFF",
+          "border_radius": "16px",
+          "padding": "40px",
+          "border": "1px solid #E8E8E4",
+          "shadow": "0 4px 24px rgba(0,0,0,0.08)"
+        },
+        "content": {
+          "value_props": [
+            {
+              "icon": "MessageCircle 20px bg #FFFBEB circle 40px",
+              "title": "WhatsApp CRM",
+              "desc": "Manage all conversations from one inbox"
+            },
+            {
+              "icon": "Zap 20px bg #FFFBEB circle 40px",
+              "title": "Agentic AI Workflows",
+              "desc": "Automate lead engagement automatically"
+            },
+            {
+              "icon": "Mic 20px bg #FFFBEB circle 40px",
+              "title": "AI Voice Agent",
+              "desc": "Call leads and retain them with AI voice"
+            }
+          ],
+          "prop_style": "flex row gap 16px items-start padding 16px bg #FAFAF8 border-radius 10px margin-bottom 12px"
+        },
+        "workspace_name_field": {
+          "label": "What's your company name? \u2014 13px 600 #1B1B1B",
+          "input": {
+            "placeholder": "e.g. Acme Corp",
+            "value": "",
+            "style": "border 1px #E8E8E4 border-radius 8px padding 12px 16px font 15px width 100%"
+          }
+        },
+        "next_button": {
+          "label": "Get Started \u2192",
+          "bg": "#FFE27C",
+          "text_color": "#1B1B1B",
+          "font_weight": "700",
+          "font_size": "15px",
+          "width": "100%",
+          "border_radius": "10px",
+          "padding": "14px",
+          "shadow": "0 4px 16px rgba(255,226,124,0.5)",
+          "margin_top": "24px"
+        }
+      },
+      {
+        "step": 2,
+        "title": "Connect Your WhatsApp Business \u2014 22px 700 text-center",
+        "subtitle": "Link your WhatsApp Business API number to start receiving and sending messages \u2014 14px #6B6B6B text-center",
+        "card": "same card style",
+        "content": {
+          "two_options": [
+            {
+              "option": "A",
+              "title": "Connect via Meta Business Suite",
+              "description": "Easiest option. Log in with Facebook and authorize Flowora \u2014 13px #6B6B6B",
+              "button": {
+                "label": "Connect with Meta",
+                "icon": "Facebook logo 16px",
+                "bg": "#1877F2",
+                "text_color": "#FFFFFF",
+                "border_radius": "8px"
+              },
+              "style": "border 2px solid #1877F2 border-radius 12px padding 20px mb 12px"
+            },
+            {
+              "option": "B",
+              "title": "Enter API Credentials Manually",
+              "description": "For advanced users with existing API credentials \u2014 13px #6B6B6B",
+              "expand_toggle": "expand chevron to reveal fields",
+              "fields_hidden": [
+                {
+                  "label": "Phone Number ID"
+                },
+                {
+                  "label": "Business Account ID"
+                },
+                {
+                  "label": "Permanent Access Token"
+                }
+              ],
+              "style": "border 1px #E8E8E4 border-radius 12px padding 20px"
+            }
+          ]
+        },
+        "skip_link": "Skip for now \u2014 13px #9B9B9B text-center underline cursor-pointer",
+        "next_button": {
+          "label": "Continue \u2192",
+          "bg": "#FFE27C",
+          "text_color": "#1B1B1B",
+          "width": "100%",
+          "border_radius": "10px"
+        }
+      },
+      {
+        "step": 3,
+        "title": "Import Your Contacts \u2014 22px 700 text-center",
+        "subtitle": "Add your existing leads and contacts to get started \u2014 14px #6B6B6B text-center",
+        "card": "same card style",
+        "content": {
+          "import_options": [
+            {
+              "icon": "FileSpreadsheet 24px #22C55E",
+              "title": "Import from CSV",
+              "description": "Upload a CSV file with name, phone, email columns",
+              "action": "Upload CSV \u2014 button outlined",
+              "style": "flex row gap 16px items-center border 1px #E8E8E4 border-radius 10px padding 16px hover:border #FFE27C cursor-pointer"
+            },
+            {
+              "icon": "Google Sheets icon 24px",
+              "title": "Connect Google Sheet",
+              "description": "Paste a Google Sheet URL and we'll import contacts",
+              "action": "Paste Sheet URL \u2014 input field",
+              "style": "same border hover style"
+            },
+            {
+              "icon": "Users 24px #C4B1F9",
+              "title": "Add Manually",
+              "description": "Add a few contacts one by one to test",
+              "action": "Add Contact \u2014 button outlined",
+              "style": "same border hover style"
+            }
+          ]
+        },
+        "skip_link": "Skip \u2014 I'll add contacts later",
+        "next_button": {
+          "label": "Continue \u2192",
+          "bg": "#FFE27C",
+          "width": "100%"
+        }
+      },
+      {
+        "step": 4,
+        "title": "Create Your First Workflow \u2014 22px 700 text-center",
+        "subtitle": "Choose a template to get started quickly \u2014 14px #6B6B6B text-center",
+        "card": "same card style",
+        "template_options": [
+          {
+            "icon": "Zap 24px #FFE27C",
+            "title": "Google Sheet \u2192 WhatsApp Lead Nurture",
+            "description": "Auto-send WhatsApp message when new lead added to Google Sheet \u2014 13px #6B6B6B",
+            "badge": "Most Popular \u2014 bg #FFFBEB text #D97706 border-radius 4px font 11px",
+            "select_button": {
+              "label": "Use This Template",
+              "bg": "#FFE27C",
+              "text_color": "#1B1B1B"
+            }
+          },
+          {
+            "icon": "Mic 24px #C4B1F9",
+            "title": "Voice Agent Lead Retention",
+            "description": "Auto-call new leads within 5 minutes using AI voice \u2014 13px #6B6B6B",
+            "select_button": {
+              "label": "Use This Template",
+              "style": "outlined"
+            }
+          },
+          {
+            "icon": "Mail 24px #B1D8FC",
+            "title": "Sheet \u2192 WhatsApp + Email Sequence",
+            "description": "Multi-channel outreach: WhatsApp first, then follow-up email \u2014 13px #6B6B6B",
+            "select_button": {
+              "label": "Use This Template",
+              "style": "outlined"
+            }
+          },
+          {
+            "icon": "GitBranch 24px #1B1B1B",
+            "title": "Start from Scratch",
+            "description": "Open the workflow builder and design your own flow \u2014 13px #6B6B6B",
+            "select_button": {
+              "label": "Open Builder",
+              "style": "outlined"
+            }
+          }
+        ],
+        "template_card_style": "border 1px #E8E8E4 border-radius 10px padding 18px flex row gap 16px items-start hover border #FFE27C cursor-pointer mb 10px"
+      },
+      {
+        "step": 5,
+        "title": "You're All Set! \ud83c\udf89 \u2014 28px 700 text-center",
+        "subtitle": "Flowora is ready to automate your lead engagement \u2014 15px #6B6B6B text-center",
+        "card": "same card style",
+        "content": {
+          "success_animation": "large check circle 80px bg #FFE27C icon Check 40px #1B1B1B centered animated pulse",
+          "summary_items": [
+            {
+              "icon": "Check #22C55E",
+              "text": "WhatsApp Business API connected"
+            },
+            {
+              "icon": "Check #22C55E",
+              "text": "47 contacts imported"
+            },
+            {
+              "icon": "Check #22C55E",
+              "text": "Lead Nurture workflow created and active"
+            }
+          ],
+          "summary_item_style": "flex row gap 12px items-center font 14px #1B1B1B padding 8px 0",
+          "go_to_dashboard_button": {
+            "label": "Go to Dashboard \u2192",
+            "bg": "#FFE27C",
+            "text_color": "#1B1B1B",
+            "font_weight": "700",
+            "font_size": "15px",
+            "width": "100%",
+            "border_radius": "10px",
+            "padding": "14px",
+            "shadow": "0 4px 16px rgba(255,226,124,0.5)"
+          },
+          "explore_links": {
+            "text": "Or explore: \u2014 13px #9B9B9B",
+            "links": [
+              "Shared Inbox \u2192",
+              "AI Chatbot \u2192",
+              "Voice Agent \u2192"
+            ],
+            "link_style": "14px #1B1B1B underline cursor-pointer gap 16px"
+          }
+        }
+      }
+    ]
+  },
+  "rendering_settings": {
+    "resolution": "7680x4320 8K",
+    "style": "photorealistic SaaS UI onboarding wizard screenshot",
+    "font_rendering": "crisp subpixel antialiasing",
+    "no_blur": true,
+    "background": "warm off-white #FAFAF8 full page"
+  },
+  "negative_prompt": "blur, dark mode, mobile only, sketch, neon, 3D render, missing steps, illegible fonts"
+}

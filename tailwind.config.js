@@ -9,9 +9,8 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
-        // Opt-in legible face for dense numeric/tabular UI (e.g. log tables)
-        data: ["var(--font-inter)", "ui-sans-serif", "system-ui", "sans-serif"],
+        sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        data: ["JetBrains Mono", "ui-monospace", "SFMono-Regular", "monospace"],
       },
       colors: {
         background: "hsl(var(--background))",
@@ -48,6 +47,16 @@ module.exports = {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      boxShadow: {
+        card: "0 2px 8px -2px rgba(27, 27, 27, 0.05), 0 1px 4px -1px rgba(27, 27, 27, 0.03)",
+        card_hover: "0 8px 24px -4px rgba(27, 27, 27, 0.08), 0 4px 12px -2px rgba(27, 27, 27, 0.04)",
+        dropdown: "0 12px 32px -4px rgba(27, 27, 27, 0.12), 0 0 0 1px rgba(27, 27, 27, 0.05)",
+        node_selected: "0 0 0 2px #FFE27C, 0 4px 16px rgba(255, 226, 124, 0.4)",
+      },
+      transitionTimingFunction: {
+        "easing-entrance": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "easing-exit": "ease-in",
       },
       keyframes: {
         "accordion-down": { from: { height: "0" }, to: { height: "var(--radix-accordion-content-height)" } },

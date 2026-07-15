@@ -5,8 +5,9 @@ import { useSearchParams } from "next/navigation";
 import {
   Phone, PhoneOff, Mic, Brain, Play, Loader2, Check,
   Volume2, ChevronRight, Sparkles, Clock, Radio, Edit3,
-  ChevronDown, ChevronUp, Zap, Trash2, AlertTriangle,
+  ChevronDown, ChevronUp, Zap, Trash2, AlertTriangle, Globe,
 } from "lucide-react";
+import { LANGUAGE_PRESETS } from "@/lib/voices";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { SARVAM_VOICES, GEMINI_VOICES } from "@/lib/voices";
@@ -139,6 +140,8 @@ export default function VoiceAgentPage() {
 function VoiceAgentPageContent({ initialVoice }: { initialVoice: string }) {
   const [agentType, setAgentType] = useState<AgentType>("livekit");
   const [selectedVoice, setSelectedVoice] = useState(initialVoice);
+  const [selectedLang, setSelectedLang] = useState("hinglish");
+  const [showLangPicker, setShowLangPicker] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [callStatus, setCallStatus] = useState<CallStatus>("idle");
   const [currentCallId, setCurrentCallId] = useState<string | null>(null);
@@ -146,6 +149,8 @@ function VoiceAgentPageContent({ initialVoice }: { initialVoice: string }) {
   const [systemPrompt, setSystemPrompt] = useState(DEFAULT_PROMPT);
   const [promptOpen, setPromptOpen] = useState(false);
   const [cleaning, setCleaning] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [activeRooms, setActiveRooms] = useState<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const realtimeRef = useRef<ReturnType<typeof createClient> | null>(null);
@@ -187,6 +192,54 @@ function VoiceAgentPageContent({ initialVoice }: { initialVoice: string }) {
     return () => { channelRef.current?.unsubscribe(); };
   }, []);
 
+  // Load saved settings from Supabase on mount
+  useEffect(() => {
+    async function loadSettings() {
+      try {
+        const res = await fetch("/api/voice/settings");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data?.settings) {
+          const s = data.settings;
+          if (s.agent_type)       setAgentType(s.agent_type as AgentType);
+          if (s.voice_id)         setSelectedVoice(s.voice_id);
+          if (s.language_preset)  setSelectedLang(s.language_preset);
+          if (s.system_prompt?.trim()) setSystemPrompt(s.system_prompt.trim());
+        }
+      } catch (e) {
+        // Ignore — use defaults
+      } finally {
+        setSettingsLoaded(true);
+      }
+    }
+    loadSettings();
+  }, []);
+
+  async function handleSaveSettings() {
+    setSaving(true);
+    try {
+      const langPreset = LANGUAGE_PRESETS.find(p => p.id === selectedLang);
+      const res = await fetch("/api/voice/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          agentType,
+          voiceId: selectedVoice,
+          languagePreset: selectedLang,
+          sarvamLanguage: langPreset?.sarvamLang ?? "hi-IN",
+          deepgramLanguage: langPreset?.deepgramLang ?? "hi",
+          systemPrompt: systemPrompt.trim(),
+        }),
+      });
+      if (!res.ok) throw new Error("Save failed");
+      toast.success("Settings saved ✓");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save settings");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function handlePlaySample(voiceId: string) {
     if (playingVoice === voiceId) {
       audioRef.current?.pause();
@@ -212,6 +265,11 @@ function VoiceAgentPageContent({ initialVoice }: { initialVoice: string }) {
 
     setCallStatus("calling");
     try {
+      const langPreset = LANGUAGE_PRESETS.find(p => p.id === selectedLang);
+      const finalPrompt = systemPrompt.trim()
+        ? systemPrompt.trim() + (langPreset ? "\n\n" + langPreset.systemPromptAddition : "")
+        : langPreset?.systemPromptAddition ?? undefined;
+
       const res = await fetch("/api/voice/dial", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -219,7 +277,10 @@ function VoiceAgentPageContent({ initialVoice }: { initialVoice: string }) {
           toNumber: clean,
           agentType,
           voiceId: selectedVoice,
-          systemPrompt: systemPrompt.trim() || undefined,
+          systemPrompt: finalPrompt,
+          languagePreset: selectedLang,
+          sarvamLanguage: langPreset?.sarvamLang ?? "hi-IN",
+          deepgramLanguage: langPreset?.deepgramLang ?? "hi",
         }),
       });
       const data = await res.json();
@@ -412,6 +473,49 @@ function VoiceAgentPageContent({ initialVoice }: { initialVoice: string }) {
             </div>
           </div>
 
+          {/* Language Preset */}
+          <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Language</p>
+              <Globe className="w-3.5 h-3.5 text-muted-foreground" />
+            </div>
+            <button
+              onClick={() => setShowLangPicker(o => !o)}
+              disabled={isInCall}
+              className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl border border-border bg-background hover:border-primary/40 transition-colors text-sm disabled:opacity-50"
+            >
+              <span className="flex items-center gap-2">
+                <span className="text-base">{LANGUAGE_PRESETS.find(p => p.id === selectedLang)?.flag ?? "🇮🇳"}</span>
+                <span className="font-medium text-foreground">{LANGUAGE_PRESETS.find(p => p.id === selectedLang)?.label ?? "Hinglish"}</span>
+              </span>
+              {showLangPicker ? <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />}
+            </button>
+            {showLangPicker && (
+              <div className="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto">
+                {LANGUAGE_PRESETS.map(preset => (
+                  <button
+                    key={preset.id}
+                    onClick={() => { setSelectedLang(preset.id); setShowLangPicker(false); }}
+                    className={cn(
+                      "flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-medium transition-all text-left",
+                      selectedLang === preset.id
+                        ? "bg-primary/10 text-primary border border-primary/30"
+                        : "border border-border hover:border-primary/30 hover:bg-muted/40"
+                    )}
+                  >
+                    <span className="text-sm">{preset.flag}</span>
+                    <span className="truncate">{preset.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            {selectedLang && (
+              <p className="text-[10px] text-muted-foreground/70 px-1">
+                STT: {LANGUAGE_PRESETS.find(p => p.id === selectedLang)?.deepgramLang ?? "hi"} · TTS: {LANGUAGE_PRESETS.find(p => p.id === selectedLang)?.sarvamLang ?? "hi-IN"}
+              </p>
+            )}
+          </div>
+
           {/* Dialer */}
           <div className="rounded-2xl border border-border bg-card p-4 space-y-4">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Phone Number</p>
@@ -513,12 +617,22 @@ function VoiceAgentPageContent({ initialVoice }: { initialVoice: string }) {
                 />
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span>{systemPrompt.length} characters</span>
-                  <button
-                    onClick={() => setSystemPrompt(DEFAULT_PROMPT)}
-                    className="text-primary hover:underline"
-                  >
-                    Reset to UnboundYou default
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setSystemPrompt(DEFAULT_PROMPT)}
+                      className="text-muted-foreground hover:text-foreground hover:underline transition-colors"
+                    >
+                      Reset to default
+                    </button>
+                    <button
+                      onClick={handleSaveSettings}
+                      disabled={saving || isInCall}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                    >
+                      {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                      {saving ? "Saving…" : "Save Settings"}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

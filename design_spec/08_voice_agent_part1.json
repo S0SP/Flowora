@@ -1,0 +1,199 @@
+{
+  "meta": {
+    "screen": "08 \u2014 AI Voice Agent",
+    "part": 1,
+    "subtitle": "AI Voice Agent Main Page \u2014 Overview, Call Type Selection, Voice Selection, Voice Preview",
+    "file": "08_voice_agent_part1.json"
+  },
+  "image_prompt": {
+    "scene": "Flowora AI Voice Agent configuration page. Premium minimal design. Lavender #C4B1F9 as primary accent for this module. White content area. Left tab navigation. Main area with overview stats, call type selection, voice character cards with preview, and settings. No technical AI/model details shown \u2014 pure business tool abstraction.",
+    "page_header": {
+      "background": "white card with left border 4px solid #C4B1F9 rounded-12",
+      "icon": "Mic 24px #C4B1F9 in 48px lavender circle bg",
+      "title": "AI Voice Agent \u2014 24px bold #1B1B1B",
+      "subtitle": "Your AI-powered voice assistant for lead conversion and retention \u2014 via phone call and WhatsApp. \u2014 14px #6B6B6B",
+      "credit_info": {
+        "text": "~15 credits per minute",
+        "icon": "Zap 14px #FFE27C",
+        "style": "small chip #FFF9E6 border border-yellow rounded-6 padding 4px 10px text-12"
+      },
+      "right_actions": [
+        {
+          "label": "View Call Logs",
+          "icon": "List",
+          "style": "secondary"
+        },
+        {
+          "label": "Save Settings",
+          "style": "primary yellow"
+        }
+      ]
+    },
+    "stats_overview_strip": {
+      "layout": "4-column stat cards row",
+      "cards": [
+        {
+          "icon": "Phone 20px circle #F5F3FF",
+          "label": "Total Calls Made",
+          "value": "1,284",
+          "change": "+18.2% this week",
+          "change_color": "#22C55E"
+        },
+        {
+          "icon": "Clock 20px circle #F5F3FF",
+          "label": "Avg Call Duration",
+          "value": "3m 24s",
+          "subtext": "vs 2m 48s last week"
+        },
+        {
+          "icon": "TrendingUp 20px circle #F0FDF4",
+          "label": "Conversion Rate",
+          "value": "22.4%",
+          "change": "+4.1%",
+          "change_color": "#22C55E"
+        },
+        {
+          "icon": "Mic 20px circle #F5F3FF",
+          "label": "Credits Used (Voice)",
+          "value": "19,260",
+          "subtext": "this month"
+        }
+      ]
+    },
+    "call_type_selection": {
+      "title": "Call Type \u2014 16px bold #1B1B1B",
+      "subtitle": "Choose how your AI agent will reach leads \u2014 13px #6B6B6B",
+      "options": [
+        {
+          "id": "phone_call",
+          "selected": true,
+          "card_style": "white border-2 border-yellow #FFE27C rounded-12 padding 20px",
+          "icon": "Phone 28px in 56px circle #FFF9E6",
+          "title": "Normal Phone Call \u2014 15px bold #1B1B1B",
+          "description": "AI agent calls lead's mobile number directly. Best for immediate, high-urgency outreach. \u2014 13px #6B6B6B",
+          "badge": {
+            "label": "Most Effective",
+            "bg": "#F0FDF4",
+            "text": "#22C55E"
+          },
+          "features": [
+            "\u2713 Works on any mobile number",
+            "\u2713 Higher answer rate",
+            "\u2713 Full call recording + transcript"
+          ],
+          "feature_style": "13px #6B6B6B list"
+        },
+        {
+          "id": "whatsapp_call",
+          "selected": false,
+          "card_style": "white border border-#E8E8E4 rounded-12 padding 20px hover:border-yellow",
+          "icon": "WhatsApp logo 28px in 56px circle #F0FDF4",
+          "title": "WhatsApp Voice Call \u2014 15px bold",
+          "description": "AI agent calls via WhatsApp. Lead must have WhatsApp installed. Great for warm leads. \u2014 13px #6B6B6B",
+          "badge": {
+            "label": "WhatsApp API",
+            "bg": "#F0FDF4",
+            "text": "#22C55E"
+          },
+          "features": [
+            "\u2713 Familiar WhatsApp interface",
+            "\u2713 Higher trust from known brand",
+            "\u2713 Call + chat follow-up in one thread"
+          ]
+        }
+      ]
+    },
+    "voice_selection": {
+      "title": "Select Voice \u2014 16px bold #1B1B1B",
+      "subtitle": "Choose your AI agent's voice. Preview before selecting. \u2014 13px #6B6B6B",
+      "filter_tabs": {
+        "options": [
+          "All",
+          "Female",
+          "Male",
+          "Professional",
+          "Friendly"
+        ],
+        "active": "All",
+        "active_bg": "#FFE27C"
+      },
+      "voice_cards_grid": {
+        "layout": "3-column grid",
+        "cards": [
+          {
+            "id": "sophia",
+            "selected": true,
+            "card_style": "white border-2 border-yellow rounded-12 padding 16px",
+            "avatar": "48px circle gradient #C4B1F9 to #9B8FE0, initials S, white",
+            "name": "Sophia \u2014 15px bold #1B1B1B",
+            "attributes": [
+              {
+                "label": "Female",
+                "bg": "#F5F3FF",
+                "text": "#7C3AED"
+              },
+              {
+                "label": "Professional",
+                "bg": "#F4F4F2",
+                "text": "#6B6B6B"
+              }
+            ],
+            "waveform_preview": "16 bars varying heights #C4B1F9 animated",
+            "play_button": {
+              "icon": "Play 14px",
+              "label": "Preview",
+              "style": "small white border rounded-6 text-12"
+            },
+            "selected_checkmark": "CheckCircle 20px #FFE27C top-right of card"
+          },
+          {
+            "id": "maya",
+            "name": "Maya",
+            "attributes": [
+              "Female",
+              "Friendly"
+            ],
+            "avatar": "48px circle gradient #B1D8FC to #7CB9F9",
+            "waveform_preview": "bars #B1D8FC"
+          },
+          {
+            "id": "emma",
+            "name": "Emma",
+            "attributes": [
+              "Female",
+              "Warm"
+            ],
+            "avatar": "48px circle gradient #FDE68A to #FBBF24"
+          },
+          {
+            "id": "ryan",
+            "name": "Ryan",
+            "attributes": [
+              "Male",
+              "Professional"
+            ],
+            "avatar": "48px circle gradient #1B1B1B to #404040 white initials"
+          },
+          {
+            "id": "alex",
+            "name": "Alex",
+            "attributes": [
+              "Male",
+              "Friendly"
+            ],
+            "avatar": "48px circle gradient #A7F3D0 to #34D399"
+          },
+          {
+            "id": "james",
+            "name": "James",
+            "attributes": [
+              "Male",
+              "Executive"
+            ],
+            "avatar": "48px circle gradient #FCA5A5 to #F87171"
+          }
+        ]
+      }
+    }
+  }
+}

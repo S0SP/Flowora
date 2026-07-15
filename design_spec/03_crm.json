@@ -1,0 +1,53 @@
+{
+  "module": "CRM",
+  "description": "Contacts Management and CRM view. Allows users to view, filter, segment, and manage their lead/customer database.",
+  "layout_structure": {
+    "type": "Standard Data Table View",
+    "topbar": "Page Title: 'Contacts', Action: 'Import Contacts' (Secondary), 'Add Contact' (Primary, Kournikova).",
+    "main_area": "Full width data table with advanced filtering above it."
+  },
+  "components": {
+    "toolbar": {
+      "layout": "Flex horizontal, space-between, padding 16px, background surface.primary, border-bottom.",
+      "left_actions": [
+        "Search Input (Find by name, phone, email)",
+        "Filter Button (Icon + 'Add Filter')",
+        "Segment Dropdown ('All Contacts' v)"
+      ],
+      "right_actions": [
+        "Export CSV (Ghost Button)",
+        "Columns Customizer (Icon)"
+      ]
+    },
+    "active_filters": {
+      "layout": "Flex horizontal gap 8px, padding 8px 16px",
+      "elements": [
+        "Filter Pill: 'Status is Active [x]'",
+        "Filter Pill: 'Tag includes VIP [x]'",
+        "Clear All Link"
+      ]
+    },
+    "data_table": {
+      "style": "Clean white table, subtle borders between rows, no vertical borders. Header row light gray (#F9FAFB).",
+      "columns": [
+        { "name": "Checkbox", "width": "40px" },
+        { "name": "Name", "type": "Avatar + Text (Bold)" },
+        { "name": "Phone Number", "type": "Text" },
+        { "name": "Email", "type": "Text" },
+        { "name": "Status", "type": "Status Pill (e.g. Active=Green, Inactive=Gray)" },
+        { "name": "Tags", "type": "Row of Badge atoms" },
+        { "name": "Last Activity", "type": "Text (Small, Gray)" },
+        { "name": "Actions", "type": "Three-dot menu icon" }
+      ],
+      "row_interactions": "Hover row highlights light gray. Clicking a row opens the 'Smart Context Card' in a right-side sliding drawer (Overlay)."
+    },
+    "pagination": {
+      "layout": "Flex space-between, padding 16px, border-top.",
+      "elements": [
+        "Text: 'Showing 1 to 50 of 12,450 entries'",
+        "Controls: Previous, Page Numbers (1, 2, 3...), Next"
+      ]
+    }
+  },
+  "visual_prompt_notes": "A clean, modern SaaS data table interface for a CRM. The screen shows a list of contacts with columns for Name (with small circular avatars), Phone, Email, Status (green/red pills), and Tags (lavender and blue pills). Above the table is a search bar and filter buttons. The background is white. Top right has a bright yellow 'Add Contact' button. The style should be minimal, professional, and well-spaced."
+}

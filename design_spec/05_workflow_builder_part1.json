@@ -1,0 +1,444 @@
+{
+  "meta": {
+    "screen": "05 \u2014 Workflow Builder",
+    "part": 1,
+    "subtitle": "React Flow Drag-and-Drop Workflow Builder \u2014 Canvas + Node Library + Configured Nodes",
+    "file": "05_workflow_builder_part1.json"
+  },
+  "image_prompt": {
+    "scene": "Flowora Workflow Builder page. Full browser window. Dark header bar at very top showing workflow name and controls. Below: three-panel layout \u2014 left 260px Node Library panel white, center React Flow canvas with dot-grid background showing a connected workflow diagram, right 300px Node Configuration panel white. The workflow shown is the signature Lead Nurture Workflow from Google Sheet trigger through WhatsApp, Email, Voice, Delay, and Reminder nodes.",
+    "builder_topbar": {
+      "height": "52px",
+      "background": "#1B1B1B",
+      "padding": "0 20px",
+      "layout": "flex justify-between align-center",
+      "left": {
+        "back_button": "\u2190 Workflows \u2014 13px rgba(255,255,255,0.6)",
+        "workflow_name": {
+          "text": "Webinar Lead Funnel \u2014 16px Inter SemiBold #FFFFFF",
+          "editable": true,
+          "pencil_icon": "Pencil 12px rgba(255,255,255,0.4) inline"
+        },
+        "status_badge": {
+          "label": "Draft",
+          "bg": "rgba(255,255,255,0.1)",
+          "text": "rgba(255,255,255,0.7)",
+          "border_radius": "6px",
+          "padding": "3px 10px",
+          "font_size": "12px"
+        }
+      },
+      "center": {
+        "tabs": [
+          {
+            "label": "Builder",
+            "active": true,
+            "indicator": "bottom border 2px #FFE27C text #FFFFFF"
+          },
+          {
+            "label": "Logs",
+            "text": "rgba(255,255,255,0.6)"
+          },
+          {
+            "label": "Analytics",
+            "text": "rgba(255,255,255,0.6)"
+          }
+        ]
+      },
+      "right": {
+        "actions": [
+          {
+            "label": "Save Draft",
+            "style": "ghost white border border-white/20 text-white/70 rounded-8 px-14 py-6 text-13"
+          },
+          {
+            "label": "Test Run",
+            "icon": "Play 14px",
+            "style": "secondary white bg rounded-8"
+          },
+          {
+            "label": "Activate",
+            "icon": "Zap 14px",
+            "style": "primary",
+            "background": "#FFE27C",
+            "text": "#1B1B1B",
+            "font_weight": 700,
+            "border_radius": "8px",
+            "padding": "8px 20px",
+            "shadow": "0 2px 8px rgba(255,226,124,0.5)"
+          }
+        ]
+      }
+    },
+    "node_library_panel": {
+      "width": "260px",
+      "background": "#FFFFFF",
+      "border_right": "1px solid #E8E8E4",
+      "padding": "16px",
+      "header": {
+        "title": "Nodes \u2014 14px bold #1B1B1B",
+        "search": {
+          "placeholder": "Search nodes...",
+          "background": "#F4F4F2",
+          "border_radius": "8px",
+          "height": "34px"
+        }
+      },
+      "sections": [
+        {
+          "label": "TRIGGERS",
+          "label_style": "11px #9B9B9B uppercase tracked",
+          "nodes": [
+            {
+              "icon": "GoogleSheetsIcon 20px green",
+              "label": "Google Sheet",
+              "sublabel": "New Row Added",
+              "bg": "#F0FDF4",
+              "border": "1px solid #BBF7D0",
+              "draggable": true,
+              "drag_hint": "Drag to canvas"
+            },
+            {
+              "icon": "Webhook 20px",
+              "label": "Webhook",
+              "sublabel": "HTTP POST Trigger",
+              "bg": "#F4F4F2"
+            },
+            {
+              "icon": "FormInput 20px",
+              "label": "Form Submission",
+              "bg": "#F4F4F2"
+            }
+          ]
+        },
+        {
+          "label": "ACTIONS",
+          "nodes": [
+            {
+              "icon": "WhatsApp logo 20px green",
+              "label": "WhatsApp",
+              "sublabel": "Send Template Message",
+              "bg": "#F0FDF4",
+              "border_color": "#BBF7D0"
+            },
+            {
+              "icon": "Mail 20px #3B82F6",
+              "label": "Email",
+              "sublabel": "Send Email",
+              "bg": "#EFF6FF",
+              "border_color": "#BFDBFE"
+            },
+            {
+              "icon": "Phone 20px #C4B1F9",
+              "label": "Voice Call",
+              "sublabel": "AI Voice Agent",
+              "bg": "#F5F3FF",
+              "border_color": "#DDD6FE"
+            },
+            {
+              "icon": "MessageSquare 20px",
+              "label": "WhatsApp Call",
+              "sublabel": "WhatsApp Voice Agent",
+              "bg": "#F0FDF4"
+            },
+            {
+              "icon": "Globe 20px #6B6B6B",
+              "label": "HTTP Request",
+              "sublabel": "Webhook / API Call",
+              "bg": "#F4F4F2"
+            },
+            {
+              "icon": "Database 20px",
+              "label": "Update CRM",
+              "sublabel": "Update Lead Stage",
+              "bg": "#F4F4F2"
+            }
+          ]
+        },
+        {
+          "label": "FLOW CONTROL",
+          "nodes": [
+            {
+              "icon": "Clock 20px #F59E0B",
+              "label": "Delay",
+              "sublabel": "Wait before next step",
+              "bg": "#FFFBEB"
+            },
+            {
+              "icon": "GitBranch 20px #6B6B6B",
+              "label": "Condition",
+              "sublabel": "If / Else branching",
+              "bg": "#F4F4F2"
+            },
+            {
+              "icon": "Bell 20px #FFE27C",
+              "label": "Reminder",
+              "sublabel": "Scheduled reminder",
+              "bg": "#FFF9E6"
+            }
+          ]
+        },
+        {
+          "label": "INTEGRATIONS",
+          "nodes": [
+            {
+              "icon": "HubSpot logo",
+              "label": "HubSpot",
+              "sublabel": "Sync Contact"
+            },
+            {
+              "icon": "Salesforce logo",
+              "label": "Salesforce",
+              "sublabel": "Update Lead"
+            }
+          ]
+        }
+      ]
+    },
+    "react_flow_canvas": {
+      "background": "#F8F8F6",
+      "pattern": "dot grid \u2014 dots #E0E0DC every 20px",
+      "controls": {
+        "position": "bottom-left",
+        "items": [
+          {
+            "icon": "ZoomIn",
+            "tooltip": "Zoom In"
+          },
+          {
+            "icon": "ZoomOut",
+            "tooltip": "Zoom Out"
+          },
+          {
+            "icon": "Maximize",
+            "tooltip": "Fit View"
+          }
+        ],
+        "style": "white card shadow rounded-8 padding 4px"
+      },
+      "zoom_level": "100% \u2014 shown bottom right",
+      "minimap": {
+        "position": "bottom-right",
+        "size": "160x100px",
+        "background": "#FFFFFF",
+        "border": "1px solid #E8E8E4",
+        "border_radius": "8px"
+      },
+      "nodes": [
+        {
+          "id": "trigger_1",
+          "type": "trigger",
+          "position": "x:80, y:200",
+          "size": "220x90px",
+          "header": {
+            "background": "#1B1B1B",
+            "border_radius": "10px 10px 0 0",
+            "icon": "GoogleSheets 16px white",
+            "label": "Google Sheet Trigger \u2014 13px #FFE27C font-weight 600",
+            "badge": "Trigger \u2014 10px rgba(255,255,255,0.5)"
+          },
+          "body": {
+            "background": "#FFFFFF",
+            "border": "1px solid #E8E8E4",
+            "border_radius": "0 0 10px 10px",
+            "content": [
+              {
+                "label": "Sheet",
+                "value": "Webinar Leads 2026"
+              },
+              {
+                "label": "Poll Interval",
+                "value": "Every 60 sec"
+              },
+              {
+                "label": "New Rows Only",
+                "value": "\u2713 Yes"
+              }
+            ],
+            "content_style": "12px #6B6B6B label, 12px #1B1B1B value, padding 10px 14px"
+          },
+          "output_handle": "right-center circle 10px white border-2 #22C55E"
+        },
+        {
+          "id": "whatsapp_1",
+          "type": "whatsapp",
+          "position": "x:360, y:120",
+          "size": "220x100px",
+          "header": {
+            "background": "#22C55E",
+            "icon": "WhatsApp logo 16px white",
+            "label": "WhatsApp Message \u2014 13px #FFFFFF font-weight 600"
+          },
+          "body": {
+            "content": [
+              {
+                "label": "Template",
+                "value": "webinar_invite_v2"
+              },
+              {
+                "label": "Dynamic Fields",
+                "value": "{{name}}, {{date}}"
+              }
+            ]
+          },
+          "input_handle": "left circle",
+          "output_handle": "right circle"
+        },
+        {
+          "id": "delay_1",
+          "type": "delay",
+          "position": "x:360, y:280",
+          "size": "200x80px",
+          "header": {
+            "background": "#F4F4F2",
+            "icon": "Clock 16px #6B6B6B",
+            "label": "Delay \u2014 13px #1B1B1B"
+          },
+          "body": {
+            "content": [
+              {
+                "label": "Wait",
+                "value": "30 Minutes after trigger"
+              }
+            ]
+          }
+        },
+        {
+          "id": "email_1",
+          "type": "email",
+          "position": "x:640, y:120",
+          "size": "220x100px",
+          "header": {
+            "background": "#B1D8FC",
+            "icon": "Mail 16px #1B1B1B",
+            "label": "Send Email \u2014 13px #1B1B1B font-weight 600"
+          },
+          "body": {
+            "content": [
+              {
+                "label": "Template",
+                "value": "Webinar Confirmation"
+              },
+              {
+                "label": "From",
+                "value": "team@acme.com"
+              }
+            ]
+          }
+        },
+        {
+          "id": "delay_2",
+          "type": "delay",
+          "position": "x:640, y:280",
+          "size": "200x80px",
+          "header": {
+            "background": "#F4F4F2",
+            "icon": "Clock 16px",
+            "label": "Delay"
+          },
+          "body": {
+            "content": [
+              {
+                "label": "Wait",
+                "value": "2 Hours"
+              }
+            ]
+          }
+        },
+        {
+          "id": "voice_1",
+          "type": "voice",
+          "position": "x:920, y:200",
+          "size": "220x100px",
+          "selected": true,
+          "selected_style": "border 2px #FFE27C shadow: 0 0 0 4px rgba(255,226,124,0.2)",
+          "header": {
+            "background": "#C4B1F9",
+            "icon": "Phone 16px #1B1B1B",
+            "label": "Voice Call \u2014 13px #1B1B1B font-weight 600"
+          },
+          "body": {
+            "content": [
+              {
+                "label": "Agent Type",
+                "value": "AI Phone Call"
+              },
+              {
+                "label": "Voice",
+                "value": "Sophia (Professional)"
+              },
+              {
+                "label": "Trigger",
+                "value": "Immediately"
+              }
+            ]
+          }
+        },
+        {
+          "id": "reminder_1",
+          "type": "reminder",
+          "position": "x:1200, y:200",
+          "size": "220x110px",
+          "header": {
+            "background": "#FFE27C",
+            "icon": "Bell 16px #1B1B1B",
+            "label": "Reminder \u2014 13px #1B1B1B font-weight 600"
+          },
+          "body": {
+            "content": [
+              {
+                "label": "Event Date",
+                "value": "Jan 20, 2026 (Webinar)"
+              },
+              {
+                "label": "Reminders",
+                "value": "3 days, 1 day, 1 hour before"
+              },
+              {
+                "label": "Channel",
+                "value": "WhatsApp + Email"
+              }
+            ]
+          }
+        }
+      ],
+      "edges": [
+        {
+          "from": "trigger_1.output",
+          "to": "whatsapp_1.input",
+          "style": "smooth bezier curve, stroke #22C55E, stroke-width 2px, animated dashes moving along path"
+        },
+        {
+          "from": "trigger_1.output",
+          "to": "delay_1.input",
+          "style": "bezier #9B9B9B stroke-width 2"
+        },
+        {
+          "from": "whatsapp_1.output",
+          "to": "email_1.input",
+          "style": "bezier #B1D8FC stroke-width 2 animated"
+        },
+        {
+          "from": "delay_1.output",
+          "to": "email_1.input",
+          "style": "bezier #9B9B9B"
+        },
+        {
+          "from": "email_1.output",
+          "to": "delay_2.input",
+          "style": "bezier #9B9B9B"
+        },
+        {
+          "from": "delay_2.output",
+          "to": "voice_1.input",
+          "style": "bezier #C4B1F9 stroke-width 2 animated"
+        },
+        {
+          "from": "voice_1.output",
+          "to": "reminder_1.input",
+          "style": "bezier #FFE27C stroke-width 2 animated"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,204 @@
+{
+  "meta": {
+    "screen": "07 \u2014 AI Chatbot Setup",
+    "file": "07_ai_chatbot.json",
+    "subtitle": "AI WhatsApp Chatbot Configuration with Knowledge Sources, Behavior, Channels, Test Chat"
+  },
+  "image_prompt": {
+    "scene": "AI Chatbot configuration page for Flowora. Left vertical tab navigation for sections. Main white content area with form sections. Right live test chat panel. Lavender #C4B1F9 as section accent color. Clean minimal enterprise UI.",
+    "page_header": {
+      "title": "AI Chatbot \u2014 24px bold #1B1B1B",
+      "subtitle": "Configure your WhatsApp AI assistant. Powered by Flowora AI \u2014 no technical setup required. \u2014 14px #6B6B6B",
+      "status_badge": {
+        "label": "Active",
+        "dot": "8px #22C55E",
+        "text": "#22C55E",
+        "bg": "#F0FDF4",
+        "border": "1px solid #BBF7D0"
+      },
+      "right_action": {
+        "label": "Save Changes",
+        "style": "primary yellow"
+      }
+    },
+    "left_section_nav": {
+      "width": "200px",
+      "items": [
+        {
+          "icon": "BookOpen",
+          "label": "Knowledge",
+          "active": false
+        },
+        {
+          "icon": "Sliders",
+          "label": "Behavior",
+          "active": true,
+          "bg": "#FFF9E6"
+        },
+        {
+          "icon": "GitBranch",
+          "label": "Escalation"
+        },
+        {
+          "icon": "Radio",
+          "label": "Channels"
+        },
+        {
+          "icon": "FlaskConical",
+          "label": "Testing"
+        },
+        {
+          "icon": "BarChart3",
+          "label": "Analytics"
+        }
+      ]
+    },
+    "knowledge_sources_section": {
+      "title": "Knowledge Sources \u2014 18px bold #1B1B1B",
+      "subtitle": "These sources train your AI chatbot. The AI uses Graph RAG to answer questions accurately from your company data. \u2014 13px #6B6B6B",
+      "sources_list": [
+        {
+          "icon": "Globe 20px #3B82F6",
+          "name": "Website",
+          "value": "https://acme.com",
+          "status": {
+            "label": "Synced",
+            "color": "#22C55E",
+            "dot": "#22C55E"
+          },
+          "last_sync": "2 min ago",
+          "actions": [
+            "Edit",
+            "Resync",
+            "Delete"
+          ]
+        },
+        {
+          "icon": "GoogleSheets 20px green",
+          "name": "Product Data",
+          "value": "Google Drive \u2014 product_catalog.xlsx",
+          "status": {
+            "label": "Synced",
+            "color": "#22C55E"
+          }
+        },
+        {
+          "icon": "FileText 20px #F59E0B",
+          "name": "FAQ.pdf",
+          "value": "Documents \u2014 2.4 MB",
+          "status": {
+            "label": "Synced",
+            "color": "#22C55E"
+          }
+        },
+        {
+          "icon": "FileSpreadsheet 20px",
+          "name": "Pricing Sheet",
+          "value": "Google Sheet \u2014 pricing_2026",
+          "status": {
+            "label": "Synced",
+            "color": "#22C55E"
+          }
+        }
+      ],
+      "add_source_button": {
+        "label": "+ Add Source",
+        "icon": "Plus",
+        "style": "dashed border full-width rounded-10 padding 14px text-14 text-#6B6B6B"
+      },
+      "source_types_hint": "Supported: Website URL \u00b7 PDF \u00b7 DOCX \u00b7 Google Sheet \u00b7 Google Drive \u00b7 CSV \u00b7 Notion",
+      "hint_style": "12px #9B9B9B center"
+    },
+    "behavior_section": {
+      "title": "Chatbot Behavior \u2014 18px bold",
+      "fields": [
+        {
+          "label": "Bot Name (shown to customers)",
+          "input": {
+            "value": "Aria from Acme Corp",
+            "type": "text"
+          }
+        },
+        {
+          "label": "Bot Persona / Tone",
+          "textarea": {
+            "value": "You are Aria, a friendly and professional AI assistant for Acme Corp. You help customers with product inquiries, pricing, demos, and support. Always be concise, warm, and solution-focused.",
+            "rows": 4
+          }
+        },
+        {
+          "label": "Language",
+          "select": {
+            "value": "English (auto-detect others)"
+          }
+        },
+        {
+          "label": "Response Length",
+          "slider": {
+            "min": "Concise",
+            "max": "Detailed",
+            "value": 65,
+            "fill": "#FFE27C"
+          }
+        },
+        {
+          "label": "Out-of-Scope Fallback",
+          "textarea": {
+            "value": "I'm sorry, I can't help with that right now. Let me connect you with a human agent.",
+            "rows": 2
+          }
+        }
+      ]
+    },
+    "channels_section": {
+      "title": "Active Channels",
+      "channel_cards": [
+        {
+          "icon": "WhatsApp logo 20px green",
+          "name": "WhatsApp Business",
+          "number": "+1 415 555 0100",
+          "status": "Active",
+          "toggle": "ON green"
+        },
+        {
+          "icon": "MessageSquare 20px",
+          "name": "Web Widget",
+          "url": "acme.com",
+          "status": "Active",
+          "toggle": "ON green"
+        }
+      ]
+    },
+    "live_test_panel": {
+      "width": "320px",
+      "background": "#FFFFFF",
+      "border_left": "1px solid #E8E8E4",
+      "title": "Test Chat \u2014 14px bold #1B1B1B",
+      "phone_frame": {
+        "style": "WhatsApp-style chat interface within panel",
+        "header": {
+          "avatar": "32px Aria robot icon lavender bg",
+          "name": "Aria \u2014 Acme Corp",
+          "status": "AI Bot \u00b7 Online"
+        },
+        "messages": [
+          {
+            "direction": "outbound_test",
+            "text": "Hello, what are your pricing plans?",
+            "bubble_bg": "#DCF8C6"
+          },
+          {
+            "direction": "inbound_ai",
+            "ai_badge": "AI \u2014 #C4B1F9 tiny badge",
+            "text": "Hi there! \ud83d\udc4b We offer 3 plans:\n\n\ud83c\udf31 Starter \u2014 $49/mo\n\ud83d\udcbc Business \u2014 $149/mo\n\ud83c\udfe2 Enterprise \u2014 Custom\n\nWould you like to schedule a demo?",
+            "typing_indicator_before": "\u25cf \u25cf \u25cf animated dots"
+          }
+        ],
+        "composer": {
+          "input": "Type a test message...",
+          "send_button": "Send #FFE27C circle"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "module": "Inbox",
+  "description": "WhatsApp Shared Inbox and Agent Chat. This is a critical module for managing conversations, viewing AI agent handoffs, and customer context.",
+  "layout_structure": {
+    "type": "Three-Column Layout",
+    "description": "A standard robust communication interface similar to Intercom or Front.",
+    "columns": {
+      "left_col": {
+        "width": "300px",
+        "name": "Conversation List",
+        "background": "colors.surface.primary",
+        "border_right": "1px solid colors.border"
+      },
+      "mid_col": {
+        "width": "Fluid/Remaining",
+        "name": "Chat Thread",
+        "background": "colors.surface.secondary"
+      },
+      "right_col": {
+        "width": "320px",
+        "name": "Smart Context Card",
+        "background": "colors.surface.primary",
+        "border_left": "1px solid colors.border"
+      }
+    }
+  },
+  "components": {
+    "left_col_list": {
+      "header": {
+        "title": "Inbox (h3)",
+        "actions": ["Filter Icon", "New Chat Icon"],
+        "search": "Full width search input with magnifying glass atom."
+      },
+      "tabs": {
+        "items": ["All", "Unread", "AI Handled", "Needs Human"],
+        "active_style": "Bottom border in Kournikova, text bold."
+      },
+      "chat_preview_item": {
+        "layout": "Flex horizontal, avatar on left, text stack on right. Padding 16px. Hover: background colors.surface.secondary.",
+        "elements": {
+          "avatar": "User avatar or generic initials",
+          "name_and_time": "Flex space-between. Name (bold), Time (tertiary text)",
+          "preview_text": "One line truncated text",
+          "badges": "Optional 'AI' badge (lavender) or 'Unread' dot (Kournikova)"
+        }
+      }
+    },
+    "mid_col_thread": {
+      "header": {
+        "elements": [
+          "Contact Name and Phone Number",
+          "Status Pill (e.g., 'Active', 'Resolved')",
+          "Action Buttons (Resolve, Assign to Agent)"
+        ],
+        "border_bottom": "1px solid colors.border"
+      },
+      "message_area": {
+        "background": "Linen texture or very light gray (#F3F4F6)",
+        "padding": "24px",
+        "bubbles": {
+          "inbound": {
+            "background": "colors.surface.primary",
+            "border": "1px solid colors.border",
+            "border_radius": "12px 12px 12px 0",
+            "alignment": "left"
+          },
+          "outbound_human": {
+            "background": "colors.primary.hex",
+            "text": "colors.neutral.hex",
+            "border_radius": "12px 12px 0 12px",
+            "alignment": "right"
+          },
+          "outbound_ai": {
+            "background": "colors.accent.lavender",
+            "text": "colors.neutral.hex",
+            "border_radius": "12px 12px 0 12px",
+            "alignment": "right",
+            "badge": "Small robot icon in corner"
+          }
+        }
+      },
+      "composer": {
+        "background": "colors.surface.primary",
+        "border_top": "1px solid colors.border",
+        "elements": {
+          "input": "Multiline textarea, borderless, placeholder 'Type a message or / for templates...'",
+          "toolbar": "Icons for Attach File, Emoji, Template, internal note toggle",
+          "send_button": "Primary Button (Kournikova) with send icon"
+        }
+      }
+    },
+    "right_col_context": {
+      "header": {
+        "title": "Smart Card",
+        "action": "Edit Icon"
+      },
+      "sections": [
+        {
+          "name": "Contact Profile",
+          "elements": ["Large Avatar", "Full Name", "Phone", "Email", "Tags (Pill Badges)"]
+        },
+        {
+          "name": "CRM Data",
+          "elements": [
+            "Company Name",
+            "Lead Score",
+            "Last Purchase",
+            "Custom Fields"
+          ]
+        },
+        {
+          "name": "AI Insights",
+          "background": "Slightly tinted lavender card",
+          "elements": [
+            "Sentiment: Positive",
+            "Intent: Pricing Inquiry",
+            "Suggested Response (Action Button)"
+          ]
+        }
+      ]
+    }
+  },
+  "visual_prompt_notes": "Generate an image of a 3-column SaaS inbox interface. Left column: list of chats with a search bar. Middle column: a chat thread showing green/yellow/lavender chat bubbles (indicating user, human agent, and AI bot respectively), with a text input area at the bottom. Right column: a detailed user profile 'Smart Card' showing contact details, tags, and a section for AI insights. The overall design should be bright, using white and light grey backgrounds, with yellow (#FFE27C) and lavender (#C4B1F9) accents."
+}

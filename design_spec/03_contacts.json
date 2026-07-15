@@ -1,0 +1,354 @@
+{
+  "meta": {
+    "screen": "03 \u2014 Contacts CRM",
+    "file": "03_contacts.json",
+    "subtitle": "Contact Hub with Table View, Filters, and Contact Detail Drawer"
+  },
+  "image_prompt": {
+    "scene": "Contacts CRM page inside Flowora. Full page view. White content area. Header with Contacts title, stat summary, action buttons. Filter toolbar. Table view of contacts. Right side drawer showing contact detail.",
+    "page_header": {
+      "title": "Contacts \u2014 24px bold #1B1B1B",
+      "subtitle": "2,847 total contacts \u2014 14px #6B6B6B",
+      "right_actions": [
+        {
+          "label": "Import CSV",
+          "icon": "Upload",
+          "style": "secondary"
+        },
+        {
+          "label": "Add Contact",
+          "icon": "Plus",
+          "style": "primary yellow"
+        }
+      ]
+    },
+    "stats_strip": {
+      "layout": "4 small stat chips horizontal",
+      "chips": [
+        {
+          "label": "Total Contacts",
+          "value": "2,847",
+          "icon": "Users #6B6B6B"
+        },
+        {
+          "label": "Added This Week",
+          "value": "+124",
+          "color": "#22C55E"
+        },
+        {
+          "label": "WhatsApp Opted In",
+          "value": "2,341",
+          "icon": "MessageCircle green"
+        },
+        {
+          "label": "Subscribed to Email",
+          "value": "1,982"
+        }
+      ]
+    },
+    "filter_toolbar": {
+      "search": {
+        "placeholder": "Search by name, number, email...",
+        "width": "320px",
+        "icon": "Search"
+      },
+      "filters": [
+        {
+          "label": "All Contacts",
+          "active": true,
+          "bg": "#FFE27C"
+        },
+        {
+          "label": "Hot Leads"
+        },
+        {
+          "label": "Customers"
+        },
+        {
+          "label": "Unsubscribed"
+        }
+      ],
+      "advanced_filter": {
+        "icon": "SlidersHorizontal",
+        "label": "Filters"
+      },
+      "view_toggle": {
+        "options": [
+          "Table",
+          "Grid",
+          "Kanban"
+        ],
+        "active": "Table",
+        "style": "icon toggle group"
+      },
+      "bulk_select": "checkbox select all"
+    },
+    "contacts_table": {
+      "columns": [
+        {
+          "label": "",
+          "type": "checkbox",
+          "width": "40px"
+        },
+        {
+          "label": "Name",
+          "sortable": true,
+          "width": "200px"
+        },
+        {
+          "label": "Phone",
+          "width": "160px"
+        },
+        {
+          "label": "Email",
+          "width": "200px"
+        },
+        {
+          "label": "Stage",
+          "width": "140px"
+        },
+        {
+          "label": "Tags",
+          "width": "180px"
+        },
+        {
+          "label": "Last Contact",
+          "sortable": true,
+          "width": "140px"
+        },
+        {
+          "label": "Assigned To",
+          "width": "140px"
+        },
+        {
+          "label": "Actions",
+          "width": "80px"
+        }
+      ],
+      "rows": [
+        {
+          "avatar": "32px JD blue",
+          "name": "John Doe",
+          "phone": "+91 98765 43210",
+          "email": "john@acme.com",
+          "stage": {
+            "label": "Demo Scheduled",
+            "bg": "#EFF6FF",
+            "text": "#3B82F6"
+          },
+          "tags": [
+            {
+              "label": "Hot Lead",
+              "bg": "#FEF2F2",
+              "text": "#EF4444"
+            },
+            {
+              "label": "Enterprise"
+            }
+          ],
+          "last_contact": "2 hours ago",
+          "assigned": {
+            "avatar": "24px RF",
+            "name": "Robert F."
+          },
+          "channel": "WhatsApp green icon"
+        },
+        {
+          "avatar": "32px SW",
+          "name": "Sarah Wilson",
+          "phone": "+1 555 234 5678",
+          "email": "sarah@techco.com",
+          "stage": {
+            "label": "Qualified",
+            "bg": "#F0FDF4",
+            "text": "#22C55E"
+          },
+          "tags": [
+            {
+              "label": "SaaS"
+            }
+          ],
+          "last_contact": "Yesterday",
+          "assigned": {
+            "name": "Camron W."
+          }
+        },
+        {
+          "name": "Rakesh Sharma",
+          "phone": "+91 98123 45678",
+          "stage": {
+            "label": "New Lead",
+            "bg": "#F4F4F2",
+            "text": "#6B6B6B"
+          },
+          "tags": [
+            {
+              "label": "Webinar"
+            }
+          ]
+        },
+        {
+          "name": "Priya Patel",
+          "stage": {
+            "label": "Converted",
+            "bg": "#F0FDF4",
+            "text": "#22C55E"
+          }
+        },
+        {
+          "name": "David Lee",
+          "stage": {
+            "label": "Churned",
+            "bg": "#FEF2F2",
+            "text": "#EF4444"
+          }
+        }
+      ],
+      "row_style": {
+        "height": "52px",
+        "hover_bg": "#FAFAF8",
+        "selected_bg": "#FFF9E6",
+        "border_bottom": "1px solid #E8E8E4"
+      },
+      "pagination": {
+        "showing": "Showing 1\u201325 of 2,847",
+        "prev_next": "< Previous  Next >",
+        "page_size_select": "25 per page dropdown"
+      }
+    },
+    "contact_detail_drawer": {
+      "state": "John Doe row clicked \u2014 drawer slides in from right",
+      "width": "440px",
+      "background": "#FFFFFF",
+      "border_left": "1px solid #E8E8E4",
+      "shadow": "-8px 0 24px rgba(0,0,0,0.06)",
+      "sections": [
+        {
+          "type": "profile_header",
+          "avatar": "64px JD circle blue gradient",
+          "name": "John Doe \u2014 20px bold",
+          "company": "Acme Corp \u2014 14px #6B6B6B",
+          "channel_badges": [
+            {
+              "icon": "WhatsApp",
+              "text": "+91 98765 43210",
+              "bg": "#F0FDF4"
+            },
+            {
+              "icon": "Mail",
+              "text": "john@acme.com",
+              "bg": "#EFF6FF"
+            }
+          ],
+          "action_buttons": [
+            {
+              "icon": "MessageCircle",
+              "label": "Chat",
+              "style": "primary small"
+            },
+            {
+              "icon": "Phone",
+              "label": "Call",
+              "style": "secondary small"
+            },
+            {
+              "icon": "Mail",
+              "label": "Email",
+              "style": "secondary small"
+            }
+          ]
+        },
+        {
+          "type": "attributes",
+          "title": "Contact Details",
+          "fields": [
+            {
+              "label": "Lead Source",
+              "value": "Google Sheet Sync"
+            },
+            {
+              "label": "Lead Score",
+              "value": "82 / 100",
+              "highlight": "#EF4444"
+            },
+            {
+              "label": "Sign-up Date",
+              "value": "Jan 10, 2026"
+            },
+            {
+              "label": "Company Size",
+              "value": "100\u2013500 employees"
+            },
+            {
+              "label": "Industry",
+              "value": "SaaS / Technology"
+            },
+            {
+              "label": "Deal Value",
+              "value": "$2,400 / year"
+            }
+          ],
+          "edit_button": "Edit \u2014 13px #6B6B6B"
+        },
+        {
+          "type": "message_stats",
+          "title": "Message Statistics",
+          "stats": [
+            {
+              "label": "Messages Sent",
+              "value": "14"
+            },
+            {
+              "label": "Delivered",
+              "value": "14",
+              "color": "#22C55E"
+            },
+            {
+              "label": "Read",
+              "value": "11",
+              "color": "#3B82F6"
+            },
+            {
+              "label": "Left on Seen",
+              "value": "3",
+              "color": "#F59E0B"
+            },
+            {
+              "label": "Replied",
+              "value": "8",
+              "color": "#22C55E"
+            },
+            {
+              "label": "Clicked CTA",
+              "value": "5",
+              "color": "#C4B1F9"
+            }
+          ],
+          "layout": "3-column grid of stat chips"
+        },
+        {
+          "type": "timeline",
+          "title": "Activity Timeline",
+          "events": [
+            {
+              "dot_color": "#22C55E",
+              "text": "Demo Scheduled \u2014 2h ago"
+            },
+            {
+              "dot_color": "#B1D8FC",
+              "text": "WhatsApp campaign sent \u2014 Jan 13"
+            },
+            {
+              "dot_color": "#C4B1F9",
+              "text": "Voice call made (2m 34s) \u2014 Jan 12"
+            },
+            {
+              "dot_color": "#FFE27C",
+              "text": "Lead added via Google Sheet \u2014 Jan 10"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

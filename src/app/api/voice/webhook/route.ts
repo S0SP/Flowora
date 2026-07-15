@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { WebhookReceiver } from "livekit-server-sdk";
 import { getLiveKitClients } from "@/lib/livekit";
+import fs from "fs";
+import path from "path";
 
 // LiveKit webhook handler — updates call status when room/egress events arrive
 export async function POST(req: NextRequest) {
@@ -24,12 +26,14 @@ export async function POST(req: NextRequest) {
         eventPayload = JSON.parse(bodyText);
     }
 
-    const { event, room, egress_info } = eventPayload;
+    const { event, room, egress_info, participant } = eventPayload;
+    console.log(`[LiveKit Webhook] Received event: "${event}" for room: "${room?.name || "none"}", participant: "${participant?.identity || "none"}"`);
+    fs.appendFileSync(path.join(process.cwd(), "webhook_log.txt"), JSON.stringify({ event, roomName: room?.name, payload: eventPayload }, null, 2) + "\n\n");
 
     const supabase = await createAdminClient();
 
     // Inbound call: dispatch agent when a room created by the SIP dispatch rule appears
-    if (event === "room_started" && room?.name?.startsWith("inbound-")) {
+    if (event === "room_started" && (room?.name?.startsWith("inbound-") || room?.name?.startsWith("whatsapp-inbound-"))) {
       try {
         const { agentClient } = await getLiveKitClients();
         await agentClient.createDispatch(room.name, "outbound-caller", {
@@ -43,11 +47,29 @@ export async function POST(req: NextRequest) {
 
     if (event === "room_finished" && room?.name) {
       // Mark call completed
-      await supabase
+      const { data: voiceCall } = await supabase
         .from("voice_calls")
-        .update({ status: "completed", updated_at: new Date().toISOString() })
+        .select("id")
         .eq("livekit_room_name", room.name)
-        .in("status", ["ringing", "active", "initiated"]);
+        .maybeSingle();
+
+      if (voiceCall) {
+        await supabase
+          .from("voice_calls")
+          .update({ status: "completed", updated_at: new Date().toISOString() })
+          .eq("livekit_room_name", room.name)
+          .in("status", ["ringing", "active", "initiated"]);
+      } else {
+        await supabase
+          .from("whatsapp_calls")
+          .update({
+            status: "terminated",
+            ended_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("meta_call_id", room.name)
+          .in("status", ["connecting", "ringing", "connected"]);
+      }
     }
 
     if (event === "egress_ended" && egress_info) {
@@ -60,21 +82,115 @@ export async function POST(req: NextRequest) {
 
         const roomName = egress_info.room_name;
         if (roomName) {
-          await supabase
+          const { data: voiceCall } = await supabase
             .from("voice_calls")
-            .update({ recording_url: data.publicUrl, updated_at: new Date().toISOString() })
-            .eq("livekit_room_name", roomName);
+            .select("id")
+            .eq("livekit_room_name", roomName)
+            .maybeSingle();
+
+          if (voiceCall) {
+            await supabase
+              .from("voice_calls")
+              .update({ recording_url: data.publicUrl, updated_at: new Date().toISOString() })
+              .eq("livekit_room_name", roomName);
+          } else {
+            await supabase
+              .from("whatsapp_calls")
+              .update({ recording_url: data.publicUrl, updated_at: new Date().toISOString() })
+              .eq("meta_call_id", roomName);
+          }
         }
       }
     }
 
     if (event === "participant_joined" && room?.name) {
-      // Mark call active when SIP participant joins
-      await supabase
-        .from("voice_calls")
-        .update({ status: "active", updated_at: new Date().toISOString() })
-        .eq("livekit_room_name", room.name)
-        .eq("status", "ringing");
+      if (room.name.startsWith("whatsapp-inbound-")) {
+        try {
+          const identity = participant?.identity;
+          let phone = "";
+          if (identity && identity.startsWith("sip_")) {
+            phone = identity.replace(/^sip_whatsapp_/, "").replace(/^sip_/, "").replace(/^\+/, "").trim();
+          }
+          if (phone) {
+            // Find channel connection to get workspace ID
+            const { data: conn } = await supabase
+              .from("channel_connections")
+              .select("workspace_id")
+              .eq("type", "whatsapp")
+              .limit(1)
+              .maybeSingle();
+
+            const workspaceId = conn?.workspace_id;
+            if (workspaceId) {
+              // Find or create contact
+              let { data: contact } = await supabase
+                .from("contacts")
+                .select("id")
+                .eq("workspace_id", workspaceId)
+                .eq("phone", phone)
+                .maybeSingle();
+
+              if (!contact) {
+                const { data: newContact } = await supabase.from("contacts").insert({
+                  workspace_id: workspaceId,
+                  phone: phone,
+                  full_name: phone,
+                  channel: "whatsapp",
+                }).select("id").single();
+                contact = newContact;
+              }
+
+              if (contact) {
+                // Check if call already exists to prevent duplicate insertion
+                const { data: existingCall } = await supabase
+                  .from("whatsapp_calls")
+                  .select("id")
+                  .eq("meta_call_id", room.name)
+                  .maybeSingle();
+
+                if (!existingCall) {
+                  await supabase.from("whatsapp_calls").insert({
+                    contact_id: contact.id,
+                    phone_number: phone,
+                    meta_call_id: room.name,
+                    direction: "inbound",
+                    status: "connected",
+                    started_at: new Date().toISOString(),
+                  });
+                  console.log(`[inbound] Registered inbound WhatsApp call for +${phone} in room ${room.name}`);
+                }
+              }
+            }
+          }
+        } catch (err) {
+          console.error("[inbound] Failed to process inbound WhatsApp call participant_joined:", err);
+        }
+      } else {
+        // Mark call active when SIP participant joins
+        const { data: voiceCall } = await supabase
+          .from("voice_calls")
+          .select("id")
+          .eq("livekit_room_name", room.name)
+          .maybeSingle();
+
+        if (voiceCall) {
+          await supabase
+            .from("voice_calls")
+            .update({ status: "active", updated_at: new Date().toISOString() })
+            .eq("livekit_room_name", room.name)
+            .eq("status", "ringing");
+        } else {
+          await supabase
+            .from("whatsapp_calls")
+            .update({
+              status: "connected",
+              started_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            })
+            .eq("meta_call_id", room.name)
+            .eq("status", "ringing");
+        }
+      }
     }
 
     if (event === "participant_left" && room?.name) {

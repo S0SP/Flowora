@@ -1,0 +1,184 @@
+{
+  "meta": {
+    "screen": "05 \u2014 Workflow Builder",
+    "part": 3,
+    "subtitle": "Reminder Node Config + Test Run Modal + Workflow Activation Success State",
+    "file": "05_workflow_builder_part3.json"
+  },
+  "image_prompt": {
+    "reminder_node_config": {
+      "panel_header": {
+        "icon": "Bell 18px #FFE27C",
+        "title": "Reminder Trigger",
+        "subtitle": "Schedule reminders for leads already in this workflow"
+      },
+      "form_sections": [
+        {
+          "label": "Event Type",
+          "options": [
+            {
+              "label": "Webinar Date",
+              "selected": true
+            },
+            {
+              "label": "Demo Booking Date"
+            },
+            {
+              "label": "Custom Date Field"
+            }
+          ]
+        },
+        {
+          "label": "Event Date",
+          "input": {
+            "type": "date picker",
+            "value": "January 20, 2026",
+            "icon": "Calendar 14px right"
+          }
+        },
+        {
+          "label": "Reminder Schedule",
+          "description": "How many reminders and when \u2014 12px #6B6B6B",
+          "reminder_rows": [
+            {
+              "index": 1,
+              "when_before": "3 Days before",
+              "channel": "WhatsApp + Email",
+              "template": "webinar_reminder_3d",
+              "delete_icon": "Trash2 14px #9B9B9B"
+            },
+            {
+              "index": 2,
+              "when_before": "1 Day before",
+              "channel": "WhatsApp",
+              "template": "webinar_reminder_1d"
+            },
+            {
+              "index": 3,
+              "when_before": "1 Hour before",
+              "channel": "WhatsApp + Voice Call",
+              "template": "webinar_reminder_1h"
+            }
+          ],
+          "add_reminder_button": {
+            "label": "+ Add Reminder",
+            "style": "dashed border button full-width rounded-8 text-13 text-#6B6B6B"
+          }
+        },
+        {
+          "label": "Apply to Existing Leads",
+          "toggle": {
+            "state": "ON",
+            "label": "Also send reminders to leads already processed \u2014 13px #6B6B6B"
+          }
+        }
+      ]
+    },
+    "test_run_modal": {
+      "trigger": "Test Run button clicked",
+      "modal": {
+        "width": "640px",
+        "border_radius": "16px",
+        "shadow": "0 24px 64px rgba(0,0,0,0.12)"
+      },
+      "header": {
+        "title": "Test Workflow Run \u2014 20px bold",
+        "subtitle": "Run a test with a sample lead to verify all nodes \u2014 14px #6B6B6B"
+      },
+      "test_contact_section": {
+        "label": "Test Contact",
+        "input": {
+          "name": "Test Name",
+          "phone": "+1 555 000 0000",
+          "email": "test@example.com"
+        },
+        "note": "This will send real messages to the test number \u2014 12px #F59E0B warning"
+      },
+      "execution_log": {
+        "title": "Execution Preview",
+        "log_rows": [
+          {
+            "step": 1,
+            "node": "Google Sheet Trigger",
+            "status": "\u2713 Ready",
+            "color": "#22C55E"
+          },
+          {
+            "step": 2,
+            "node": "WhatsApp Message",
+            "status": "\u2713 Template loaded",
+            "color": "#22C55E"
+          },
+          {
+            "step": 3,
+            "node": "Delay \u2014 30 min",
+            "status": "\u23f8 Will wait",
+            "color": "#F59E0B"
+          },
+          {
+            "step": 4,
+            "node": "Email \u2014 Webinar Confirmation",
+            "status": "\u2713 SMTP verified",
+            "color": "#22C55E"
+          },
+          {
+            "step": 5,
+            "node": "Voice Call \u2014 Sophia",
+            "status": "\u2713 Agent ready",
+            "color": "#22C55E"
+          },
+          {
+            "step": 6,
+            "node": "Reminder \u2014 3 reminders set",
+            "status": "\u2713 Scheduled",
+            "color": "#22C55E"
+          }
+        ]
+      },
+      "footer": {
+        "buttons": [
+          {
+            "label": "Cancel",
+            "style": "secondary"
+          },
+          {
+            "label": "Run Test Now",
+            "icon": "Play",
+            "style": "primary yellow"
+          }
+        ]
+      }
+    },
+    "activation_success_state": {
+      "scene": "Workflow successfully activated \u2014 canvas shows glowing active state, toast notification, status badge changed",
+      "canvas_changes": {
+        "all_node_borders": "2px solid #22C55E subtle glow",
+        "edge_animation": "flowing green animated dashes",
+        "background_tint": "very subtle #F0FDF4 overlay"
+      },
+      "topbar_changes": {
+        "status_badge": {
+          "label": "Active",
+          "bg": "#22C55E",
+          "text": "#FFFFFF"
+        },
+        "activate_button_changed": {
+          "label": "Deactivate",
+          "bg": "transparent",
+          "border": "1px solid rgba(255,255,255,0.3)",
+          "text": "rgba(255,255,255,0.7)"
+        }
+      },
+      "toast_notification": {
+        "position": "top-center",
+        "content": {
+          "icon": "CheckCircle 20px #22C55E",
+          "title": "Workflow Activated! \u2014 15px bold #1B1B1B",
+          "subtitle": "Webinar Lead Funnel is now live and monitoring your Google Sheet \u2014 13px #6B6B6B",
+          "close": "X 14px #9B9B9B"
+        },
+        "style": "white card border-left 4px solid #22C55E rounded-10 shadow-lg padding 16px 20px"
+      }
+    }
+  }
+}

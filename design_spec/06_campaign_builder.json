@@ -1,0 +1,220 @@
+{
+  "meta": {
+    "screen": "06 \u2014 Broadcast Campaign Builder",
+    "file": "06_campaign_builder.json",
+    "subtitle": "Step-by-step Campaign Builder with Recipients, Template, Schedule, Review + Launch"
+  },
+  "image_prompt": {
+    "scene": "Flowora Broadcast Campaign Builder page. Clean white layout. Top progress stepper with 5 steps. Main form area below. Right side live preview panel. Bottom navigation with Back and Next buttons.",
+    "page_header": {
+      "title": "New WhatsApp Campaign \u2014 24px bold #1B1B1B",
+      "breadcrumb": "Campaigns \u2192 New Campaign",
+      "step_indicator": {
+        "steps": [
+          {
+            "number": 1,
+            "label": "Recipients",
+            "state": "completed",
+            "bg": "#22C55E"
+          },
+          {
+            "number": 2,
+            "label": "Message",
+            "state": "active",
+            "bg": "#FFE27C"
+          },
+          {
+            "number": 3,
+            "label": "Preview",
+            "state": "pending",
+            "bg": "#F4F4F2"
+          },
+          {
+            "number": 4,
+            "label": "Schedule",
+            "state": "pending"
+          },
+          {
+            "number": 5,
+            "label": "Review & Launch",
+            "state": "pending"
+          }
+        ],
+        "connector_line": "1px #E8E8E4 between steps, completed segments #22C55E"
+      }
+    },
+    "step_2_message": {
+      "two_column_layout": {
+        "left_form": {
+          "width": "55%",
+          "sections": [
+            {
+              "label": "WhatsApp Business Account",
+              "selector": {
+                "account": "Flowora \u2014 Acme Corp \u2014 14px bold",
+                "number": "+1 415 555 0100",
+                "verified_badge": "Verified green checkmark"
+              }
+            },
+            {
+              "label": "Select Template",
+              "template_grid": {
+                "layout": "2-column grid of template cards",
+                "cards": [
+                  {
+                    "name": "webinar_invite_v2",
+                    "category": "Marketing",
+                    "category_bg": "#F0FDF4",
+                    "preview_text": "Hi {{1}}! Join our exclusive webinar...",
+                    "status": "Approved",
+                    "selected": true,
+                    "selected_border": "2px solid #FFE27C"
+                  },
+                  {
+                    "name": "demo_confirmation",
+                    "category": "Utility",
+                    "preview_text": "Your demo is confirmed for {{date}}..."
+                  },
+                  {
+                    "name": "follow_up_warm",
+                    "category": "Marketing",
+                    "preview_text": "Hey {{name}}, just checking in..."
+                  }
+                ]
+              }
+            },
+            {
+              "label": "Map Variables",
+              "variable_mapping": [
+                {
+                  "var": "{{1}} Name",
+                  "mapped_to": "contact_name",
+                  "source": "Contact List"
+                },
+                {
+                  "var": "{{2}} Date",
+                  "mapped_to": "Custom value: Jan 20, 2026"
+                }
+              ]
+            }
+          ]
+        },
+        "right_preview": {
+          "width": "45%",
+          "label": "Live Preview \u2014 14px bold #1B1B1B",
+          "phone_mockup": {
+            "style": "iPhone-style phone frame, white, 280px wide, screen shows WhatsApp conversation",
+            "status_bar": "9:41 AM signal wifi battery",
+            "whatsapp_header": {
+              "back_arrow": "\u2190",
+              "avatar": "32px Flowora logo",
+              "name": "Flowora \u2014 Acme Corp",
+              "verified_tick": "blue checkmark"
+            },
+            "message_bubble": {
+              "bg": "#DCF8C6",
+              "content": "Hi {{name}}! \ud83d\udc4b\n\nJoin our exclusive webinar on\n'AI for Business Growth'\n\n\ud83d\udcc5 Date: {{event_date}}\n\ud83d\udccd Online (Zoom)\n\nReserve your spot now!\n{{registration_link}}",
+              "font_size": "13px",
+              "cta_button": {
+                "label": "Register Now \u2192",
+                "bg": "#25D366",
+                "text": "#FFFFFF",
+                "border_radius": "8px",
+                "width": "100%"
+              },
+              "time": "10:32 AM",
+              "ticks": "\u2713\u2713 gray"
+            }
+          }
+        }
+      }
+    },
+    "step_1_recipients_panel": {
+      "description": "Recipients selection step panel (shown as completed state summary)",
+      "summary": {
+        "recipient_count": "3,245 contacts selected",
+        "filters_applied": "Tag: Webinar Interest, Opted In: Yes, Country: India",
+        "edit_link": "Edit Recipients \u2192"
+      }
+    },
+    "step_4_schedule": {
+      "options": [
+        {
+          "label": "Send Now",
+          "icon": "Zap",
+          "selected": false,
+          "card_style": "white border rounded-10 padding 16px"
+        },
+        {
+          "label": "Schedule for Later",
+          "icon": "Calendar",
+          "selected": true,
+          "selected_border": "#FFE27C",
+          "date_time_picker": {
+            "date": "January 15, 2026",
+            "time": "10:00 AM",
+            "timezone": "IST (UTC+5:30)"
+          }
+        }
+      ],
+      "rate_limit": {
+        "label": "Message Rate Limit",
+        "input": {
+          "value": "500 messages per hour",
+          "type": "select"
+        },
+        "note": "Recommended to avoid spam flagging \u2014 12px #9B9B9B"
+      }
+    },
+    "step_5_review": {
+      "summary_card": {
+        "sections": [
+          {
+            "label": "Campaign Name",
+            "value": "Webinar Invite \u2014 Jan 2026"
+          },
+          {
+            "label": "Recipients",
+            "value": "3,245 contacts"
+          },
+          {
+            "label": "Template",
+            "value": "webinar_invite_v2"
+          },
+          {
+            "label": "Scheduled",
+            "value": "Jan 15, 2026 at 10:00 AM IST"
+          },
+          {
+            "label": "Estimated Cost",
+            "value": "3,245 credits",
+            "color": "#C4B1F9"
+          }
+        ]
+      },
+      "launch_button": {
+        "label": "\ud83d\ude80 Launch Campaign",
+        "background": "#FFE27C",
+        "text": "#1B1B1B",
+        "font_weight": 700,
+        "font_size": "16px",
+        "width": "100%",
+        "height": "52px",
+        "border_radius": "10px",
+        "shadow": "0 4px 16px rgba(255,226,124,0.5)"
+      }
+    },
+    "bottom_navigation": {
+      "style": "fixed bottom bar white border-top padding 16px 24px",
+      "layout": "flex justify-between",
+      "left": {
+        "label": "\u2190 Back",
+        "style": "ghost button"
+      },
+      "right": {
+        "label": "Next \u2192",
+        "style": "primary yellow"
+      }
+    }
+  }
+}

@@ -1,6 +1,8 @@
 -- Run this in Supabase SQL Editor → New Query
 -- Creates the voice_calls table with RLS
 
+drop table if exists public.voice_calls cascade;
+
 create table if not exists public.voice_calls (
   id              uuid primary key default gen_random_uuid(),
   user_id         uuid references auth.users(id) on delete cascade not null,

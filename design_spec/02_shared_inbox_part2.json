@@ -1,0 +1,182 @@
+{
+  "meta": {
+    "screen": "02 \u2014 Shared Inbox",
+    "part": 2,
+    "subtitle": "Agent Assignment Modal + Multimedia Messages + Bulk Actions Bar",
+    "file": "02_shared_inbox_part2.json"
+  },
+  "image_prompt": {
+    "agent_assignment_modal": {
+      "trigger": "Assign to \u2192 button clicked in chat topbar",
+      "modal": {
+        "width": "480px",
+        "background": "#FFFFFF",
+        "border_radius": "16px",
+        "shadow": "0 24px 64px rgba(0,0,0,0.12)",
+        "overlay": "rgba(27,27,27,0.6)",
+        "padding": "24px"
+      },
+      "header": {
+        "title": "Assign Conversation \u2014 20px bold #1B1B1B",
+        "subtitle": "Assign John Doe's conversation to an agent \u2014 14px #6B6B6B",
+        "close": "X icon top-right"
+      },
+      "search_agents": {
+        "placeholder": "Search agents...",
+        "icon": "Search",
+        "background": "#F4F4F2",
+        "border_radius": "8px",
+        "margin_bottom": "16px"
+      },
+      "agents_list": [
+        {
+          "avatar": "40px RF circle gradient",
+          "name": "Robert Fox \u2014 14px bold",
+          "role": "Admin \u2014 13px #6B6B6B",
+          "status": {
+            "dot": "8px #22C55E",
+            "label": "Online"
+          },
+          "active_chats": "12 active \u2014 12px #9B9B9B",
+          "select_button": {
+            "label": "Assign",
+            "bg": "#FFE27C",
+            "text": "#1B1B1B"
+          }
+        },
+        {
+          "avatar": "40px CW",
+          "name": "Camron Williams",
+          "role": "Support Agent",
+          "status": {
+            "dot": "#22C55E",
+            "label": "Online"
+          },
+          "active_chats": "8 active"
+        },
+        {
+          "avatar": "40px BS",
+          "name": "Brooklyn Simmons",
+          "role": "Sales Agent",
+          "status": {
+            "dot": "#F59E0B",
+            "label": "Away"
+          },
+          "active_chats": "5 active"
+        }
+      ],
+      "routing_rules": {
+        "section_label": "Or use Auto-Routing Rules \u2014 13px #6B6B6B",
+        "options": [
+          {
+            "label": "Round Robin \u2014 equally distribute",
+            "radio": true
+          },
+          {
+            "label": "Least Active \u2014 assign to agent with fewest chats",
+            "radio": true
+          }
+        ]
+      },
+      "footer": {
+        "buttons": [
+          {
+            "label": "Cancel",
+            "style": "secondary"
+          },
+          {
+            "label": "Assign Now",
+            "style": "primary yellow"
+          }
+        ]
+      }
+    },
+    "multimedia_messages": {
+      "scene": "Chat conversation area showing various multimedia message types supported by WhatsApp Business API",
+      "message_types": [
+        {
+          "type": "image_message",
+          "direction": "inbound",
+          "content": {
+            "image_preview": "320x200px rounded-8 image placeholder showing product screenshot with gray background",
+            "caption": "This is what I was referring to \u2014 13px #6B6B6B italic below image",
+            "download_icon": "Download 14px top-right of image"
+          }
+        },
+        {
+          "type": "document_message",
+          "direction": "outbound",
+          "content": {
+            "icon": "FileText 24px #3B82F6",
+            "filename": "Flowora_Pricing_2026.pdf \u2014 14px bold #1B1B1B",
+            "size": "2.4 MB \u2014 12px #9B9B9B",
+            "download_button": "Download \u2014 #3B82F6"
+          }
+        },
+        {
+          "type": "voice_note",
+          "direction": "inbound",
+          "content": {
+            "play_button": "Play 20px circle #25D366 bg white icon",
+            "waveform": "24 bars of varying heights #B1D8FC",
+            "duration": "0:32 \u2014 12px #9B9B9B"
+          }
+        },
+        {
+          "type": "location",
+          "direction": "inbound",
+          "content": {
+            "map_preview": "240x120px rounded map image",
+            "address": "Acme Corp HQ, Mumbai \u2014 13px #1B1B1B",
+            "coordinates": "19.0760\u00b0 N, 72.8777\u00b0 E \u2014 12px #9B9B9B"
+          }
+        }
+      ]
+    },
+    "bulk_actions_bar": {
+      "trigger": "Multiple chats selected via checkboxes",
+      "state": "3 chats selected",
+      "bar": {
+        "position": "bottom of chat list column A",
+        "height": "52px",
+        "background": "#FFE27C",
+        "border_radius": "0 0 0 0",
+        "padding": "0 16px",
+        "layout": "flex justify-between align-center"
+      },
+      "left": "3 chats selected \u2014 14px bold #1B1B1B",
+      "actions": [
+        {
+          "icon": "UserCheck",
+          "label": "Assign All",
+          "style": "#1B1B1B icon-button"
+        },
+        {
+          "icon": "Tag",
+          "label": "Add Tag",
+          "style": "#1B1B1B icon-button"
+        },
+        {
+          "icon": "CheckCircle",
+          "label": "Close All",
+          "style": "#1B1B1B icon-button"
+        },
+        {
+          "icon": "Archive",
+          "label": "Archive",
+          "style": "#1B1B1B icon-button"
+        },
+        {
+          "icon": "Trash2",
+          "label": "Spam",
+          "style": "#EF4444 icon-button"
+        }
+      ],
+      "right": {
+        "icon": "X",
+        "label": "Cancel",
+        "style": "#1B1B1B"
+      }
+    }
+  }
+}

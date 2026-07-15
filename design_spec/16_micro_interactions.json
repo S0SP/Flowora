@@ -1,0 +1,329 @@
+{
+  "meta": {
+    "screen": "16 \u2014 Micro Interactions & Animation States",
+    "file": "16_micro_interactions.json",
+    "version": "1.0.0",
+    "subtitle": "All Animated States, Hover States, Loading States, Success States across the Flowora app"
+  },
+  "image_prompt": {
+    "composition": "Wide 16:9 8K design reference sheet on white background. Multiple component panels arranged in a grid. Each panel shows before/after or animation state. Labels in 12px #9B9B9B above each panel. Clean Figma-style component documentation. No blur. Sharp text.",
+    "animation_panels": [
+      {
+        "panel_id": "ma_01",
+        "label": "Primary Button \u2014 Hover & Active States",
+        "states": [
+          {
+            "state": "Default",
+            "component": "Activate Workflow button bg #FFE27C text #1B1B1B border-radius 8px padding 10px 20px shadow 0 2px 8px rgba(255,226,124,0.35)"
+          },
+          {
+            "state": "Hover",
+            "component": "Same button bg #FFD84A \u2014 slightly darker yellow shadow 0 4px 16px rgba(255,226,124,0.55) transform scale 1.02"
+          },
+          {
+            "state": "Active / Pressed",
+            "component": "bg #F0C800 scale 0.98 shadow reduced"
+          },
+          {
+            "state": "Loading",
+            "component": "bg #FFE27C spinner 16px white rotating inside replacing label text"
+          },
+          {
+            "state": "Success",
+            "component": "bg #22C55E Check icon 16px white + text Activated! transition 300ms ease"
+          }
+        ],
+        "panel_style": "white bg border 1px #E8E8E4 border-radius 12px padding 20px"
+      },
+      {
+        "panel_id": "ma_02",
+        "label": "Smooth Hover \u2014 Activate Workflow Button with Cursor",
+        "description": "Shows button with cursor arrow pointer hovering over it, slight scale up, deepened shadow, cursor changes to pointer hand \u2014 reference cursor PNG overlaid",
+        "visual": "Button + CSS cursor hand pointer image overlaid at bottom-right of button"
+      },
+      {
+        "panel_id": "ma_03",
+        "label": "Drag & Drop Node \u2014 Workflow Builder",
+        "states": [
+          {
+            "state": "Idle Node",
+            "component": "WhatsApp Message node card white bg border 1px #E8E8E4 border-radius 10px shadow card"
+          },
+          {
+            "state": "Picking Up",
+            "component": "Same node scale 1.04 shadow 0 8px 32px rgba(0,0,0,0.15) border 1.5px dashed #FFE27C cursor grab"
+          },
+          {
+            "state": "Dragging",
+            "component": "Node semi-transparent opacity 0.8 floating above canvas showing drop ghost underneath 1px dashed outline where it will land cursor grabbing"
+          },
+          {
+            "state": "Dropped",
+            "component": "Node snaps to grid with spring animation scale briefly 1.08 \u2192 1.0 border flashes #FFE27C then returns to normal"
+          }
+        ]
+      },
+      {
+        "panel_id": "ma_04",
+        "label": "Node Connection \u2014 Bezier Edge Draw",
+        "states": [
+          {
+            "state": "Hovering handle",
+            "component": "Output port circle 8px grows to 12px bg #FFE27C pulse ring animation"
+          },
+          {
+            "state": "Drawing connection",
+            "component": "Dashed bezier curve following mouse from output port cursor shows link icon"
+          },
+          {
+            "state": "Connecting",
+            "component": "Curve connects to input port \u2014 port flashes green \u2014 solid bezier line #1B1B1B 2px animated dash travel from source to target"
+          },
+          {
+            "state": "Connected",
+            "component": "Solid smooth bezier curve 2px #1B1B1B with animated dot traveling along path every 3s to show data flow"
+          }
+        ]
+      },
+      {
+        "panel_id": "ma_05",
+        "label": "Workflow Activation \u2014 Success Animation",
+        "states": [
+          {
+            "state": "Before",
+            "component": "Activate button yellow + canvas with workflow nodes"
+          },
+          {
+            "state": "Processing",
+            "component": "Button shows spinner + all nodes pulse with yellow glow sequentially from trigger to output"
+          },
+          {
+            "state": "Activated",
+            "component": "Large animated check circle 80px bg #FFE27C in center of canvas + confetti particles in brand colors #FFE27C #C4B1F9 #B1D8FC + text Workflow Activated! 20px 700 #1B1B1B below circle + button turns green Activated"
+          }
+        ]
+      },
+      {
+        "panel_id": "ma_06",
+        "label": "Typing Indicator \u2014 Chat Inbox",
+        "states": [
+          {
+            "state": "Idle",
+            "component": "Empty chat input area"
+          },
+          {
+            "state": "Agent Typing",
+            "component": "Three dots bubble bg #F5F5F0 border-radius 12px three dots each animate scale up-down sequentially dot-1 delay 0 dot-2 delay 100ms dot-3 delay 200ms loop"
+          },
+          {
+            "state": "Customer Typing",
+            "component": "Same dots left-aligned with customer avatar 24px beside"
+          }
+        ]
+      },
+      {
+        "panel_id": "ma_07",
+        "label": "Message Sending Animation",
+        "states": [
+          {
+            "state": "Sent",
+            "component": "Chat bubble slides in from right scale 0.8 \u2192 1.0 opacity 0 \u2192 1 duration 200ms ease-out single gray tick bottom right"
+          },
+          {
+            "state": "Delivered",
+            "component": "Single tick transitions to double gray tick small animation"
+          },
+          {
+            "state": "Read",
+            "component": "Double gray ticks transition to double blue ticks with small flash animation"
+          },
+          {
+            "state": "Failed",
+            "component": "Bubble border turns #EF4444 dashed small error triangle icon bottom-right retry button appears"
+          }
+        ]
+      },
+      {
+        "panel_id": "ma_08",
+        "label": "Voice Agent \u2014 Waveform Animation",
+        "states": [
+          {
+            "state": "Idle / Not calling",
+            "component": "Flat horizontal line 160px wide 2px #E8E8E4"
+          },
+          {
+            "state": "Connecting",
+            "component": "Pulsing ring animation on mic icon 3 concentric rings expanding-fading #FFE27C opacity"
+          },
+          {
+            "state": "Active Call",
+            "component": "Dynamic waveform bars 24 vertical bars of varying height animate up-down based on audio amplitude bars colored #1B1B1B on white bg with #FFE27C highlight on tallest bars real-time looking"
+          },
+          {
+            "state": "AI Speaking",
+            "component": "Waveform bars animate smoothly wave ripple pattern from center outward bars #FFE27C colored"
+          },
+          {
+            "state": "Call Ended",
+            "component": "Bars collapse to flat line scale-down animation then checkmark appears with call duration 00:02:34"
+          }
+        ]
+      },
+      {
+        "panel_id": "ma_09",
+        "label": "Sidebar Navigation \u2014 Hover & Active",
+        "states": [
+          {
+            "state": "Default inactive item",
+            "component": "Icon 18px #9B9B9B + label 14px #9B9B9B padding 12px 20px"
+          },
+          {
+            "state": "Hover",
+            "component": "bg transitions #1B1B1B \u2192 #2A2A2A icon and label #FAFAF8 transition 150ms ease border-radius 8px on item"
+          },
+          {
+            "state": "Active",
+            "component": "Left border bar 3px #FFE27C bg #252525 icon #FFE27C text #FFE27C border-radius 0 8px 8px 0"
+          }
+        ]
+      },
+      {
+        "panel_id": "ma_10",
+        "label": "Kanban Card \u2014 Drag Between Columns",
+        "states": [
+          {
+            "state": "Idle card",
+            "component": "White card border-radius 8px shadow card"
+          },
+          {
+            "state": "Drag lift",
+            "component": "Card scale 1.03 shadow elevated 0 12px 40px rgba(0,0,0,0.15) rotate 2deg cursor grabbing"
+          },
+          {
+            "state": "Column hover target",
+            "component": "Target column bg tints yellow #FFFBEB border dashed 2px #FFE27C placeholder ghost card animates in"
+          },
+          {
+            "state": "Drop success",
+            "component": "Card drops spring animation bounce once slight scale 1.05 \u2192 1.0 column count badge updates with number pop animation"
+          }
+        ]
+      },
+      {
+        "panel_id": "ma_11",
+        "label": "Toast / Snackbar Notifications",
+        "variants": [
+          {
+            "type": "Success",
+            "component": "Bottom-right toast slides in from right transform translateX 120% \u2192 0 bg white border-left 4px #22C55E icon CheckCircle green + title Workflow Activated! + subtitle Your lead sequence is now live shadow card duration 4s auto-dismiss with progress bar"
+          },
+          {
+            "type": "Error",
+            "component": "Same layout border-left #EF4444 icon AlertCircle red + title Something went wrong"
+          },
+          {
+            "type": "Info",
+            "component": "Border-left #B1D8FC icon Info blue"
+          },
+          {
+            "type": "Warning",
+            "component": "Border-left #F59E0B icon AlertTriangle amber"
+          }
+        ]
+      },
+      {
+        "panel_id": "ma_12",
+        "label": "Credit Usage Bar \u2014 Animated Fill",
+        "states": [
+          {
+            "state": "Loading",
+            "component": "Skeleton shimmer bar full width #F0F0EC gradient shimmer L\u2192R"
+          },
+          {
+            "state": "Filling animation",
+            "component": "Bar fills left to right width 0% \u2192 actual% transition 800ms ease-out cubic-bezier"
+          },
+          {
+            "state": "Normal (>40% left)",
+            "component": "Bar fill #FFE27C track #F0F0EC border-radius 6px"
+          },
+          {
+            "state": "Warning (<20% left)",
+            "component": "Bar fill #F59E0B pulsing glow"
+          },
+          {
+            "state": "Critical (<5% left)",
+            "component": "Bar fill #EF4444 pulsing animation + warning icon"
+          }
+        ]
+      },
+      {
+        "panel_id": "ma_13",
+        "label": "Smart Card Expand \u2014 Shared Inbox",
+        "states": [
+          {
+            "state": "Collapsed",
+            "component": "Card header only visible with ChevronDown icon"
+          },
+          {
+            "state": "Expanding",
+            "component": "Card height animates 0 \u2192 auto with overflow hidden ease-out 200ms ChevronDown rotates 180deg"
+          },
+          {
+            "state": "Expanded",
+            "component": "Full card content visible with all fields and sub-rows"
+          }
+        ]
+      },
+      {
+        "panel_id": "ma_14",
+        "label": "Table Row Hover + Action Reveal",
+        "states": [
+          {
+            "state": "Default row",
+            "component": "White bg action buttons invisible opacity 0"
+          },
+          {
+            "state": "Row hover",
+            "component": "Row bg #FAFAF8 shadow 0 2px 8px rgba(0,0,0,0.06) action buttons fade in opacity 0 \u2192 1 transition 150ms"
+          }
+        ]
+      },
+      {
+        "panel_id": "ma_15",
+        "label": "Campaign Schedule Calendar Picker \u2014 Date Select",
+        "states": [
+          {
+            "state": "Default",
+            "component": "Outlined input with calendar icon"
+          },
+          {
+            "state": "Open Calendar",
+            "component": "Calendar dropdown slides down scale-y 0.8 \u2192 1.0 opacity 0 \u2192 1 ease-out 200ms"
+          },
+          {
+            "state": "Date hover",
+            "component": "Date cell bg #FFFBEB border-radius 6px"
+          },
+          {
+            "state": "Date selected",
+            "component": "Date cell bg #FFE27C text #1B1B1B border-radius 6px"
+          },
+          {
+            "state": "Date range",
+            "component": "Start and end dates bg #FFE27C cells in between bg #FFFBEB tinted"
+          }
+        ]
+      }
+    ]
+  },
+  "rendering_settings": {
+    "resolution": "7680x4320 8K",
+    "style": "clean UI component reference sheet photorealistic",
+    "layout": "grid of labeled panels white background",
+    "font_rendering": "crisp subpixel antialiasing",
+    "no_blur": true,
+    "annotations": "small 11px #9B9B9B labels above each panel state"
+  },
+  "negative_prompt": "blur, dark bg, 3D render, sketch, watercolor, neon glow, missing states, illegible text, overlapping panels, cropped components"
+}

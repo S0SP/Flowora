@@ -1,0 +1,504 @@
+{
+  "meta": {
+    "screen": "02 \u2014 Shared Inbox",
+    "part": 1,
+    "subtitle": "Three-Column Inbox: Chat List + Active Conversation + Smart Cards Panel",
+    "file": "02_shared_inbox_part1.json"
+  },
+  "image_prompt": {
+    "scene": "Full-page Shared Inbox screen inside Flowora dashboard. Left sidebar unchanged. Topbar shows Shared Inbox breadcrumb. Main area is a three-column layout: column A is chat list 320px, column B is active chat conversation 60% width, column C is Smart Cards right panel 300px. Background #FAFAF8. All columns white with borders.",
+    "topbar_contextual": {
+      "left": "\u2190 Shared Inbox \u2014 18px bold #1B1B1B",
+      "tabs": [
+        {
+          "label": "All \u2014 132",
+          "active": true,
+          "badge_bg": "#FFE27C"
+        },
+        {
+          "label": "Open \u2014 88"
+        },
+        {
+          "label": "Bot \u2014 34"
+        },
+        {
+          "label": "Unread \u2014 49"
+        },
+        {
+          "label": "Closed \u2014 791"
+        }
+      ],
+      "tab_style": "underline style, active shows #1B1B1B bold with yellow underline 2px",
+      "right_actions": [
+        {
+          "icon": "Filter",
+          "label": "Filter"
+        },
+        {
+          "icon": "SortDesc",
+          "label": "Sort"
+        },
+        {
+          "icon": "Search",
+          "label": "Search"
+        },
+        {
+          "icon": "Maximize2",
+          "tooltip": "Expand"
+        }
+      ]
+    },
+    "column_A_chat_list": {
+      "width": "320px",
+      "background": "#FFFFFF",
+      "border_right": "1px solid #E8E8E4",
+      "header": {
+        "search_input": {
+          "placeholder": "Search chats...",
+          "icon": "Search 14px",
+          "background": "#F4F4F2",
+          "border_radius": "8px",
+          "height": "36px",
+          "margin": "12px"
+        },
+        "agent_filter": {
+          "label": "My Chats",
+          "toggle": "All Chats",
+          "style": "pill toggle"
+        }
+      },
+      "section_headers": {
+        "active_section": {
+          "label": "ACTIVE \u2014 12px #9B9B9B uppercase",
+          "count_badge": "48 \u2014 #22C55E bg #F0FDF4"
+        },
+        "requesting_section": {
+          "label": "REQUESTING \u2014 12px #9B9B9B uppercase",
+          "count_badge": "17 \u2014 #F59E0B"
+        },
+        "intervened_section": {
+          "label": "INTERVENED \u2014 12px #9B9B9B uppercase",
+          "count_badge": "12 \u2014 #C4B1F9"
+        }
+      },
+      "chat_items": [
+        {
+          "state": "selected_active",
+          "background": "#FFF9E6",
+          "border_left": "3px solid #FFE27C",
+          "avatar": "40px circle JD initials blue gradient",
+          "name": "John Doe \u2014 14px bold #1B1B1B",
+          "channel_icon": "WhatsApp 12px green",
+          "number": "+91 98765 43210 \u2014 12px #9B9B9B",
+          "last_message": "Hello, I'm interested in your product... \u2014 13px #6B6B6B truncated",
+          "timestamp": "10:32 AM \u2014 11px #9B9B9B",
+          "unread_badge": "3 \u2014 16px circle #FFE27C #1B1B1B",
+          "tags": [
+            {
+              "label": "Hot Lead",
+              "bg": "#FEF2F2",
+              "text": "#EF4444"
+            }
+          ],
+          "assigned_avatar": "24px tiny circle RF initials"
+        },
+        {
+          "state": "active",
+          "avatar": "40px SW initials",
+          "name": "Sarah Wilson",
+          "channel_icon": "WhatsApp green",
+          "last_message": "Can you share pricing?",
+          "timestamp": "10:28 AM",
+          "unread_badge": "1"
+        },
+        {
+          "state": "active",
+          "avatar": "40px RS",
+          "name": "Rakesh Sharma",
+          "last_message": "Thanks! Please call me.",
+          "timestamp": "10:15 AM",
+          "tags": [
+            {
+              "label": "Demo Requested",
+              "bg": "#EFF6FF",
+              "text": "#3B82F6"
+            }
+          ]
+        },
+        {
+          "state": "requesting",
+          "background": "#FFFDF5",
+          "avatar": "40px PP",
+          "name": "Priya Patel",
+          "last_message": "Where is my invoice?",
+          "timestamp": "9:58 AM",
+          "request_badge": "Human requested \u2014 11px #F59E0B"
+        },
+        {
+          "state": "active",
+          "avatar": "40px DL",
+          "name": "David Lee",
+          "last_message": "Sounds good, thanks!",
+          "timestamp": "9:45 AM"
+        },
+        {
+          "state": "active",
+          "avatar": "40px JS",
+          "name": "James Smith",
+          "last_message": "Thanks, got it.",
+          "timestamp": "9:30 AM"
+        },
+        {
+          "state": "active",
+          "avatar": "40px ED",
+          "name": "Emily Davis",
+          "last_message": "Need more details.",
+          "timestamp": "9:10 AM",
+          "tags": [
+            {
+              "label": "Qualified",
+              "bg": "#F0FDF4",
+              "text": "#22C55E"
+            }
+          ]
+        }
+      ],
+      "bottom_toolbar": {
+        "items": [
+          {
+            "icon": "MessageSquarePlus",
+            "tooltip": "New Chat"
+          },
+          {
+            "icon": "Users",
+            "tooltip": "Bulk Actions"
+          },
+          {
+            "icon": "Filter",
+            "tooltip": "Advanced Filters"
+          }
+        ]
+      }
+    },
+    "column_B_chat": {
+      "flex": "1",
+      "background": "#FFFFFF",
+      "display": "flex flex-col",
+      "chat_topbar": {
+        "height": "60px",
+        "padding": "0 20px",
+        "border_bottom": "1px solid #E8E8E4",
+        "background": "#FFFFFF",
+        "left": {
+          "avatar": "40px JD blue gradient circle",
+          "name": "John Doe \u2014 16px bold #1B1B1B",
+          "status_row": "WhatsApp \u00b7 +91 98765 43210 \u2014 13px #6B6B6B | dot Online"
+        },
+        "right": {
+          "actions": [
+            {
+              "icon": "Phone",
+              "tooltip": "Call"
+            },
+            {
+              "icon": "Video",
+              "tooltip": "Video"
+            },
+            {
+              "icon": "Search",
+              "tooltip": "Search in chat"
+            },
+            {
+              "label": "Assign to \u2192",
+              "style": "secondary button small border rounded-8"
+            },
+            {
+              "icon": "MoreVertical"
+            }
+          ]
+        }
+      },
+      "chat_messages_area": {
+        "background": "#FAFAF8",
+        "padding": "20px",
+        "messages": [
+          {
+            "type": "inbound",
+            "sender": "John Doe",
+            "text": "Hello, I'm interested in your product.",
+            "time": "10:25 AM",
+            "bubble_bg": "#FFFFFF",
+            "bubble_border": "1px solid #E8E8E4",
+            "border_radius": "12px 12px 12px 2px"
+          },
+          {
+            "type": "outbound_ai",
+            "sender": "Flowora AI",
+            "ai_badge": "AI Reply \u2014 11px #C4B1F9 badge",
+            "text": "Hi John! \ud83d\udc4b Thanks for reaching out. How can we help you today?",
+            "time": "10:25 AM",
+            "bubble_bg": "#DCF8C6",
+            "border_radius": "12px 12px 2px 12px",
+            "tick_icon": "double blue ticks delivered+read"
+          },
+          {
+            "type": "inbound",
+            "text": "Can you share pricing for 100 users?",
+            "time": "10:28 AM"
+          },
+          {
+            "type": "outbound_human",
+            "sender": "You (Robert Fox)",
+            "text": "Sure! Here is our pricing detail.\n\n*Business Plan*\n100 Users: $209/month\n\n\ud83c\udfaf Includes: Shared Inbox, AI Chatbot, Voice Agent, Analytics",
+            "time": "10:30 AM",
+            "bubble_bg": "#DCF8C6",
+            "tick": "double blue ticks"
+          },
+          {
+            "type": "inbound",
+            "text": "Thanks! Also, can you schedule a demo?",
+            "time": "10:31 AM"
+          },
+          {
+            "type": "outbound_ai",
+            "ai_badge": "AI Reply",
+            "text": "Absolutely! Please choose a time that works for you.",
+            "time": "10:32 AM",
+            "interactive_button": {
+              "style": "WhatsApp CTA button",
+              "label": "\ud83d\udcc5 Book a Demo",
+              "bg": "#25D366",
+              "text": "#FFFFFF",
+              "border_radius": "8px"
+            }
+          },
+          {
+            "type": "date_separator",
+            "text": "Today \u2014 12px #9B9B9B center"
+          }
+        ]
+      },
+      "chat_composer": {
+        "height": "80px",
+        "background": "#FFFFFF",
+        "border_top": "1px solid #E8E8E4",
+        "padding": "12px 16px",
+        "layout": "flex align-center gap 12px",
+        "left_actions": [
+          {
+            "icon": "Paperclip",
+            "tooltip": "Attach file"
+          },
+          {
+            "icon": "Image",
+            "tooltip": "Send image"
+          },
+          {
+            "icon": "Mic",
+            "tooltip": "Voice note"
+          },
+          {
+            "icon": "Smile",
+            "tooltip": "Emoji"
+          }
+        ],
+        "input": {
+          "placeholder": "Type a message... or press / for quick replies",
+          "background": "#F4F4F2",
+          "border_radius": "8px",
+          "padding": "10px 14px",
+          "flex": "1"
+        },
+        "right_actions": [
+          {
+            "icon": "Zap",
+            "label": "AI Suggest",
+            "bg": "#FFF9E6",
+            "border": "1px solid #FFE27C",
+            "border_radius": "8px",
+            "tooltip": "Get AI reply suggestion"
+          },
+          {
+            "icon": "Send",
+            "bg": "#FFE27C",
+            "color": "#1B1B1B",
+            "border_radius": "8px",
+            "size": "36x36px"
+          }
+        ],
+        "template_bar": {
+          "position": "above composer",
+          "label": "Quick Replies: \u2014 12px #9B9B9B",
+          "chips": [
+            {
+              "text": "Share Pricing",
+              "bg": "#F4F4F2",
+              "border_radius": "9999px"
+            },
+            {
+              "text": "Book Demo",
+              "bg": "#F4F4F2"
+            },
+            {
+              "text": "Send Brochure",
+              "bg": "#F4F4F2"
+            }
+          ]
+        }
+      }
+    },
+    "column_C_smart_cards": {
+      "width": "300px",
+      "background": "#FFFFFF",
+      "border_left": "1px solid #E8E8E4",
+      "padding": "0",
+      "overflow_y": "auto",
+      "header": {
+        "title": "Smart Cards \u2014 14px bold #1B1B1B padding 16px",
+        "customize_button": "Customize \u2014 13px #6B6B6B underline",
+        "border_bottom": "1px solid #E8E8E4"
+      },
+      "cards": [
+        {
+          "type": "customer_profile",
+          "title": "Customer Profile",
+          "icon": "User 14px",
+          "collapsible": true,
+          "content": {
+            "avatar": "48px JD circle blue gradient",
+            "name": "John Doe \u2014 16px bold #1B1B1B",
+            "number": "+91 98765 43210 \u2014 13px #6B6B6B",
+            "email": "john@acme.com \u2014 13px #6B6B6B",
+            "company": "Acme Corp \u2014 13px #6B6B6B",
+            "current_stage": {
+              "label": "Current Stage",
+              "value": "Demo Scheduled \u2014 #22C55E badge"
+            },
+            "owner": {
+              "label": "Owner",
+              "value": "Robert Fox \u2014 avatar 20px + name"
+            },
+            "attributes_row": [
+              {
+                "label": "Lead Score",
+                "value": "82",
+                "badge_bg": "#FEF2F2",
+                "badge_text": "#EF4444",
+                "badge_label": "Hot Lead"
+              }
+            ],
+            "view_details_button": "View Details \u2192 \u2014 13px #6B6B6B underline"
+          }
+        },
+        {
+          "type": "tags",
+          "title": "Tags",
+          "icon": "Tag 14px",
+          "content": {
+            "tags": [
+              {
+                "label": "Hot Lead",
+                "bg": "#FEF2F2",
+                "text": "#EF4444"
+              },
+              {
+                "label": "Demo Scheduled",
+                "bg": "#EFF6FF",
+                "text": "#3B82F6"
+              },
+              {
+                "label": "Pricing Inquiry",
+                "bg": "#F0FDF4",
+                "text": "#22C55E"
+              }
+            ],
+            "add_tag_button": "+ Add Tag \u2014 12px #9B9B9B dashed border pill"
+          }
+        },
+        {
+          "type": "ai_summary",
+          "title": "AI Summary",
+          "icon": "Sparkles 14px #C4B1F9",
+          "badge": "AI \u2014 #C4B1F9 bg",
+          "content": {
+            "text": "Interested in Business Plan for 100 users. Requested demo. Budget discussion expected. \u2014 13px #6B6B6B",
+            "sentiment": {
+              "label": "Sentiment: Positive",
+              "color": "#22C55E"
+            },
+            "last_updated": "Last 7 Days \u2014 12px #9B9B9B"
+          }
+        },
+        {
+          "type": "notes",
+          "title": "Notes",
+          "icon": "StickyNote 14px",
+          "content": {
+            "existing_note": {
+              "text": "Spoke on phone. Very interested in the Business Plan. Follow up after demo. \u2014 13px #6B6B6B",
+              "date": "Jan 14, 2026 \u2014 11px #9B9B9B",
+              "actions": [
+                "Edit",
+                "Delete"
+              ]
+            },
+            "add_note_input": {
+              "placeholder": "Add a note...",
+              "background": "#F4F4F2",
+              "border_radius": "8px",
+              "padding": "8px 12px"
+            }
+          }
+        },
+        {
+          "type": "conversation_history",
+          "title": "Conversation History",
+          "icon": "History 14px",
+          "content": {
+            "threads": [
+              {
+                "label": "Thread 1 \u2014 Jan 10, 2026",
+                "status": "Closed",
+                "status_color": "#EF4444",
+                "preview": "Product inquiry about pricing..."
+              },
+              {
+                "label": "Thread 2 \u2014 Jan 8, 2026",
+                "status": "Closed",
+                "status_color": "#EF4444",
+                "preview": "Support request resolved"
+              }
+            ]
+          }
+        },
+        {
+          "type": "events",
+          "title": "Events",
+          "icon": "Activity 14px",
+          "content": {
+            "events": [
+              {
+                "type": "Notification Sent",
+                "campaign": "Webinar Campaign",
+                "time": "10:20 AM",
+                "status": "Read",
+                "status_color": "#22C55E"
+              },
+              {
+                "type": "Click Tracking",
+                "detail": "Clicked: Register Now button",
+                "url": "flowora.io/webinar",
+                "time": "10:22 AM"
+              },
+              {
+                "type": "Workflow Triggered",
+                "detail": "Lead Nurture Sequence started",
+                "time": "9:00 AM"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -10,6 +10,8 @@ import { ParsedContact, WhatsAppTemplate } from "@/types";
 import { parsePhoneFromExcel, isValidPhone } from "@/lib/utils";
 import * as XLSX from "xlsx";
 import Papa from "papaparse";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const schema = z.object({
   campaign_name: z.string().min(2, "Campaign name required"),
@@ -36,7 +38,7 @@ export function CampaignSender() {
   const [loadingTemplates, setLoadingTemplates] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<FormData>({
+  const { register, control, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { template_language: "en", send_later: false },
   });
@@ -316,10 +318,23 @@ export function CampaignSender() {
                           <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                             Choose Date & Time
                           </label>
-                          <input
-                            type="datetime-local"
-                            {...register("scheduled_at")}
-                            className="w-full px-3 py-2.5 bg-background border border-input rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                          <Controller
+                            control={control}
+                            name="scheduled_at"
+                            render={({ field }) => (
+                              <DatePicker
+                                selected={field.value ? new Date(field.value) : null}
+                                onChange={(date: Date | null) => field.onChange(date ? date.toISOString() : "")}
+                                showTimeSelect
+                                timeFormat="HH:mm"
+                                timeIntervals={15}
+                                dateFormat="MMMM d, yyyy h:mm aa"
+                                minDate={new Date()}
+                                className="w-full px-3 py-2.5 bg-background border border-input rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                                placeholderText="Select date and time"
+                                isClearable
+                              />
+                            )}
                           />
                           {errors.scheduled_at && (
                             <p className="text-xs text-destructive">{errors.scheduled_at.message}</p>

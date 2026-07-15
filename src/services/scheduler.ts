@@ -3,7 +3,7 @@ import { sendWhatsAppTemplate } from "./meta";
 import { Campaign, ParsedContact } from "@/types";
 import { syncActiveSheets, sendPendingLeads } from "./lead-capture";
 
-let isProcessing = false;
+
 
 export async function processScheduledCampaigns() {
   // Run Lead Capture sheet sync and queue processing on each tick
@@ -14,12 +14,6 @@ export async function processScheduledCampaigns() {
     console.error("Scheduler: Lead Capture execution error:", err);
   }
 
-  // Prevent overlapping runs of the scheduler
-  if (isProcessing) {
-    return { skipped: true, reason: "Already processing" };
-  }
-
-  isProcessing = true;
   let processedCount = 0;
 
   try {
@@ -161,7 +155,5 @@ export async function processScheduledCampaigns() {
   } catch (err) {
     console.error("Scheduler: unexpected error:", err);
     return { success: false, error: err instanceof Error ? err.message : "Unknown error" };
-  } finally {
-    isProcessing = false;
   }
 }

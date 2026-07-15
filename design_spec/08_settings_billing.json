@@ -1,0 +1,50 @@
+{
+  "module": "Settings & Billing",
+  "description": "Global account settings, team management, and subscription/billing.",
+  "layout_structure": {
+    "type": "Standard Settings Layout",
+    "sidebar": "Secondary inner-sidebar for settings categories (e.g., Profile, Team, Billing, API Keys, Integrations).",
+    "main_area": "Centered content container for the active settings category."
+  },
+  "components": {
+    "inner_sidebar": {
+      "style": "List of text links. Active link is bold with a left border highlight in Kournikova.",
+      "items": ["Workspace Details", "Team Management", "Billing & Plans", "Integrations", "API & Webhooks"]
+    },
+    "billing_section": {
+      "current_plan": {
+        "style": "Large card with Kournikova border-top.",
+        "content": [
+          "Title: 'Pro Plan'",
+          "Price: '$99 / month'",
+          "Limits: 'Progress bar showing 15,000 / 20,000 messages used.'",
+          "Action: 'Upgrade Plan' (Primary Button)"
+        ]
+      },
+      "payment_method": {
+        "style": "White card, standard padding.",
+        "content": [
+          "Visa ending in 4242",
+          "Expires 12/26",
+          "Action: 'Update Payment Method' (Secondary Button)"
+        ]
+      },
+      "invoice_history": {
+        "style": "Simple table",
+        "columns": ["Date", "Amount", "Status (Paid/Unpaid)", "Download (Icon)"]
+      }
+    },
+    "integrations_section": {
+      "grid": "3 columns of integration cards.",
+      "card": {
+        "style": "White card, border, rounded corners.",
+        "content": [
+          "Integration Logo (e.g., Shopify, Google Sheets, Zapier)",
+          "Title & Description",
+          "Toggle Switch (Enabled/Disabled)"
+        ]
+      }
+    }
+  },
+  "visual_prompt_notes": "A settings page for a SaaS app. The left side has a secondary navigation menu (Team, Billing, Integrations). The main area shows a 'Billing & Plans' section. It includes a large card detailing the 'Pro Plan' with a progress bar showing message usage, a section for credit card details, and a small table for invoice history. The overall look is clean, mostly white and light gray, with a yellow 'Upgrade Plan' button."
+}
