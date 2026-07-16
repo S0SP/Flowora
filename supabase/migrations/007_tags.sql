@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS tags (
   workspace_id  UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
   name          TEXT NOT NULL,
   color         TEXT NOT NULL DEFAULT '#6366f1',  -- hex colour
+  created_by    UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE(workspace_id, name)
 );

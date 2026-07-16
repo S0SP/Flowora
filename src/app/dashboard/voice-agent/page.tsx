@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import {
   Phone, PhoneOff, Mic, Brain, Play, Loader2, Check,
   Volume2, ChevronRight, Sparkles, Clock, Radio, Edit3,
-  ChevronDown, ChevronUp, Zap, Trash2, AlertTriangle, Globe,
+  ChevronDown, ChevronUp, Zap, Trash2, AlertTriangle, Globe, Bookmark, Save, Plus,
 } from "lucide-react";
 import { LANGUAGE_PRESETS } from "@/lib/voices";
 import { toast } from "sonner";
@@ -152,6 +152,10 @@ function VoiceAgentPageContent({ initialVoice }: { initialVoice: string }) {
   const [saving, setSaving] = useState(false);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [activeRooms, setActiveRooms] = useState<number | null>(null);
+  const [presets, setPresets] = useState<any[]>([]);
+  const [selectedPresetId, setSelectedPresetId] = useState<string>("");
+  const [presetNameInput, setPresetNameInput] = useState<string>("");
+  const [showPresetCreate, setShowPresetCreate] = useState<boolean>(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const realtimeRef = useRef<ReturnType<typeof createClient> | null>(null);
   const channelRef = useRef<any>(null);
@@ -192,27 +196,38 @@ function VoiceAgentPageContent({ initialVoice }: { initialVoice: string }) {
     return () => { channelRef.current?.unsubscribe(); };
   }, []);
 
-  // Load saved settings from Supabase on mount
+  // Load saved settings & presets from Supabase on mount
   useEffect(() => {
-    async function loadSettings() {
+    async function loadSettingsAndPresets() {
       try {
-        const res = await fetch("/api/voice/settings");
-        if (!res.ok) return;
-        const data = await res.json();
-        if (data?.settings) {
-          const s = data.settings;
-          if (s.agent_type)       setAgentType(s.agent_type as AgentType);
-          if (s.voice_id)         setSelectedVoice(s.voice_id);
-          if (s.language_preset)  setSelectedLang(s.language_preset);
-          if (s.system_prompt?.trim()) setSystemPrompt(s.system_prompt.trim());
+        const settingsRes = await fetch("/api/voice/settings");
+        if (settingsRes.ok) {
+          const data = await settingsRes.json();
+          if (data?.settings) {
+            const s = data.settings;
+            if (s.agent_type)       setAgentType(s.agent_type as AgentType);
+            if (s.voice_id)         setSelectedVoice(s.voice_id);
+            if (s.language_preset)  setSelectedLang(s.language_preset);
+            if (s.system_prompt?.trim()) setSystemPrompt(s.system_prompt.trim());
+          }
         }
       } catch (e) {
         // Ignore — use defaults
       } finally {
         setSettingsLoaded(true);
       }
+
+      try {
+        const presetsRes = await fetch("/api/voice/agents");
+        if (presetsRes.ok) {
+          const data = await presetsRes.json();
+          if (data?.agents) setPresets(data.agents);
+        }
+      } catch (e) {
+        // Ignore
+      }
     }
-    loadSettings();
+    loadSettingsAndPresets();
   }, []);
 
   async function handleSaveSettings() {
@@ -235,6 +250,106 @@ function VoiceAgentPageContent({ initialVoice }: { initialVoice: string }) {
       toast.success("Settings saved ✓");
     } catch (err: any) {
       toast.error(err.message || "Failed to save settings");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const handleSelectPreset = (presetId: string) => {
+    setSelectedPresetId(presetId);
+    if (!presetId) {
+      return;
+    }
+    const preset = presets.find(p => p.id === presetId);
+    if (preset) {
+      if (preset.agent_type) setAgentType(preset.agent_type);
+      if (preset.voice_id) setSelectedVoice(preset.voice_id);
+      if (preset.system_prompt) setSystemPrompt(preset.system_prompt);
+      const cfg = preset.config || {};
+      if (cfg.language_preset) setSelectedLang(cfg.language_preset);
+      toast.success(`Loaded preset: ${preset.name} ✓`);
+    }
+  };
+
+  async function handleSaveNewPreset() {
+    if (!presetNameInput.trim()) {
+      toast.error("Please enter a preset name");
+      return;
+    }
+    setSaving(true);
+    try {
+      const langPreset = LANGUAGE_PRESETS.find(p => p.id === selectedLang);
+      const res = await fetch("/api/voice/agents", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: presetNameInput.trim(),
+          agentType,
+          voiceId: selectedVoice,
+          systemPrompt: systemPrompt.trim(),
+          languagePreset: selectedLang,
+          sarvamLanguage: langPreset?.sarvamLang ?? "hi-IN",
+          deepgramLanguage: langPreset?.deepgramLang ?? "hi",
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to create preset");
+      const data = await res.json();
+      setPresets(prev => [data.agent, ...prev]);
+      setSelectedPresetId(data.agent.id);
+      setPresetNameInput("");
+      setShowPresetCreate(false);
+      toast.success(`Preset "${data.agent.name}" created successfully!`);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create preset");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleUpdatePreset() {
+    if (!selectedPresetId) return;
+    setSaving(true);
+    try {
+      const preset = presets.find(p => p.id === selectedPresetId);
+      const langPreset = LANGUAGE_PRESETS.find(p => p.id === selectedLang);
+      const res = await fetch(`/api/voice/agents/${selectedPresetId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: preset?.name,
+          agentType,
+          voiceId: selectedVoice,
+          systemPrompt: systemPrompt.trim(),
+          languagePreset: selectedLang,
+          sarvamLanguage: langPreset?.sarvamLang ?? "hi-IN",
+          deepgramLanguage: langPreset?.deepgramLang ?? "hi",
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to update preset");
+      const data = await res.json();
+      setPresets(prev => prev.map(p => p.id === selectedPresetId ? data.agent : p));
+      toast.success(`Preset "${data.agent.name}" updated successfully!`);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update preset");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDeletePreset() {
+    if (!selectedPresetId) return;
+    if (!confirm("Are you sure you want to delete this preset?")) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/voice/agents/${selectedPresetId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete preset");
+      setPresets(prev => prev.filter(p => p.id !== selectedPresetId));
+      setSelectedPresetId("");
+      toast.success("Preset deleted successfully");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete preset");
     } finally {
       setSaving(false);
     }
@@ -447,6 +562,94 @@ function VoiceAgentPageContent({ initialVoice }: { initialVoice: string }) {
 
         {/* Left column */}
         <div className="xl:col-span-1 space-y-4">
+
+          {/* Preset Selector & Manager */}
+          <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Presets</p>
+              <Bookmark className="w-3.5 h-3.5 text-muted-foreground" />
+            </div>
+
+            <div className="flex gap-2">
+              <select
+                disabled={isInCall}
+                value={selectedPresetId}
+                onChange={e => handleSelectPreset(e.target.value)}
+                className="flex-1 px-3 py-2 rounded-xl border border-border bg-background text-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary"
+              >
+                <option value="">-- No Preset Selected --</option>
+                {presets.map(p => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+
+              {selectedPresetId && (
+                <button
+                  onClick={handleDeletePreset}
+                  disabled={saving || isInCall}
+                  className="px-2.5 py-2 rounded-xl border border-destructive/20 text-destructive bg-destructive/5 hover:bg-destructive/10 transition-colors flex items-center justify-center"
+                  title="Delete Preset"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {selectedPresetId ? (
+              <div className="flex gap-2">
+                <button
+                  onClick={handleUpdatePreset}
+                  disabled={saving || isInCall}
+                  className="flex-1 py-1.5 rounded-xl text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/95 transition-all flex items-center justify-center gap-1 shadow-sm"
+                >
+                  {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                  Save Preset Changes
+                </button>
+                <button
+                  onClick={() => { setSelectedPresetId(""); setShowPresetCreate(true); }}
+                  className="py-1.5 px-3 rounded-xl text-xs font-semibold bg-muted text-muted-foreground hover:bg-muted/80 transition-all"
+                >
+                  New
+                </button>
+              </div>
+            ) : (
+              <div>
+                {!showPresetCreate ? (
+                  <button
+                    onClick={() => setShowPresetCreate(true)}
+                    className="w-full py-1.5 rounded-xl text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/95 transition-all flex items-center justify-center gap-1 shadow-sm"
+                  >
+                    <Plus className="w-3 h-3" /> Save settings as preset
+                  </button>
+                ) : (
+                  <div className="space-y-2 mt-2">
+                    <input
+                      type="text"
+                      placeholder="Preset Name (e.g. Sales Bot)"
+                      value={presetNameInput}
+                      onChange={e => setPresetNameInput(e.target.value)}
+                      className="w-full px-3 py-1.5 rounded-lg border border-border bg-background text-xs font-medium focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleSaveNewPreset}
+                        disabled={saving || !presetNameInput.trim()}
+                        className="flex-1 py-1.5 rounded-xl text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/95 transition-all flex items-center justify-center gap-1"
+                      >
+                        {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Save"}
+                      </button>
+                      <button
+                        onClick={() => { setShowPresetCreate(false); setPresetNameInput(""); }}
+                        className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-muted text-muted-foreground hover:bg-muted/80 transition-all"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Agent Engine */}
           <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
@@ -694,23 +897,21 @@ function VoiceAgentPageContent({ initialVoice }: { initialVoice: string }) {
                       )}
                     </div>
 
-                    {agentType === "livekit" && (
-                      <button
-                        onClick={e => { e.stopPropagation(); handlePlaySample(voice.id); }}
-                        className={cn(
-                          "w-8 h-8 rounded-full flex items-center justify-center transition-all shrink-0",
-                          isPlaying
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted text-muted-foreground hover:bg-primary/20 hover:text-primary opacity-0 group-hover:opacity-100"
-                        )}
-                        title="Play sample"
-                      >
-                        {isPlaying
-                          ? <span className="w-2 h-2 bg-current rounded-sm" />
-                          : <Play className="w-3 h-3 ml-0.5" />
-                        }
-                      </button>
-                    )}
+                    <button
+                      onClick={e => { e.stopPropagation(); handlePlaySample(voice.id); }}
+                      className={cn(
+                        "w-8 h-8 rounded-full flex items-center justify-center transition-all shrink-0",
+                        isPlaying
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-muted-foreground hover:bg-primary/20 hover:text-primary opacity-0 group-hover:opacity-100"
+                      )}
+                      title="Play sample"
+                    >
+                      {isPlaying
+                        ? <span className="w-2 h-2 bg-current rounded-sm" />
+                        : <Play className="w-3 h-3 ml-0.5" />
+                      }
+                    </button>
 
                     {isSelected && !isPlaying && <Check className="w-4 h-4 text-primary shrink-0" />}
                   </div>

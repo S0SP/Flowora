@@ -98,6 +98,7 @@ export default function SettingsPage() {
   const [inviteExpiryDays, setInviteExpiryDays] = useState(7)
   const [creatingInvite, setCreatingInvite] = useState(false)
   const [generatedInviteUrl, setGeneratedInviteUrl] = useState<string | null>(null)
+  const [generatedInviteExpiry, setGeneratedInviteExpiry] = useState<Date | null>(null)
   const [copiedInvite, setCopiedInvite] = useState(false)
 
   const fetchMembers = useCallback(async () => {
@@ -114,9 +115,29 @@ export default function SettingsPage() {
     }
   }, [])
 
+  const [activeInvites, setActiveInvites] = useState<any[]>([])
+  const [loadingInvites, setLoadingInvites] = useState(false)
+
+  const fetchInvites = useCallback(async () => {
+    setLoadingInvites(true)
+    try {
+      const res = await fetch("/api/workspace/invitations")
+      if (!res.ok) throw new Error()
+      const data = await res.json()
+      setActiveInvites(data.invitations ?? [])
+    } catch {
+      console.error("Failed to load invitations")
+    } finally {
+      setLoadingInvites(false)
+    }
+  }, [])
+
   useEffect(() => {
-    if (activeItem === "Members") fetchMembers()
-  }, [activeItem, fetchMembers])
+    if (activeItem === "Members") {
+      fetchMembers()
+      fetchInvites()
+    }
+  }, [activeItem, fetchMembers, fetchInvites])
 
   const handleCreateInvite = async () => {
     setCreatingInvite(true)
@@ -126,14 +147,42 @@ export default function SettingsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role: inviteRole, label: inviteLabel, expiresInDays: inviteExpiryDays }),
       })
-      if (!res.ok) throw new Error("Failed to create invitation")
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
+        throw new Error(errData.error || "Failed to create invitation")
+      }
       const data = await res.json()
       const url = `${window.location.origin}/invite/${data.token}`
       setGeneratedInviteUrl(url)
+      // Calculate expiry from the invitation object
+      if (data.invitation?.expires_at) {
+        setGeneratedInviteExpiry(new Date(data.invitation.expires_at))
+      } else {
+        const exp = new Date()
+        exp.setDate(exp.getDate() + inviteExpiryDays)
+        setGeneratedInviteExpiry(exp)
+      }
+      toast.success("Invite link generated!")
+      fetchInvites() // Refresh the active list
     } catch (err: any) {
       toast.error(err.message)
     } finally {
       setCreatingInvite(false)
+    }
+  }
+
+  const handleRevokeInvite = async (inviteId: string) => {
+    if (!confirm("Revoke this pending invitation link?")) return
+    try {
+      const res = await fetch(`/api/workspace/invitations/${inviteId}`, { method: "DELETE" })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || "Failed to revoke invitation")
+      }
+      toast.success("Invitation link revoked")
+      fetchInvites()
+    } catch (err: any) {
+      toast.error(err.message)
     }
   }
 
@@ -251,20 +300,6 @@ export default function SettingsPage() {
     }
   }
 
-
-  const handleSyncSip = async () => {
-    setIsSyncing(true)
-    try {
-      const res = await fetch("/api/whatsapp/calls/sync", { method: "POST" })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || "Failed to sync SIP settings")
-      toast.success(`Successfully synced calling & SIP settings with LiveKit! Number: +${data.phoneNumber}`)
-    } catch (err: any) {
-      toast.error(err.message || "An error occurred while syncing")
-    } finally {
-      setIsSyncing(false)
-    }
-  }
 
   // 1. Fetch settings from DB on mount
   useEffect(() => {
@@ -417,7 +452,7 @@ export default function SettingsPage() {
               {/* Workspace Identity */}
               <div>
                 <h3 className="text-[15px] font-semibold text-foreground mb-3">Workspace Identity</h3>
-                <div className="bg-white border border-border rounded-xl p-6 shadow-sm space-y-5">
+                <div className="bg-card border border-border rounded-xl p-6 shadow-sm space-y-5">
                   
                   <div className="space-y-1.5">
                     <label className="text-[13px] font-semibold text-foreground">Workspace Name</label>
@@ -469,7 +504,7 @@ export default function SettingsPage() {
               {/* Localization */}
               <div>
                 <h3 className="text-[15px] font-semibold text-foreground mb-3">Localization</h3>
-                <div className="bg-white border border-border rounded-xl p-6 shadow-sm space-y-5">
+                <div className="bg-card border border-border rounded-xl p-6 shadow-sm space-y-5">
                   <div className="space-y-1.5">
                     <label className="text-[13px] font-semibold text-foreground">Timezone</label>
                     <select 
@@ -511,7 +546,7 @@ export default function SettingsPage() {
                 <h3 className="text-[15px] font-semibold text-foreground mb-1">Business Hours</h3>
                 <p className="text-[13px] text-muted-foreground mb-3">Set your business hours so the AI chatbot knows when to route to a human agent</p>
                 
-                <div className="bg-white border border-border rounded-xl p-6 shadow-sm">
+                <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
                   {businessDays.map((d, i) => (
                     <div key={d.day} className="flex items-center gap-4 py-3 border-b border-border last:border-0">
                       <div className="w-[100px] flex items-center gap-3">
@@ -651,43 +686,9 @@ export default function SettingsPage() {
         return (
           <div className="max-w-[800px]">
             <h1 className="text-[22px] font-bold text-foreground mb-1">Voice & Calling Configuration</h1>
-            <p className="text-[14px] text-muted-foreground mb-7">Configure LiveKit and custom AI voice settings.</p>
-            <div className="bg-white border border-border rounded-xl p-6 shadow-sm space-y-5">
+            <p className="text-[14px] text-muted-foreground mb-7">Configure Sarvam AI (TTS), Deepgram (STT), and Gemini Live for the Dograh voice worker.</p>
+            <div className="bg-card border border-border rounded-xl p-6 shadow-sm space-y-5">
               
-              <div className="space-y-1.5">
-                <label className="text-[13px] font-semibold text-foreground">LiveKit URL</label>
-                <input 
-                  type="text" 
-                  value={livekitUrl}
-                  onChange={e => setLivekitUrl(e.target.value)}
-                  placeholder="wss://your-project.livekit.cloud" 
-                  className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-[#1B1B1B] bg-white focus:outline-none focus:ring-1 focus:ring-primary" 
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[13px] font-semibold text-foreground">LiveKit API Key</label>
-                  <input 
-                    type="text" 
-                    value={livekitApiKey}
-                    onChange={e => setLivekitApiKey(e.target.value)}
-                    placeholder="API..." 
-                    className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-[#1B1B1B] bg-white focus:outline-none focus:ring-1 focus:ring-primary" 
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[13px] font-semibold text-foreground">LiveKit API Secret</label>
-                  <input 
-                    type="password" 
-                    value={livekitApiSecret}
-                    onChange={e => setLivekitApiSecret(e.target.value)}
-                    placeholder="••••••••••••" 
-                    className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-[#1B1B1B] bg-white focus:outline-none focus:ring-1 focus:ring-primary" 
-                  />
-                </div>
-              </div>
-
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-[13px] font-semibold text-foreground">Deepgram API Key (STT)</label>
@@ -696,7 +697,7 @@ export default function SettingsPage() {
                     value={deepgramApiKey}
                     onChange={e => setDeepgramApiKey(e.target.value)}
                     placeholder="Deepgram API key" 
-                    className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-[#1B1B1B] bg-white focus:outline-none focus:ring-1 focus:ring-primary" 
+                    className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-foreground bg-background focus:outline-none focus:ring-1 focus:ring-primary" 
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -706,9 +707,17 @@ export default function SettingsPage() {
                     value={sarvamApiKey}
                     onChange={e => setSarvamApiKey(e.target.value)}
                     placeholder="Sarvam API key" 
-                    className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-[#1B1B1B] bg-white focus:outline-none focus:ring-1 focus:ring-primary" 
+                    className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-foreground bg-background focus:outline-none focus:ring-1 focus:ring-primary" 
                   />
                 </div>
+              </div>
+
+              <div className="bg-primary/8 border border-primary/20 rounded-lg p-4">
+                <p className="text-[12px] font-semibold text-foreground mb-1">Dograh Integration Note</p>
+                <p className="text-[12px] text-muted-foreground">
+                  Dograh API keys and phone number assignments are managed by your admin on the private Dograh panel. 
+                  Voice call presets (system prompt, intent, TTS voice) are configured in Voice Agent settings.
+                </p>
               </div>
 
               <div className="flex justify-end pt-4">
@@ -757,11 +766,11 @@ export default function SettingsPage() {
             {loadingApiKeys ? (
               <div className="flex items-center justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
             ) : apiKeys.length === 0 ? (
-              <div className="bg-white border border-border rounded-xl p-10 text-center text-muted-foreground text-[14px]">
+              <div className="bg-card border border-border rounded-xl p-10 text-center text-muted-foreground text-[14px]">
                 No API keys yet. Generate one above.
               </div>
             ) : (
-              <div className="bg-white border border-border rounded-xl overflow-hidden shadow-sm">
+              <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
                 {apiKeys.map((k, i) => (
                   <div key={k.id} className={cn("p-5 flex items-center justify-between", i < apiKeys.length - 1 && "border-b border-border")}>
                     <div>
@@ -785,7 +794,7 @@ export default function SettingsPage() {
             {/* Create key modal */}
             {showCreateKeyModal && (
               <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setShowCreateKeyModal(false)}>
-                <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
+                <div className="bg-card rounded-2xl shadow-xl w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
                   <div className="flex items-center justify-between mb-5">
                     <h3 className="text-[16px] font-bold text-foreground">Generate API Key</h3>
                     <button onClick={() => setShowCreateKeyModal(false)}><X className="h-5 w-5 text-muted-foreground" /></button>
@@ -837,7 +846,7 @@ export default function SettingsPage() {
             {loadingMembers ? (
               <div className="flex items-center justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
             ) : (
-              <div className="bg-white border border-border rounded-xl overflow-hidden shadow-sm">
+              <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
                 <div className="divide-y divide-border">
                   {members.map((m) => {
                     const presenceRow = getRow(m.user_id)
@@ -918,10 +927,72 @@ export default function SettingsPage() {
               </div>
             )}
 
+            {/* Pending Invitations Section */}
+            <div className="mt-10">
+              <h2 className="text-[16px] font-bold text-foreground mb-3">Pending Invitations</h2>
+              {loadingInvites ? (
+                <div className="flex items-center justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+              ) : activeInvites.length === 0 ? (
+                <div className="bg-card border border-border rounded-xl p-6 text-center text-muted-foreground text-[13px]">
+                  No pending invitation links. Create one above.
+                </div>
+              ) : (
+                <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm divide-y divide-border">
+                  {activeInvites.map((inv) => {
+                    const expiry = new Date(inv.expires_at)
+                    const totalMs = 30 * 24 * 60 * 60 * 1000 // estimate max 30 days
+                    const remaining = expiry.getTime() - Date.now()
+                    const pct = Math.max(0, Math.min(100, (remaining / totalMs) * 100))
+                    const daysLeft = Math.ceil(remaining / (24 * 60 * 60 * 1000))
+
+                    return (
+                      <div key={inv.id} className="p-4 flex items-center justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-[13px] font-semibold text-foreground truncate">
+                              {inv.label || "Unnamed Invite"}
+                            </span>
+                            <span className="text-[10px] font-bold bg-primary/10 text-primary-foreground px-2 py-0.5 rounded capitalize">
+                              {inv.role}
+                            </span>
+                          </div>
+                          
+                          {/* Expiry display & progress bar */}
+                          <div className="flex items-center gap-4 max-w-sm">
+                            <div className="flex-1">
+                              <div className="h-1 bg-border rounded-full overflow-hidden">
+                                <div 
+                                  className={cn(
+                                    "h-full rounded-full transition-all",
+                                    daysLeft <= 1 ? "bg-red-500" : daysLeft <= 3 ? "bg-amber-500" : "bg-green-500"
+                                  )} 
+                                  style={{ width: `${pct}%` }} 
+                                />
+                              </div>
+                            </div>
+                            <span className="text-[11px] text-muted-foreground shrink-0 font-medium">
+                              Expires in {daysLeft} {daysLeft === 1 ? "day" : "days"}
+                            </span>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => handleRevokeInvite(inv.id)}
+                          className="text-red-500 hover:text-red-700 text-[13px] font-semibold flex items-center gap-1 hover:bg-red-50 dark:hover:bg-red-950/20 px-3 py-1.5 rounded-lg transition-all"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" /> Revoke
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
             {/* Invite Modal */}
             {showInviteModal && (
               <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setShowInviteModal(false)}>
-                <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
+                <div className="bg-card rounded-2xl shadow-xl w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
                   <div className="flex items-center justify-between mb-5">
                     <h3 className="text-[16px] font-bold text-foreground">Invite Team Member</h3>
                     <button onClick={() => setShowInviteModal(false)}><X className="h-5 w-5 text-muted-foreground" /></button>
@@ -929,17 +1000,57 @@ export default function SettingsPage() {
 
                   {generatedInviteUrl ? (
                     <div className="space-y-4">
-                      <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                        <p className="text-[12px] font-bold text-green-700 mb-2">Invite link generated!</p>
-                        <p className="text-[11px] text-green-800 break-all font-mono">{generatedInviteUrl}</p>
+                      {/* Invite URL display */}
+                      <div className="bg-green-50 border border-green-200 rounded-xl p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <p className="text-[12px] font-bold text-green-700">✓ Invite link generated</p>
+                          {generatedInviteExpiry && (
+                            <span className="text-[11px] font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
+                              Expires {generatedInviteExpiry.toLocaleDateString()}
+                            </span>
+                          )}
+                        </div>
+                        <code className="block text-[11px] text-green-900 break-all bg-green-100/60 rounded-lg p-2 font-mono">
+                          {generatedInviteUrl}
+                        </code>
+                        {/* Expiry progress bar */}
+                        {generatedInviteExpiry && (() => {
+                          const now = Date.now()
+                          const totalMs = inviteExpiryDays * 24 * 60 * 60 * 1000
+                          const remaining = generatedInviteExpiry.getTime() - now
+                          const pct = Math.max(0, Math.min(100, (remaining / totalMs) * 100))
+                          const daysLeft = Math.ceil(remaining / (24 * 60 * 60 * 1000))
+                          return (
+                            <div className="space-y-1">
+                              <div className="flex justify-between text-[10px] text-green-700 font-medium">
+                                <span>Validity progress</span>
+                                <span>{daysLeft}d remaining</span>
+                              </div>
+                              <div className="h-1.5 bg-green-200 rounded-full overflow-hidden">
+                                <div className="h-full bg-green-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
+                              </div>
+                            </div>
+                          )
+                        })()}
                       </div>
-                      <button onClick={copyInviteUrl} className="w-full flex items-center justify-center gap-2 py-2.5 bg-foreground text-white rounded-lg text-[14px] font-semibold hover:bg-foreground/90">
-                        {copiedInvite ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                        {copiedInvite ? "Copied!" : "Copy Invite Link"}
-                      </button>
-                      <button onClick={() => { setGeneratedInviteUrl(null); setInviteLabel(""); }} className="w-full py-2 border border-border rounded-lg text-[14px] text-foreground hover:bg-muted">
-                        Generate Another
-                      </button>
+                      
+                      {/* Actions */}
+                      <div className="flex gap-2">
+                        <button onClick={copyInviteUrl} className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-foreground text-white rounded-lg text-[13px] font-semibold hover:bg-foreground/90">
+                          {copiedInvite ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                          {copiedInvite ? "Copied!" : "Copy Link"}
+                        </button>
+                        <button 
+                          onClick={() => { setGeneratedInviteUrl(null); setGeneratedInviteExpiry(null); setInviteLabel(""); }} 
+                          className="flex-1 py-2.5 border border-border rounded-lg text-[13px] font-medium text-foreground hover:bg-muted flex items-center justify-center gap-2"
+                        >
+                          <RefreshCw className="h-3.5 w-3.5" />
+                          New Link
+                        </button>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground text-center">
+                        Share this link with your team member. It can only be used once.
+                      </p>
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -1011,10 +1122,10 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="absolute inset-0 flex bg-muted/30 overflow-hidden">
+    <div className="absolute inset-0 flex bg-muted/10 overflow-hidden">
       
       {/* Settings Subnav */}
-      <div className="w-[220px] bg-white border-r border-border py-6 flex-shrink-0 h-full overflow-y-auto">
+      <div className="w-[220px] bg-card border-r border-border py-6 flex-shrink-0 h-full overflow-y-auto">
         <h2 className="text-[16px] font-bold text-foreground px-5 mb-4">Settings</h2>
         
         <div className="space-y-6">

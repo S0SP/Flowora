@@ -6,8 +6,7 @@ import { Contact, Message } from "@/types";
 import { formatRelativeTime, getInitials, cn } from "@/lib/utils";
 import { Send, Search, Loader2, MessageSquareOff, Phone, Video } from "lucide-react";
 import { toast } from "sonner";
-import { WhatsAppCallDialog } from "./WhatsAppCallDialog";
-import { IncomingCallRingUI } from "./IncomingCallRingUI";
+
 
 interface InboxClientProps {
   initialContacts: Contact[];
@@ -23,12 +22,7 @@ export function InboxClient({ initialContacts }: InboxClientProps) {
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [search, setSearch] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
-  const [showCallDialog, setShowCallDialog] = useState(false);
-  const [callType, setCallType] = useState<"audio" | "video">("audio");
-  
-  // State for incoming hybrid transfers
-  const [incomingTransfer, setIncomingTransfer] = useState<{roomName: string, phone: string, workspaceId: string} | null>(null);
+
 
   const filteredContacts = contacts.filter((c) => {
     const contactName = c.full_name ?? c.name ?? c.phone ?? "Unknown";
@@ -103,23 +97,7 @@ export function InboxClient({ initialContacts }: InboxClientProps) {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  // Realtime subscription for incoming call transfers (Dashboard Ringing)
-  useEffect(() => {
-    const ringChannel = supabase.channel("dashboard:ringing")
-      .on(
-        "broadcast",
-        { event: "incoming_transfer" },
-        (payload) => {
-          if (payload.payload) {
-            setIncomingTransfer(payload.payload as any);
-            toast.info("Incoming call transfer request...");
-          }
-        }
-      )
-      .subscribe();
 
-    return () => { supabase.removeChannel(ringChannel); };
-  }, []);
 
   const sendReply = async () => {
     if (!replyText.trim() || !selectedContact) return;
@@ -152,10 +130,6 @@ export function InboxClient({ initialContacts }: InboxClientProps) {
     }
   };
 
-  const handleCall = (type: "audio" | "video") => {
-    setCallType(type);
-    setShowCallDialog(true);
-  };
 
   return (
     <>
@@ -238,20 +212,6 @@ export function InboxClient({ initialContacts }: InboxClientProps) {
                     <p className="text-xs text-muted-foreground">{selectedContact.phone}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handleCall("video")}
-                    className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <Video className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => handleCall("audio")}
-                    className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <Phone className="w-4 h-4" />
-                  </button>
-                </div>
               </div>
 
               {/* Messages */}
@@ -330,23 +290,7 @@ export function InboxClient({ initialContacts }: InboxClientProps) {
         </div>
       </div>
       
-      {selectedContact && (
-        <WhatsAppCallDialog
-          open={showCallDialog}
-          onOpenChange={setShowCallDialog}
-          contact={selectedContact}
-          callType={callType}
-        />
-      )}
 
-      {incomingTransfer && (
-        <IncomingCallRingUI
-          roomName={incomingTransfer.roomName}
-          phone={incomingTransfer.phone}
-          workspaceId={incomingTransfer.workspaceId}
-          onClose={() => setIncomingTransfer(null)}
-        />
-      )}
     </>
   );
 }

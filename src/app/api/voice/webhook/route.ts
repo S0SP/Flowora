@@ -59,16 +59,6 @@ export async function POST(req: NextRequest) {
           .update({ status: "completed", updated_at: new Date().toISOString() })
           .eq("livekit_room_name", room.name)
           .in("status", ["ringing", "active", "initiated"]);
-      } else {
-        await supabase
-          .from("whatsapp_calls")
-          .update({
-            status: "terminated",
-            ended_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          })
-          .eq("meta_call_id", room.name)
-          .in("status", ["connecting", "ringing", "connected"]);
       }
     }
 
@@ -93,11 +83,6 @@ export async function POST(req: NextRequest) {
               .from("voice_calls")
               .update({ recording_url: data.publicUrl, updated_at: new Date().toISOString() })
               .eq("livekit_room_name", roomName);
-          } else {
-            await supabase
-              .from("whatsapp_calls")
-              .update({ recording_url: data.publicUrl, updated_at: new Date().toISOString() })
-              .eq("meta_call_id", roomName);
           }
         }
       }
@@ -178,16 +163,6 @@ export async function POST(req: NextRequest) {
             .from("voice_calls")
             .update({ status: "active", updated_at: new Date().toISOString() })
             .eq("livekit_room_name", room.name)
-            .eq("status", "ringing");
-        } else {
-          await supabase
-            .from("whatsapp_calls")
-            .update({
-              status: "connected",
-              started_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            })
-            .eq("meta_call_id", room.name)
             .eq("status", "ringing");
         }
       }

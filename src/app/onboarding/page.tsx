@@ -218,8 +218,9 @@ export default function OnboardingPage() {
                   }
                 </div>
                 <div>
-                  <p className={`text-sm font-semibold ${active ? "text-white" : done ? "text-white/70" : "text-white/40"}`}>{s.label}</p>
-                  <p className="text-xs text-white/30 mt-0.5">{s.description}</p>
+                  <p className={`text-sm font-semibold ${active ? "text-white" : done ? "text-white/80" : "text-white/50"}`}>{s.label}</p>
+                  {/* CONTRAST FIX: was text-white/30 — barely readable */}
+                  <p className="text-xs text-white/55 mt-0.5">{s.description}</p>
                 </div>
               </div>
             )
@@ -243,7 +244,7 @@ export default function OnboardingPage() {
                   <div className="space-y-6">
                     <div>
                       <h2 className="text-2xl font-bold text-[#1B1B1B]">Set up your workspace</h2>
-                      <p className="text-[#6B6B6B] mt-1.5 text-sm">Tell us a bit about your company to personalize your experience.</p>
+                      <p className="text-[#4B5563] mt-1.5 text-sm">Tell us a bit about your company to personalize your experience.</p>
                     </div>
 
                     <div className="space-y-4">
@@ -300,10 +301,11 @@ export default function OnboardingPage() {
                   <div className="space-y-6">
                     <div>
                       <h2 className="text-2xl font-bold text-[#1B1B1B]">Connect WhatsApp</h2>
-                      <p className="text-[#6B6B6B] mt-1.5 text-sm">Add your Meta WhatsApp Business API credentials to start sending messages.</p>
+                      <p className="text-[#4B5563] mt-1.5 text-sm">Add your Meta WhatsApp Business API credentials to start sending messages.</p>
                     </div>
 
-                    <div className="bg-[#FFF9E6] border border-[#FFE27C]/30 rounded-xl p-4 text-sm text-[#6B6B6B]">
+                    {/* CONTRAST FIX: tip text on light yellow bg needs darker color */}
+                    <div className="bg-[#FFF9E6] border border-[#FFE27C]/30 rounded-xl p-4 text-sm text-[#374151]">
                       💡 You can skip this now and add credentials later in Settings → Channels.
                     </div>
 
@@ -350,7 +352,7 @@ export default function OnboardingPage() {
                   <div className="space-y-6">
                     <div>
                       <h2 className="text-2xl font-bold text-[#1B1B1B]">Import your contacts</h2>
-                      <p className="text-[#6B6B6B] mt-1.5 text-sm">Import existing leads to start reaching out right away.</p>
+                      <p className="text-[#4B5563] mt-1.5 text-sm">Import existing leads to start reaching out right away.</p>
                     </div>
 
                     <div className="grid grid-cols-1 gap-3">
@@ -371,7 +373,7 @@ export default function OnboardingPage() {
                           </div>
                           <div>
                             <p className="font-semibold text-sm text-[#1B1B1B]">{opt.title}</p>
-                            <p className="text-xs text-[#9B9B9B] mt-0.5">{opt.desc}</p>
+                            <p className="text-xs text-[#6B6B6B] mt-0.5">{opt.desc}</p>
                           </div>
                           {importMethod === opt.id && <Check className="w-5 h-5 text-[#22C55E] ml-auto" />}
                         </button>
@@ -397,7 +399,7 @@ export default function OnboardingPage() {
                   <div className="space-y-6">
                     <div>
                       <h2 className="text-2xl font-bold text-[#1B1B1B]">Pick your first workflow</h2>
-                      <p className="text-[#6B6B6B] mt-1.5 text-sm">Start with a proven template. You can customize everything later.</p>
+                      <p className="text-[#4B5563] mt-1.5 text-sm">Start with a proven template. You can customize everything later.</p>
                     </div>
 
                     <div className="grid grid-cols-1 gap-3">
@@ -413,7 +415,7 @@ export default function OnboardingPage() {
                           </div>
                           <div className="flex-1">
                             <p className="font-semibold text-sm text-[#1B1B1B]">{t.name}</p>
-                            <p className="text-xs text-[#9B9B9B] mt-0.5">{t.description}</p>
+                            <p className="text-xs text-[#6B6B6B] mt-0.5">{t.description}</p>
                             <div className="flex gap-1.5 mt-2">
                               {t.tags.map(tag => (
                                 <span key={tag} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#F4F4F2] text-[#6B6B6B]">{tag}</span>
@@ -447,7 +449,7 @@ export default function OnboardingPage() {
                         <Rocket className="w-10 h-10 text-[#FFE27C]" />
                       </div>
                       <h2 className="text-2xl font-bold text-[#1B1B1B]">You're all set! 🎉</h2>
-                      <p className="text-[#6B6B6B] mt-2 text-sm leading-relaxed max-w-md mx-auto">
+                      <p className="text-[#4B5563] mt-2 text-sm leading-relaxed max-w-md mx-auto">
                         Your Flowora workspace is ready. Your AI agent will start handling conversations, qualifying leads, and booking appointments automatically.
                       </p>
                     </div>
@@ -460,7 +462,7 @@ export default function OnboardingPage() {
                       ].map(s => (
                         <div key={s.label} className="bg-white border border-[#E8E8E4] rounded-xl p-4">
                           <div className="text-2xl font-bold" style={{ color: s.color }}>{s.value}</div>
-                          <div className="text-xs text-[#9B9B9B] mt-1">{s.label}</div>
+                          <div className="text-xs text-[#6B6B6B] mt-1">{s.label}</div>
                         </div>
                       ))}
                     </div>

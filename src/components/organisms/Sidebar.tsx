@@ -19,14 +19,14 @@ import {
   Settings,
   Brain,
   BarChart3,
-  Code2,
   Workflow,
   ChevronLeft,
   ChevronRight,
   Sparkles,
   Target,
-  UserPlus,
+  UsersRound,
   Ticket,
+  Radio,
 } from "lucide-react"
 
 const navGroups = [
@@ -45,7 +45,7 @@ const navGroups = [
     items: [
       { name: "Workflows",    href: "/dashboard/workflows",     icon: Workflow },
       { name: "Campaigns",    href: "/dashboard/campaigns",     icon: Megaphone },
-      { name: "Broadcasts",   href: "/dashboard/broadcasts",    icon: Megaphone },
+      { name: "Broadcasts",   href: "/dashboard/broadcasts",    icon: Radio },
       { name: "Lead Capture", href: "/dashboard/lead-capture",  icon: Target },
     ],
   },
@@ -61,8 +61,7 @@ const navGroups = [
   {
     label: "Workspace",
     items: [
-      { name: "Team",         href: "/dashboard/team",          icon: UserPlus },
-      { name: "Integrations", href: "/dashboard/integrations",  icon: Code2 },
+      { name: "Team",         href: "/dashboard/team",          icon: UsersRound },
       { name: "Settings",     href: "/dashboard/settings",      icon: Settings },
     ],
   },

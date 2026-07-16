@@ -36,7 +36,7 @@ export async function GET() {
         profiles ( full_name, email, avatar_url, phone )
       `)
       .eq("workspace_id", myMember.workspace_id)
-      .in("status", ["active", "pending"])
+      .in("status", ["active", "pending", "invited"])
       .order("created_at", { ascending: true });
 
     if (error) throw error;

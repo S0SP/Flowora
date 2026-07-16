@@ -2,13 +2,15 @@
 
 import React, { useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
-import { Search, Bell, ChevronDown, Settings, LogOut, User, CreditCard, Sparkles, X } from "lucide-react"
+import { Search, Bell, ChevronDown, Settings, LogOut, User, CreditCard, Sparkles, X, Moon, Sun } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/atoms/Avatar"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { createClient } from "@/lib/supabase/client"
 import { useNotifications } from "@/context/NotificationsContext"
+import { useWorkspace } from "@/context/WorkspaceContext"
+import { useUIStore } from "@/lib/store/useUIStore"
 
 function formatNotifTime(dateStr: string) {
   try {
@@ -50,7 +52,6 @@ const PAGE_LABELS: Record<string, string> = {
   "/dashboard/knowledge": "Knowledge Hub",
   "/dashboard/analytics": "Analytics",
   "/dashboard/team": "Team & Agents",
-  "/dashboard/integrations": "Integrations",
   "/dashboard/settings": "Settings",
 }
 
@@ -98,6 +99,8 @@ export function Topbar() {
   const router = useRouter()
   const supabase = createClient()
   const { notifications, unreadCount, markAsRead, markAllRead } = useNotifications()
+  const { profile, member } = useWorkspace()
+  const { isDark, toggleDark } = useUIStore()
 
   const [notifOpen, setNotifOpen] = useState(false)
   const [userOpen, setUserOpen] = useState(false)
@@ -115,6 +118,9 @@ export function Topbar() {
     router.push("/auth/login")
   }
 
+  const displayName = profile?.full_name || profile?.email?.split("@")[0] || "User"
+  const initials = displayName.split(" ").slice(0, 2).map((w: string) => w[0]?.toUpperCase()).join("")
+
   // Build breadcrumbs
   const parts = pathname.split("/").filter(Boolean)
   const crumbs = parts.map((part, i) => ({
@@ -124,18 +130,18 @@ export function Topbar() {
   }))
 
   return (
-    <header className="sticky top-0 z-30 flex h-12 w-full items-center justify-between border-b border-[#E8E8E4] bg-white/90 backdrop-blur-md px-5 flex-shrink-0">
+    <header className="sticky top-0 z-30 flex h-12 w-full items-center justify-between border-b border-border bg-background/90 backdrop-blur-md px-5 flex-shrink-0">
       {/* Breadcrumbs */}
       <nav className="flex items-center gap-1.5 text-[13px]">
         {crumbs.map((crumb, i) => (
           <React.Fragment key={crumb.href}>
-            {i > 0 && <span className="text-[#D4D4D0]">/</span>}
+            {i > 0 && <span className="text-muted-foreground/40">/</span>}
             {crumb.isLast ? (
-              <span className="font-semibold text-[#1B1B1B]">{crumb.label}</span>
+              <span className="font-semibold text-foreground">{crumb.label}</span>
             ) : (
               <button
                 onClick={() => router.push(crumb.href)}
-                className="text-[#9B9B9B] hover:text-[#1B1B1B] transition-colors"
+                className="text-muted-foreground hover:text-foreground transition-colors"
               >
                 {crumb.label}
               </button>
@@ -146,6 +152,32 @@ export function Topbar() {
 
       {/* Right side actions */}
       <div className="flex items-center gap-2">
+        {/* Dark mode toggle */}
+        <button
+          onClick={toggleDark}
+          className="relative flex items-center justify-between w-[52px] h-[28px] bg-muted/60 dark:bg-zinc-800/80 border border-border/80 rounded-full p-1 cursor-pointer transition-all hover:bg-muted/80 focus:outline-none shrink-0"
+          title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+        >
+          {/* Animated Thumb */}
+          <motion.div
+            className="absolute top-[3px] left-[3px] w-[20px] h-[20px] bg-white dark:bg-zinc-950 border border-border/10 rounded-full shadow-md z-10"
+            animate={{ x: isDark ? 24 : 0 }}
+            transition={{ type: "spring", stiffness: 350, damping: 22 }}
+          />
+          
+          {/* Sun Icon */}
+          <Sun className={cn(
+            "w-3.5 h-3.5 ml-1 transition-all duration-200 z-0",
+            isDark ? "text-muted-foreground opacity-50 scale-75" : "text-amber-500 opacity-100 scale-100"
+          )} />
+          
+          {/* Moon Icon */}
+          <Moon className={cn(
+            "w-3.5 h-3.5 mr-1 transition-all duration-200 z-0",
+            isDark ? "text-purple-400 opacity-100 scale-100" : "text-muted-foreground opacity-50 scale-75"
+          )} />
+        </button>
+
         {/* Search */}
         <AnimatePresence mode="wait">
           {searchOpen ? (
@@ -156,18 +188,18 @@ export function Topbar() {
               exit={{ width: 32, opacity: 0 }}
               className="relative"
             >
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#9B9B9B]" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
               <input
                 autoFocus
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 onBlur={() => { if (!searchQuery) setSearchOpen(false) }}
                 placeholder="Search anything..."
-                className="w-full pl-9 pr-8 py-1.5 bg-[#F4F4F2] border border-[#E8E8E4] rounded-xl text-[13px] focus:outline-none focus:border-[#FFE27C] transition-all"
+                className="w-full pl-9 pr-8 py-1.5 bg-muted border border-border rounded-xl text-[13px] text-foreground focus:outline-none focus:border-primary transition-all"
               />
               <button
                 onClick={() => { setSearchOpen(false); setSearchQuery("") }}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-[#9B9B9B] hover:text-[#1B1B1B]"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -176,7 +208,7 @@ export function Topbar() {
             <motion.button
               key="search-closed"
               onClick={() => setSearchOpen(true)}
-              className="p-2 rounded-xl text-[#9B9B9B] hover:bg-[#F4F4F2] hover:text-[#1B1B1B] transition-colors"
+              className="p-2 rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
             >
               <Search className="w-4 h-4" />
             </motion.button>
@@ -265,18 +297,21 @@ export function Topbar() {
             onClick={() => { setUserOpen(!userOpen); setNotifOpen(false) }}
             className={cn(
               "flex items-center gap-2 pl-1 pr-2 py-1 rounded-xl transition-colors",
-              userOpen ? "bg-[#F4F4F2]" : "hover:bg-[#F4F4F2]"
+              userOpen ? "bg-muted" : "hover:bg-muted"
             )}
           >
-            <Avatar className="h-7 w-7">
-              <AvatarImage src="https://i.pravatar.cc/150?u=a042581f4e29026024d" />
-              <AvatarFallback className="text-[11px] bg-[#FFE27C] text-[#1B1B1B] font-bold">A</AvatarFallback>
-            </Avatar>
-            <div className="hidden md:flex flex-col items-start">
-              <span className="text-[13px] font-semibold text-[#1B1B1B] leading-tight">Admin</span>
-              <span className="text-[10px] text-[#9B9B9B] leading-tight">Owner</span>
+            <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-[11px] font-bold text-primary-foreground flex-shrink-0 overflow-hidden">
+              {profile?.avatar_url ? (
+                <img src={profile.avatar_url} alt={displayName} className="w-full h-full object-cover rounded-full" />
+              ) : (
+                initials || "U"
+              )}
             </div>
-            <ChevronDown className={cn("w-3.5 h-3.5 text-[#9B9B9B] transition-transform", userOpen && "rotate-180")} />
+            <div className="hidden md:flex flex-col items-start">
+              <span className="text-[13px] font-semibold text-foreground leading-tight">{displayName}</span>
+              <span className="text-[10px] text-muted-foreground leading-tight capitalize">{member?.role || "member"}</span>
+            </div>
+            <ChevronDown className={cn("w-3.5 h-3.5 text-muted-foreground transition-transform", userOpen && "rotate-180")} />
           </button>
 
           <AnimatePresence>
@@ -285,11 +320,11 @@ export function Topbar() {
                 initial={{ opacity: 0, y: 8, scale: 0.97 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 8, scale: 0.97 }}
-                className="absolute right-0 top-full mt-2 w-52 bg-white border border-[#E8E8E4] rounded-2xl shadow-2xl z-50 overflow-hidden"
+                className="absolute right-0 top-full mt-2 w-52 bg-card border border-border rounded-2xl shadow-2xl z-50 overflow-hidden"
               >
-                <div className="px-4 py-3 border-b border-[#F4F4F2]">
-                  <p className="font-bold text-[13px] text-[#1B1B1B]">Admin User</p>
-                  <p className="text-[11px] text-[#9B9B9B]">admin@acmecorp.com</p>
+                <div className="px-4 py-3 border-b border-border">
+                  <p className="font-bold text-[13px] text-foreground">{displayName}</p>
+                  <p className="text-[11px] text-muted-foreground">{profile?.email}</p>
                 </div>
                 <div className="p-1.5">
                   {[
@@ -302,19 +337,19 @@ export function Topbar() {
                       key={m.label}
                       onClick={() => { setUserOpen(false); m.action() }}
                       className={cn(
-                        "w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[13px] font-medium hover:bg-[#FAFAF8] transition-colors",
-                        m.accent ? "text-[#C4B1F9]" : "text-[#1B1B1B]"
+                        "w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[13px] font-medium hover:bg-muted transition-colors",
+                        m.accent ? "text-[#C4B1F9]" : "text-foreground"
                       )}
                     >
-                      <m.icon className={cn("w-3.5 h-3.5", m.accent ? "text-[#C4B1F9]" : "text-[#6B6B6B]")} />
+                      <m.icon className={cn("w-3.5 h-3.5", m.accent ? "text-[#C4B1F9]" : "text-muted-foreground")} />
                       {m.label}
                     </button>
                   ))}
                 </div>
-                <div className="border-t border-[#F4F4F2] p-1.5">
+                <div className="border-t border-border p-1.5">
                   <button
                     onClick={() => { setUserOpen(false); handleSignOut() }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[13px] font-medium text-red-600 hover:bg-red-50 transition-colors"
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[13px] font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
                   >
                     <LogOut className="w-3.5 h-3.5 text-red-400" />
                     Sign out

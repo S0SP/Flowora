@@ -73,13 +73,18 @@ function Avatar({ name, phone, avatarUrl, size = 36 }: { name: string | null; ph
 }
 
 const SEVERITY_COLOR: Record<string, string> = {
-  low: "bg-gray-100 text-gray-500", medium: "bg-blue-100 text-blue-600",
-  high: "bg-amber-100 text-amber-700", critical: "bg-red-100 text-red-700",
+  low: "bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400", 
+  medium: "bg-blue-100 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400",
+  high: "bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400", 
+  critical: "bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-400",
 }
 const STATUS_COLOR: Record<string, string> = {
-  open: "bg-amber-100 text-amber-700", assigned: "bg-blue-100 text-blue-700",
-  in_progress: "bg-blue-100 text-blue-700", escalated: "bg-red-100 text-red-700",
-  resolved: "bg-green-100 text-green-700", closed: "bg-gray-100 text-gray-500",
+  open: "bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400", 
+  assigned: "bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400",
+  in_progress: "bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400", 
+  escalated: "bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-400",
+  resolved: "bg-green-100 dark:bg-green-950/40 text-green-700 dark:text-green-400", 
+  closed: "bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400",
 }
 
 function get24HourWindowStatus(messagesList: Message[]) {
@@ -128,13 +133,13 @@ function MessageBubble({ msg }: { msg: Message }) {
   if (isNote) {
     return (
       <div className="flex justify-center my-1">
-        <div className="max-w-[85%] bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+        <div className="max-w-[85%] bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/30 rounded-xl px-3 py-2">
           <div className="flex items-center gap-1 mb-0.5">
-            <StickyNote className="h-3 w-3 text-amber-500" />
-            <span className="text-[10px] text-amber-600 font-medium">Internal note</span>
+            <StickyNote className="h-3 w-3 text-amber-500 dark:text-amber-400" />
+            <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">Internal note</span>
           </div>
-          <p className="text-[12px] text-amber-800 whitespace-pre-wrap">{msg.content}</p>
-          <span className="text-[10px] text-amber-500 mt-0.5 block">{format(new Date(msg.created_at), "HH:mm")}</span>
+          <p className="text-[12px] text-amber-900 dark:text-amber-200 whitespace-pre-wrap">{msg.content}</p>
+          <span className="text-[10px] text-amber-500 dark:text-amber-500/70 mt-0.5 block">{format(new Date(msg.created_at), "HH:mm")}</span>
         </div>
       </div>
     )
@@ -143,7 +148,9 @@ function MessageBubble({ msg }: { msg: Message }) {
   return (
     <div className={cn("flex gap-2 max-w-[80%]", isOutbound ? "ml-auto flex-row-reverse" : "mr-auto")}>
       <div className={cn("px-3 py-2 rounded-2xl text-[13px] leading-relaxed shadow-sm",
-        isOutbound ? "bg-[#DCF8C6] rounded-br-none" : "bg-white border border-border/60 rounded-bl-none"
+        isOutbound 
+          ? "bg-[#DCF8C6] dark:bg-emerald-950/40 text-foreground dark:text-emerald-300 rounded-br-none" 
+          : "bg-white dark:bg-muted border border-border/60 dark:border-border/10 rounded-bl-none text-foreground"
       )}>
         {msg.sender_type === "bot" && (
           <div className="flex items-center gap-1 mb-1">
@@ -364,19 +371,24 @@ export default function InboxPage() {
 
   useEffect(() => {
     const fetchActiveFollowupThreads = async () => {
+      if (!workspace?.id) return
+      // PERF FIX: scoped to workspace, and NOT triggered by every threads update
       const { data } = await supabase
         .from("messages")
         .select("thread_id")
-        .eq("metadata->is_note", true)
-        .not("metadata->followup_date", "is", null)
-        .not("metadata->followup_completed", "eq", true)
+        .eq("workspace_id", workspace.id)
+        .eq("metadata->>is_note", "true")
+        .not("metadata->>followup_date", "is", null)
+        .not("metadata->>followup_completed", "eq", "true")
 
       if (data) {
         setThreadsWithActiveFollowups(data.map(m => m.thread_id).filter(Boolean))
       }
     }
     fetchActiveFollowupThreads()
-  }, [threads, supabase])
+  // PERF FIX: removed `threads` from dep array — was re-fetching on every realtime update
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workspace?.id])
 
   useEffect(() => {
     let interval: NodeJS.Timeout
@@ -391,10 +403,10 @@ export default function InboxPage() {
     if (!activeCallId) return
 
     const channel = supabase
-      .channel(`whatsapp-call-inbox-${activeCallId}`)
+      .channel(`dograh-call-inbox-${activeCallId}`)
       .on(
         "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "whatsapp_calls", filter: `id=eq.${activeCallId}` },
+        { event: "UPDATE", schema: "public", table: "voice_calls", filter: `id=eq.${activeCallId}` },
         (payload) => {
           const status = payload.new?.status
           if (status === "ringing") {
@@ -413,7 +425,8 @@ export default function InboxPage() {
       .subscribe()
 
     return () => {
-      channel.unsubscribe()
+      // PERF FIX: use removeChannel (v2 API) — unsubscribe() leaves stale socket state
+      supabase.removeChannel(channel)
     }
   }, [activeCallId, supabase])
 
@@ -858,8 +871,16 @@ export default function InboxPage() {
 
       if (!res.ok) throw new Error("Failed to add note");
 
-      const msgData = await fetch(`/api/inbox/threads/${selectedThread.id}/messages?limit=100`).then(r => r.json());
-      setMessages(msgData.messages ?? []);
+      // PERF FIX: removed double-fetch after POST. The realtime handleMessageInsert
+      // callback will append the note automatically. If POST returns the new message,
+      // we append it directly — no extra round-trip needed.
+      const data = await res.json();
+      if (data.message) {
+        setMessages(prev => {
+          if (prev.some(m => m.id === data.message.id)) return prev;
+          return [...prev, data.message as Message];
+        });
+      }
 
       setNoteText("");
       setFollowupDate("");
@@ -892,7 +913,8 @@ export default function InboxPage() {
     ]).then(([msgData, threadData]) => {
       setMessages(msgData.messages ?? [])
       setActiveTicket(threadData.activeTicket ?? null)
-      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50)
+      // PERF FIX: instant scroll on load (smooth animates unnecessarily on thread switch)
+      requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView({ behavior: "instant" }))
     }).finally(() => setLoadingMessages(false))
   }, [selectedThread?.id])
 
@@ -913,7 +935,8 @@ export default function InboxPage() {
         }
         return [...prev, newMsg];
       })
-      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50)
+      // PERF FIX: rAF instead of setTimeout — synced with paint cycle
+      requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }))
     }
 
     // Update unread count and preview snippet in the thread sidebar for all threads
@@ -1036,7 +1059,7 @@ export default function InboxPage() {
       }
 
       setMessages((prev) => [...prev, optimisticMsg])
-      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 20)
+      requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView({ behavior: "instant" }))
     }
 
     try {
@@ -1086,7 +1109,7 @@ export default function InboxPage() {
           if (withoutOptimistic.some((m) => m.id === data.message.id)) return withoutOptimistic
           return [...withoutOptimistic, data.message as Message]
         })
-        setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50)
+        requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }))
       }
 
       clearPendingMedia()
@@ -1119,10 +1142,11 @@ export default function InboxPage() {
       })
       if (!res.ok) throw new Error()
       const data = await res.json()
+      // PERF FIX: local optimistic update is sufficient — realtime will sync any drift.
+      // Removed fetchThreads() here which caused a full round-trip after every action.
       setSelectedThread(prev => prev ? { ...prev, ...data.thread } : null)
       setThreads(prev => prev.map(t => t.id === selectedThread.id ? { ...t, ...data.thread } : t))
       setShowAssignMenu(false)
-      fetchThreads()
     } catch { toast.error("Action failed") }
     finally { setAssigningThread(false) }
   }
@@ -1173,16 +1197,17 @@ export default function InboxPage() {
   const contact = selectedThread?.contacts
   const assignedMember = teamMembers.find(m => m.user_id === selectedThread?.assigned_to)
 
-  const TAB_COUNTS = {
+  // PERF FIX: memoized — was recomputing 4 .filter() calls on every render
+  const TAB_COUNTS = useMemo(() => ({
     all: threads.length,
     open: threads.filter(t => !t.ai_active && !t.assigned_to).length,
     bot: threads.filter(t => t.ai_active).length,
     assigned: threads.filter(t => !!t.assigned_to).length,
-  }
+  }), [threads])
 
   return (
     <div className="absolute inset-0 flex bg-background overflow-hidden">
-      <div className="w-[300px] border-r border-border bg-white flex flex-col shrink-0 relative">
+      <div className="w-[300px] border-r border-border bg-card flex flex-col shrink-0 relative">
         <div className="p-3 border-b border-border space-y-2">
           <div className="flex items-center justify-between">
             <h2 className="text-[15px] font-bold text-foreground">Shared Inbox</h2>
@@ -1200,7 +1225,7 @@ export default function InboxPage() {
             <button
               onClick={() => setIsFilterModalOpen(true)}
               className={cn(
-                "p-1.5 rounded-lg border border-border bg-white hover:bg-muted text-muted-foreground transition-colors shrink-0 flex items-center justify-center",
+                "p-1.5 rounded-lg border border-border bg-card hover:bg-muted text-muted-foreground transition-colors shrink-0 flex items-center justify-center",
                 isAnyFilterActive ? "border-primary text-primary bg-primary/5" : ""
               )}
               title="Filter Chats"
@@ -1275,7 +1300,7 @@ export default function InboxPage() {
       {selectedThread ? (
         <div className="flex-1 flex flex-col min-w-0">
           {/* Chat Header */}
-          <div className="h-12 border-b border-border bg-white flex items-center justify-between px-4 shrink-0">
+          <div className="h-12 border-b border-border bg-card flex items-center justify-between px-4 shrink-0">
             <div className="flex items-center gap-3 min-w-0">
               {contact && <Avatar name={contact.full_name} phone={contact.phone} avatarUrl={contact.avatar_url} size={36} />}
               <div className="min-w-0">
@@ -1303,7 +1328,7 @@ export default function InboxPage() {
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => setIsSmartCardsCollapsed(!isSmartCardsCollapsed)}
-                className="p-1.5 hover:bg-muted text-muted-foreground hover:text-foreground rounded-lg transition-colors border border-border shadow-sm flex items-center justify-center bg-white"
+                className="p-1.5 hover:bg-muted text-muted-foreground hover:text-foreground rounded-lg transition-colors border border-border shadow-sm flex items-center justify-center bg-card"
                 title={isSmartCardsCollapsed ? "Expand Details" : "Collapse Details"}
               >
                 {isSmartCardsCollapsed ? (
@@ -1346,7 +1371,7 @@ export default function InboxPage() {
               })()}
 
               {/* Composer */}
-              <div className="border-t border-border p-3 bg-white shrink-0">
+              <div className="border-t border-border p-3 bg-card shrink-0">
                 {/* Composer mode tabs */}
                 <div className="flex gap-1 mb-2">
                   <button onClick={() => { setComposerMode("message"); setPendingMedia(null) }}
@@ -1418,7 +1443,7 @@ export default function InboxPage() {
 
             {/* ── Smart Cards Panel ─────────────────────────────────────── */}
             {!isSmartCardsCollapsed && (
-              <div className="w-[272px] shrink-0 border-l border-border bg-white flex flex-col overflow-y-auto">
+              <div className="w-[272px] shrink-0 border-l border-border bg-card flex flex-col overflow-y-auto">
 
                 {/* Panel header */}
                 <div className="px-4 py-3 border-b border-border shrink-0">

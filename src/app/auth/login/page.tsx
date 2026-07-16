@@ -1,19 +1,22 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Suspense } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Mail, Lock, Eye, EyeOff, Chrome, ArrowRight, Sparkles } from "lucide-react"
 import { toast } from "sonner"
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  // Honor both ?redirect= (from invite page) and ?next= (from middleware)
+  const redirectTo = searchParams.get("redirect") ?? searchParams.get("next") ?? "/dashboard"
   const supabase = createClient()
 
   const handleGoogleLogin = async () => {
@@ -21,7 +24,7 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirectTo)}`,
         queryParams: { access_type: "offline", prompt: "consent" },
       },
     })
@@ -40,7 +43,7 @@ export default function LoginPage() {
       toast.error(error.message)
       setLoading(false)
     } else {
-      router.push("/dashboard")
+      router.push(redirectTo)
     }
   }
 
@@ -198,5 +201,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#FAFAF8]" />}>
+      <LoginForm />
+    </Suspense>
   )
 }

@@ -122,7 +122,12 @@ const SARVAM_VOICES = [
 const GEMINI_VOICES = [
   {
     label: "Gemini Live voices",
-    voices: ["Puck", "Charon", "Kore", "Fenrir", "Aoede", "Puma"].map((id) => ({ id, name: id })),
+    voices: [
+      "Zephyr", "Puck", "Charon", "Kore", "Fenrir", "Leda", "Orus", "Aoede", "Callirrhoe",
+      "Autonoe", "Enceladus", "Iocaste", "Umbriel", "Algieba", "Despina", "Erinome", "Algenib",
+      "Rasalghul", "Laomedeia", "Achernar", "Alnilam", "Schedar", "Gacrux", "Pulcherrima",
+      "Achird", "Zubenelgenubi", "Vindemiatrix", "Sadachbia", "Sulafat", "Sadaltager"
+    ].map((id) => ({ id, name: id })),
   },
 ];
 
@@ -319,6 +324,36 @@ export function LeadCaptureClient() {
   const [previewLead, setPreviewLead] = useState<Lead | null>(null);
   const [previewTab, setPreviewTab] = useState<"whatsapp" | "email" | "voice">("whatsapp");
   const prevLeadsRef = useRef<Map<string, Lead> | null>(null);
+
+  const [presets, setPresets] = useState<any[]>([]);
+  const [selectedPresetId, setSelectedPresetId] = useState<string>("");
+
+  useEffect(() => {
+    async function loadPresets() {
+      try {
+        const res = await fetch("/api/voice/agents");
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.agents) setPresets(data.agents);
+        }
+      } catch (e) {
+        console.error("Failed to load presets", e);
+      }
+    }
+    loadPresets();
+  }, []);
+
+  const handleSelectPreset = (presetId: string) => {
+    setSelectedPresetId(presetId);
+    if (!presetId) return;
+    const preset = presets.find(p => p.id === presetId);
+    if (preset) {
+      setValue("voice_agent_type", preset.agent_type);
+      setValue("voice_id", preset.voice_id);
+      setValue("voice_prompt", preset.system_prompt);
+      toast.success(`Loaded voice preset: ${preset.name} ✓`);
+    }
+  };
 
   // Play micro synth sound using Web Audio API
   const playTestSound = () => {
@@ -1134,6 +1169,25 @@ export function LeadCaptureClient() {
 
                   {voiceEnabled && (
                     <div className="space-y-4 pt-1">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-semibold text-muted-foreground uppercase flex items-center justify-between">
+                          <span>Load Preset Settings</span>
+                          {presets.length === 0 && <span className="text-[9px] font-normal text-destructive-foreground">No presets configured</span>}
+                        </label>
+                        <select
+                          value={selectedPresetId}
+                          onChange={(e) => handleSelectPreset(e.target.value)}
+                          className="w-full px-3 py-2.5 bg-background border border-input rounded-xl text-sm"
+                        >
+                          <option value="">-- Select a Preset to Prefill --</option>
+                          {presets.map((p) => (
+                            <option key={p.id} value={p.id}>
+                              {p.name} ({p.agent_type === "gemini" ? "Gemini" : "LiveKit"})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
                       <div className="space-y-1.5">
                         <label className="text-[10px] font-semibold text-muted-foreground uppercase">Agent Engine</label>
                         <select

@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
         trigger_type:  workflow.trigger_type,
         trigger_data:  triggerData ?? {},
         status:        "running",
-        steps_total:   nodes.length,
+        steps_total:   (workflow.nodes ?? []).length,
       })
       .select()
       .single()

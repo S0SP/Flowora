@@ -15,7 +15,7 @@ import { WorkflowCanvas, initialNodes, initialEdges } from "@/components/organis
 import { ReactFlowProvider, useNodesState, useEdgesState, addEdge, getIncomers } from "@xyflow/react"
 import { toast } from "sonner"
 import { WORKFLOW_TEMPLATES, type WorkflowTemplate } from "@/lib/workflow-templates"
-import { SARVAM_VOICES } from "@/lib/voices"
+import { SARVAM_VOICES, GEMINI_VOICES } from "@/lib/voices"
 import { format } from "date-fns"
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
@@ -107,7 +107,7 @@ function getVarsFromNode(node: any): string[] {
       const cols = Array.isArray(d.customColumns)
         ? d.customColumns
         : String(d.customColumns).split(",").map(c => c.trim()).filter(Boolean)
-      cols.forEach(col => {
+      cols.forEach((col: any) => {
         const placeholder = `{{${col}}}`
         if (!vars.includes(placeholder)) vars.push(placeholder)
       })
@@ -400,8 +400,8 @@ function WhatsAppPanel({ data, onSave, availableVars }: { data: any; onSave: (d:
   const templatePlaceholders = useMemo(() => {
     const matches = selectedTemplateText.match(/\{\{(\d+)\}\}/g) || []
     return Array.from(new Set(matches))
-      .map(m => m.replace(/\D/g, ""))
-      .sort((a, b) => parseInt(a) - parseInt(b))
+      .map((m: any) => String(m).replace(/\D/g, ""))
+      .sort((a: any, b: any) => parseInt(a) - parseInt(b))
   }, [selectedTemplateText])
 
   const onTemplateChange = (name: string) => {
@@ -443,9 +443,9 @@ function WhatsAppPanel({ data, onSave, availableVars }: { data: any; onSave: (d:
   const handleSaveClick = () => {
     let previewText = ""
     if (mode === "template") {
-      previewText = selectedTemplateText.replace(/\{\{(\d+)\}\}/g, (_, num) => {
+      previewText = selectedTemplateText.replace(/\{\{(\d+)\}\}/g, (_: string, num: string) => {
         const mapped = variables[num] ?? `{{${num}}}`
-        return mapped.replace(/\{\{([^}]+)\}\}/g, (__, name) => `[${name.split(".").pop()?.toUpperCase() ?? name}]`)
+        return mapped.replace(/\{\{([^}]+)\}\}/g, (__: string, name: string) => `[${name.split(".").pop()?.toUpperCase() ?? name}]`)
       })
     } else {
       previewText = preview
@@ -679,6 +679,9 @@ function VoicePanel({ data, onSave, availableVars }: { data: any; onSave: (d: an
  callObjective: data.callObjective ?? "",
  toPhone: data.toPhone ?? "{{phone}}",
  })
+ const [presets, setPresets] = useState<any[]>([])
+ const [selectedPresetId, setSelectedPresetId] = useState<string>("")
+
  const f = (k: string) => (e: any) => setForm(p => ({ ...p, [k]: e.target.value }))
 
  useEffect(() => {
@@ -695,7 +698,27 @@ function VoicePanel({ data, onSave, availableVars }: { data: any; onSave: (d: an
  }))
  }
  }).catch(() => { }).finally(() => setLoading(false))
+
+ fetch("/api/voice/agents").then(r => r.json()).then(d => {
+ if (d.agents) setPresets(d.agents)
+ }).catch(() => { })
  }, [])
+
+ const handleSelectPreset = (presetId: string) => {
+   setSelectedPresetId(presetId)
+   if (!presetId) return
+   const preset = presets.find(p => p.id === presetId)
+   if (preset) {
+     setForm(p => ({
+       ...p,
+       agentType: preset.agent_type || "livekit",
+       voiceId: preset.voice_id || "anushka",
+       systemPrompt: preset.system_prompt || "",
+       callObjective: preset.config?.call_objective || preset.first_message || "",
+     }))
+     toast.success(`Loaded preset: ${preset.name} ✓`)
+   }
+ }
 
  const availableVoices = typeof SARVAM_VOICES !== "undefined" ? SARVAM_VOICES : [
  { id: "anushka", name: "Anushka", lang: "Hinglish" },
@@ -703,6 +726,8 @@ function VoicePanel({ data, onSave, availableVars }: { data: any; onSave: (d: an
  { id: "sophia", name: "Sophia", lang: "English" },
  { id: "ryan", name: "Ryan", lang: "English" },
  ]
+
+ const voices = form.agentType === "gemini" ? GEMINI_VOICES : SARVAM_VOICES;
 
  return (
  <>
@@ -724,18 +749,34 @@ function VoicePanel({ data, onSave, availableVars }: { data: any; onSave: (d: an
  <input className={inputCls} value={form.toPhone} onChange={f("toPhone")} placeholder="{{phone}}" />
  </FieldWrap>
  <FieldWrap>
- <Label required>Voice</Label>
- <select className={selectCls} value={form.voiceId} onChange={f("voiceId")}>
- {Array.isArray(SARVAM_VOICES) && SARVAM_VOICES.map((v: any) => (
- <option key={v.id ?? v} value={v.id ?? v}>{v.name ?? v} {v.lang ? `· ${v.lang}` : ""}</option>
+ <Label>Load Preset Settings</Label>
+ <select className={selectCls} value={selectedPresetId} onChange={(e) => handleSelectPreset(e.target.value)}>
+ <option value="">-- Select a Preset to Prefill --</option>
+ {presets.map((p: any) => (
+ <option key={p.id} value={p.id}>{p.name} ({p.agent_type === "gemini" ? "Gemini" : "LiveKit"})</option>
  ))}
  </select>
  </FieldWrap>
  <FieldWrap>
  <Label>Agent Engine</Label>
- <select className={selectCls} value={form.agentType} onChange={f("agentType")}>
- <option value="livekit">LiveKit (Real-time)</option>
- <option value="gemini">Gemini (Conversational)</option>
+ <select className={selectCls} value={form.agentType} onChange={(e) => {
+   const val = e.target.value;
+   setForm(p => ({
+     ...p,
+     agentType: val,
+     voiceId: val === "gemini" ? "Zephyr" : "anushka"
+   }));
+ }}>
+ <option value="livekit">LiveKit + Sarvam TTS (Hindi/English)</option>
+ <option value="gemini">Gemini Live (Multilingual)</option>
+ </select>
+ </FieldWrap>
+ <FieldWrap>
+ <Label required>Voice</Label>
+ <select className={selectCls} value={form.voiceId} onChange={f("voiceId")}>
+ {Array.isArray(voices) && voices.map((v: any) => (
+ <option key={v.id ?? v} value={v.id ?? v}>{v.name ?? v} {("style" in v) ? `· ${v.style}` : ""}</option>
+ ))}
  </select>
  </FieldWrap>
  <FieldWrap hint="Define what the AI agent should say and do on the call.">

@@ -2,11 +2,12 @@
 CREATE TABLE IF NOT EXISTS custom_field_schemas (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   workspace_id  UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
-  name          TEXT NOT NULL,
-  type          TEXT NOT NULL DEFAULT 'text' CHECK (type IN ('text', 'number', 'select')),
+  field_name    TEXT NOT NULL,
+  field_type    TEXT NOT NULL DEFAULT 'text' CHECK (field_type IN ('text', 'number', 'select', 'date', 'boolean')),
   options       TEXT[], -- only used for select type
+  created_by    UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   created_at    TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(workspace_id, name)
+  UNIQUE(workspace_id, field_name)
 );
 
 ALTER TABLE custom_field_schemas ENABLE ROW LEVEL SECURITY;

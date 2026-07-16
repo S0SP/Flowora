@@ -2,7 +2,6 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { sendWhatsAppTemplate } from "./meta";
 import { parsePhoneFromExcel, isValidPhone } from "@/lib/utils";
 import { sendMail, compileEmailTemplate } from "./mailer";
-import { dialSip, startEgressRecording } from "@/lib/livekit";
 import Papa from "papaparse";
 import crypto from "crypto";
 
@@ -422,19 +421,49 @@ export async function sendPendingLeads() {
               setting.voice_agent_type === "gemini" ? "gemini" : "livekit";
             const voiceId = setting.voice_id || "anushka";
 
-            // Place the SIP call directly via LiveKit (server-to-server).
-            // The old code did fetch('/api/voice/dial') which (a) defaulted to
-            // localhost:3000 in production → ECONNREFUSED, and (b) required a
-            // logged-in user session that a background job doesn't have → 401.
-            // Calling dialSip() here avoids both problems entirely.
-            const { roomName, sipCallId } = await dialSip({
-              toNumber: lead.phone,
-              userId: dialUserId || "",
-              agentType,
-              voiceId,
-              systemPrompt,
+            // Place outbound call via Dograh Backend API
+            const dograhUrl = process.env.DOGRAH_API_URL || "http://localhost:8000";
+            const flowraSecret = process.env.DOGRAH_SECRET || "change-me-in-production";
+            const dograhWorkflowId = parseInt(process.env.DOGRAH_WORKFLOW_ID || "1", 10);
+
+            const initialContext = {
+              system_prompt: systemPrompt || "",
+              first_message: "",
+              model_overrides: {
+                tts: {
+                  provider: agentType === "gemini" ? "google" : "sarvam",
+                  voice: voiceId,
+                  language: setting.sarvam_language || "hi-IN",
+                },
+                llm: {
+                  provider: agentType === "gemini" ? "google" : "groq",
+                  model: agentType === "gemini" ? "gemini-2.0-flash-exp" : "llama-3.3-70b-versatile",
+                },
+              },
+            };
+
+            const dograhRes = await fetch(`${dograhUrl}/api/v1/telephony/initiate-call`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-Flowra-Secret": flowraSecret,
+              },
+              body: JSON.stringify({
+                workflow_id: dograhWorkflowId,
+                phone_number: lead.phone,
+                initial_context: initialContext,
+              }),
             });
-            console.log(`LeadCapture: Voice -> ${lead.phone} dialed room=${roomName} sip=${sipCallId}`);
+
+            if (!dograhRes.ok) {
+              const errText = await dograhRes.text();
+              throw new Error(`Dograh API error: ${errText}`);
+            }
+
+            const dograhData = await dograhRes.json();
+            const roomName = `run-${dograhData.workflow_run_id}`;
+            const sipCallId = String(dograhData.workflow_run_id);
+            console.log(`LeadCapture: Voice -> ${lead.phone} dialed Dograh run=${roomName}`);
 
             // Best-effort call-log record (non-critical; column/owner may be absent).
             if (dialUserId) {
@@ -451,12 +480,7 @@ export async function sendPendingLeads() {
                     livekit_sip_call_id: sipCallId,
                   })
                   .select("id")
-                  .single();
-                if (callRecord?.id) {
-                  startEgressRecording(roomName, callRecord.id).catch((err) =>
-                    console.error("LeadCapture: egress recording failed:", err)
-                  );
-                }
+
               } catch (recErr) {
                 console.warn("LeadCapture: could not write voice_calls record:", recErr);
               }

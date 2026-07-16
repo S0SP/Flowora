@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { dialSip, startEgressRecording } from "@/lib/livekit";
 
 export async function POST(req: NextRequest) {
   try {
@@ -41,35 +40,62 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Failed to create call record" }, { status: 500 });
     }
 
-    // Place SIP call via LiveKit
-    const { roomName, sipCallId } = await dialSip({
-      toNumber,
-      userId: user.id,
-      agentType,
-      voiceId,
-      systemPrompt,
-      callId: callRecord.id,
-      deepgramLanguage,
-      sarvamLanguage,
-      languagePreset,
+    // Place outbound call via Dograh Backend API
+    const dograhUrl = process.env.DOGRAH_API_URL || "http://localhost:8000";
+    const flowraSecret = process.env.DOGRAH_SECRET || "change-me-in-production";
+    const dograhWorkflowId = parseInt(process.env.DOGRAH_WORKFLOW_ID || "1", 10);
+
+    const initialContext = {
+      system_prompt: systemPrompt || "",
+      first_message: "",
+      model_overrides: {
+        tts: {
+          provider: agentType === "gemini" ? "google" : "sarvam",
+          voice: voiceId,
+          language: sarvamLanguage || "hi-IN",
+        },
+        llm: {
+          provider: agentType === "gemini" ? "google" : "groq",
+          model: agentType === "gemini" ? "gemini-2.0-flash-exp" : "llama-3.3-70b-versatile",
+        },
+      },
+    };
+
+    const dograhRes = await fetch(`${dograhUrl}/api/v1/telephony/initiate-call`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Flowra-Secret": flowraSecret,
+      },
+      body: JSON.stringify({
+        workflow_id: dograhWorkflowId,
+        phone_number: toNumber,
+        initial_context: initialContext,
+      }),
     });
 
-    // Update call record with LiveKit details
+    if (!dograhRes.ok) {
+      const errText = await dograhRes.text();
+      throw new Error(`Dograh API error: ${errText}`);
+    }
+
+    const dograhData = await dograhRes.json();
+
+    // Update call record with Dograh run details
     await supabase
       .from("voice_calls")
-      .update({ livekit_room_name: roomName, livekit_sip_call_id: sipCallId, status: "ringing" })
+      .update({
+        livekit_room_name: `run-${dograhData.workflow_run_id}`,
+        livekit_sip_call_id: String(dograhData.workflow_run_id),
+        status: "ringing",
+      })
       .eq("id", callRecord.id);
-
-    // Start Egress Recording (non-blocking)
-    startEgressRecording(roomName, callRecord.id).catch(e => {
-      console.error("Failed to start egress recording:", e);
-    });
 
     return NextResponse.json({
       ok: true,
       callId: callRecord.id,
-      roomName,
-      sipCallId,
+      workflowRunId: dograhData.workflow_run_id,
+      workflowRunName: dograhData.workflow_run_name,
     });
   } catch (err: any) {
     console.error("Dial error:", err);

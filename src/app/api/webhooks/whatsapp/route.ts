@@ -2,10 +2,6 @@ import { NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/server"
 import { generateRagResponse } from "@/services/rag"
 import { applyRoutingRules } from "@/app/api/inbox/routing/helper"
-import { ConnectorClient } from "livekit-server-sdk"
-import { RoomAgentDispatch, SessionDescription } from "@livekit/protocol"
-import { parseInboundCallEvents, isConnectCallEvent, WhatsAppInboundCallEvent } from "@/lib/whatsapp-call-webhook"
-import { normalizeLiveKitHttpUrl } from "@/lib/livekit/normalize-url"
 
 const VERIFY_TOKEN = process.env.META_VERIFY_TOKEN ?? "flowora_webhook_verify"
 
@@ -30,19 +26,7 @@ export async function POST(req: NextRequest) {
 
   console.log('[WhatsApp Webhook] Received body:', JSON.stringify(body, null, 2));
 
-  // ── Handle Native WhatsApp WebRTC Calls (LiveKit) ──────────────
-  try {
-    const callEvents = parseInboundCallEvents(body);
-    for (const callEv of callEvents) {
-      if (isConnectCallEvent(callEv) && callEv.session) {
-        handleNativeLivekitCall(callEv, admin).catch((err) =>
-          console.error("[WhatsApp LiveKit] Native accept failed:", err)
-        );
-      }
-    }
-  } catch (e) {
-    console.error("[WhatsApp LiveKit] Parse error:", e);
-  }
+
 
   const entries = body?.entry ?? []
 
@@ -253,76 +237,7 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      // ── Handle WhatsApp Calling events ────────────────────────────────
-      const calls: any[] = value.calls ?? []
-      for (const call of calls) {
-        const callId = call.id;
-        const callStatus = call.status; // e.g. ringing, connected, terminated
-        const timestamp = call.timestamp;
 
-        if (callId) {
-          // Check if this is an inbound call
-          const { data: existingCall } = await admin
-            .from("whatsapp_calls")
-            .select("id")
-            .eq("meta_call_id", callId)
-            .single();
-
-          if (existingCall) {
-            // Update existing call status
-            const updateData: any = { status: callStatus };
-            if (callStatus === "terminated" || callStatus === "missed") {
-              updateData.ended_at = new Date(timestamp ? parseInt(timestamp) * 1000 : Date.now()).toISOString();
-            }
-            await admin.from("whatsapp_calls").update(updateData).eq("meta_call_id", callId);
-          } else if (call.from) {
-            // New inbound call (User-initiated call)
-            const waId: string = call.from;
-            const phoneNumberId: string = value.metadata?.phone_number_id;
-
-            // Find workspace by phone_number_id
-            const { data: channelConn } = await admin
-              .from("channel_connections")
-              .select("workspace_id")
-              .eq("type", "whatsapp")
-              .filter("config->phoneNumberId", "eq", phoneNumberId)
-              .maybeSingle();
-
-            if (channelConn) {
-              const workspaceId = channelConn.workspace_id;
-              
-              // Find contact
-              let { data: contact } = await admin
-                .from("contacts")
-                .select("id")
-                .eq("workspace_id", workspaceId)
-                .eq("phone", waId)
-                .maybeSingle();
-
-              if (!contact) {
-                 const { data: newContact } = await admin.from("contacts").insert({
-                   workspace_id: workspaceId,
-                   phone: waId,
-                   full_name: waId,
-                   channel: "whatsapp",
-                 }).select("id").single();
-                 contact = newContact;
-              }
-
-              if (contact) {
-                await admin.from("whatsapp_calls").insert({
-                  contact_id: contact.id,
-                  phone_number: waId,
-                  meta_call_id: callId,
-                  direction: "inbound",
-                  status: callStatus || "connecting",
-                  started_at: new Date(timestamp ? parseInt(timestamp) * 1000 : Date.now()).toISOString()
-                });
-              }
-            }
-          }
-        }
-      }
     }
   }
 
@@ -496,68 +411,4 @@ async function sendWhatsAppReply(
   }).eq("id", opts.threadId)
 }
 
-// ── Native WhatsApp WebRTC Handling ───────────────────────────────────────
-async function handleNativeLivekitCall(
-  event: WhatsAppInboundCallEvent,
-  admin: any
-) {
-  const lkUrl = process.env.LIVEKIT_URL;
-  const lkApiKey = process.env.LIVEKIT_API_KEY;
-  const lkApiSecret = process.env.LIVEKIT_API_SECRET;
 
-  if (!lkUrl || !lkApiKey || !lkApiSecret) {
-    throw new Error("Missing LiveKit credentials in .env");
-  }
-
-  // Find the workspace connection config to get the meta access token
-  const { data: channelConn } = await admin
-    .from("channel_connections")
-    .select("workspace_id, config")
-    .eq("type", "whatsapp")
-    .filter("config->phoneNumberId", "eq", event.phoneNumberId)
-    .maybeSingle();
-
-  const workspaceId = channelConn?.workspace_id || "default";
-  const accessToken = channelConn?.config?.accessToken || process.env.META_ACCESS_TOKEN;
-
-  if (!accessToken) {
-    throw new Error(`No Meta Access Token for phone number ID ${event.phoneNumberId}`);
-  }
-
-  const connector = new ConnectorClient(
-    normalizeLiveKitHttpUrl(lkUrl),
-    lkApiKey,
-    lkApiSecret
-  );
-
-  const roomName = `wa-${Math.random().toString(36).substring(2, 9)}`;
-  
-  // Metadata for the voice-worker
-  const metadata = JSON.stringify({
-    inbound: true,
-    phoneNumberId: event.phoneNumberId,
-    fromWaId: event.fromWaId,
-    callId: event.callId,
-  });
-
-  console.log("[WhatsApp LiveKit] Accepting native call", { roomName, from: event.fromWaId });
-
-  await connector.acceptWhatsAppCall({
-    whatsappPhoneNumberId: event.phoneNumberId,
-    whatsappApiKey: accessToken,
-    whatsappCloudApiVersion: "24.0",
-    whatsappCallId: event.callId,
-    sdp: new SessionDescription({
-      type: event.session!.sdpType,
-      sdp: event.session!.sdp,
-    }),
-    roomName: roomName,
-    participantName: event.fromWaId,
-    agents: [
-      new RoomAgentDispatch({
-        agentName: "outbound-caller", // target voice-worker/agent.py
-        metadata: metadata,
-      }),
-    ],
-  });
-}

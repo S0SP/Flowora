@@ -1,0 +1,89 @@
+import { NextRequest, NextResponse } from "next/server";
+import { createAdminClient } from "@/lib/supabase/server";
+import { getTenant } from "@/lib/tenant";
+
+interface RouteParams {
+  params: Promise<{
+    id: string;
+  }>;
+}
+
+// PUT — update a voice agent preset
+export async function PUT(req: NextRequest, { params }: RouteParams) {
+  try {
+    const { workspaceId } = await getTenant();
+    const body = await req.json();
+    const admin = await createAdminClient();
+    const { id: agentId } = await params;
+
+    if (!agentId) {
+      return NextResponse.json({ error: "Agent ID is required" }, { status: 400 });
+    }
+
+    const updateData = {
+      name: body.name,
+      agent_type: body.agentType,
+      voice_id: body.voiceId,
+      system_prompt: body.systemPrompt,
+      first_message: body.firstMessage,
+      config: {
+        call_objective: body.callObjective ?? "",
+        language_preset: body.languagePreset ?? "hinglish",
+        sarvam_language: body.sarvamLanguage ?? "hi-IN",
+        deepgram_language: body.deepgramLanguage ?? "hi",
+        calling_hours_start: body.callingHoursStart ?? "09:00",
+        calling_hours_end: body.callingHoursEnd ?? "19:00",
+        max_call_attempts: body.maxCallAttempts ?? 3,
+        retry_interval_minutes: body.retryIntervalMinutes ?? 60,
+        recording_enabled: body.recordingEnabled ?? true,
+        transcription_enabled: body.transcriptionEnabled ?? true,
+      },
+      updated_at: new Date().toISOString(),
+    };
+
+    // Filter out undefined fields
+    const filteredUpdate = Object.entries(updateData).reduce((acc, [k, v]) => {
+      if (v !== undefined) acc[k] = v;
+      return acc;
+    }, {} as Record<string, any>);
+
+    const { data, error } = await admin
+      .from("voice_agents")
+      .update(filteredUpdate)
+      .eq("id", agentId)
+      .eq("workspace_id", workspaceId)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return NextResponse.json({ agent: data });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
+
+// DELETE — delete a voice agent preset
+export async function DELETE(req: NextRequest, { params }: RouteParams) {
+  try {
+    const { workspaceId } = await getTenant();
+    const admin = await createAdminClient();
+    const { id: agentId } = await params;
+
+    if (!agentId) {
+      return NextResponse.json({ error: "Agent ID is required" }, { status: 400 });
+    }
+
+    const { error } = await admin
+      .from("voice_agents")
+      .delete()
+      .eq("id", agentId)
+      .eq("workspace_id", workspaceId);
+
+    if (error) throw error;
+
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
