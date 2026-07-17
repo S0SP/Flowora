@@ -43,7 +43,7 @@ export function DashboardShell({ workspaceData, children }: Props) {
     pathname === "/dashboard/team" ||
     pathname === "/dashboard/tickets" ||
     pathname?.startsWith("/dashboard/chatbot") ||
-    pathname?.startsWith("/dashboard/voice-agent") ||
+    pathname?.startsWith("/dashboard/voice") ||
     pathname?.startsWith("/dashboard/analytics");
 
   return (
