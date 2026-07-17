@@ -194,7 +194,10 @@ function LoginForm() {
 
           <p className="text-center text-sm text-[#6B6B6B]">
             Don&apos;t have an account?{" "}
-            <Link href="/auth/signup" className="text-[#1B1B1B] font-semibold hover:text-[#FFE27C] transition-colors">
+            <Link 
+              href={searchParams.toString() ? `/auth/signup?${searchParams.toString()}` : "/auth/signup"} 
+              className="text-[#1B1B1B] font-semibold hover:text-[#FFE27C] transition-colors"
+            >
               Create one free
             </Link>
           </p>

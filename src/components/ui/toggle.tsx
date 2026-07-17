@@ -28,7 +28,7 @@ export function Toggle({ checked, onChange, disabled, size = "md", className }: 
       />
       <div className={cn(
         dims.track,
-        "bg-muted rounded-full transition-colors peer-focus:outline-none peer-checked:bg-primary",
+        "bg-gray-100 rounded-full transition-colors peer-focus:outline-none peer-checked:bg-primary",
         dims.move,
         "after:content-[''] after:absolute after:bg-white after:rounded-full after:transition-all",
         dims.thumb,

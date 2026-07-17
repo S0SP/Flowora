@@ -54,7 +54,7 @@ export async function POST(_req: Request, ctx: RouteContext) {
       // Reactivate suspended/pending member
       await admin
         .from("workspace_members")
-        .update({ status: "active", role: invite.role, joined_at: new Date().toISOString() })
+        .update({ status: "active", role: invite.role })
         .eq("id", existing.id);
     } else {
       // Add new member
@@ -64,8 +64,7 @@ export async function POST(_req: Request, ctx: RouteContext) {
           workspace_id: invite.workspace_id,
           user_id: user.id,
           role: invite.role,
-          status: "active",
-          joined_at: new Date().toISOString(),
+          created_at: new Date().toISOString(),
           invited_by: null,
         });
       if (memberErr) throw memberErr;

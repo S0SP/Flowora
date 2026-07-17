@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Loader2, CheckCircle, Zap } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -17,8 +17,9 @@ const FEATURES = [
   "Leads CRM with kanban board",
 ];
 
-export default function SignupPage() {
+function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [step, setStep] = useState<"account" | "check-email" | "workspace">("account");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -51,10 +52,15 @@ export default function SignupPage() {
 
       if (error) throw error;
       
+      const nextParam = searchParams.get("redirect") ?? searchParams.get("next") ?? "/dashboard";
       if (!data?.session) {
         setStep("check-email");
       } else {
-        setStep("workspace");
+        if (nextParam && nextParam.startsWith("/invite/")) {
+          router.push(nextParam);
+        } else {
+          setStep("workspace");
+        }
       }
     } catch (err: any) {
       toast.error(err.message ?? "Failed to create account");
@@ -133,20 +139,20 @@ export default function SignupPage() {
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <Zap className="w-4 h-4 text-primary-foreground" />
             </div>
-            <span className="text-lg font-bold text-foreground">Flowora</span>
+            <span className="text-lg font-bold text-[#1B1B1B]">Flowora</span>
           </div>
 
           {/* Step indicator */}
           <div className="flex items-center gap-3 mb-8">
-            <div className={cn("flex items-center gap-2 text-sm font-medium", step === "account" ? "text-foreground" : "text-muted-foreground")}>
-              <span className={cn("w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold", step === "account" ? "bg-primary text-primary-foreground" : "bg-primary text-primary-foreground")}>
+            <div className={cn("flex items-center gap-2 text-sm font-medium", step === "account" ? "text-[#1B1B1B]" : "text-[#9B9B9B]")}>
+              <span className={cn("w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold", step === "account" ? "bg-[#FFE27C] text-[#1B1B1B]" : "bg-[#FFE27C] text-[#1B1B1B]")}>
                 {step !== "account" ? "✓" : "1"}
               </span>
               Account
             </div>
-            <div className="flex-1 h-px bg-border" />
-            <div className={cn("flex items-center gap-2 text-sm font-medium", step === "workspace" ? "text-foreground" : "text-muted-foreground")}>
-              <span className={cn("w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold", step === "workspace" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>
+            <div className="flex-1 h-px bg-[#E8E8E4]" />
+            <div className={cn("flex items-center gap-2 text-sm font-medium", step === "workspace" ? "text-[#1B1B1B]" : "text-[#9B9B9B]")}>
+              <span className={cn("w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold", step === "workspace" ? "bg-[#FFE27C] text-[#1B1B1B]" : "bg-[#E8E8E4] text-[#9B9B9B]")}>
                 2
               </span>
               Workspace
@@ -156,37 +162,37 @@ export default function SignupPage() {
           {step === "account" ? (
             <>
               <div className="mb-6">
-                <h1 className="text-2xl font-bold text-foreground">Create your account</h1>
-                <p className="text-sm text-muted-foreground mt-1">Start your 14-day free trial — no credit card required</p>
+                <h1 className="text-2xl font-bold text-[#1B1B1B]">Create your account</h1>
+                <p className="text-sm text-[#6B6B6B] mt-1">Start your 14-day free trial — no credit card required</p>
               </div>
 
               <form onSubmit={handleCreateAccount} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">Full Name</label>
+                  <label className="block text-sm font-medium text-[#1B1B1B] mb-1.5">Full Name</label>
                   <input
                     type="text"
                     value={fullName}
                     onChange={e => setFullName(e.target.value)}
                     placeholder="Robert Fox"
                     required
-                    className="w-full border border-border rounded-xl px-4 py-3 text-sm text-[#1B1B1B] focus:outline-none focus:ring-2 focus:ring-primary/40 bg-white"
+                    className="w-full border border-[#E8E8E4] rounded-xl px-4 py-3 text-sm text-[#1B1B1B] placeholder-[#9B9B9B] focus:outline-none focus:ring-2 focus:ring-[#FFE27C]/40 bg-white"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">Work Email</label>
+                  <label className="block text-sm font-medium text-[#1B1B1B] mb-1.5">Work Email</label>
                   <input
                     type="email"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     placeholder="you@company.com"
                     required
-                    className="w-full border border-border rounded-xl px-4 py-3 text-sm text-[#1B1B1B] focus:outline-none focus:ring-2 focus:ring-primary/40 bg-white"
+                    className="w-full border border-[#E8E8E4] rounded-xl px-4 py-3 text-sm text-[#1B1B1B] placeholder-[#9B9B9B] focus:outline-none focus:ring-2 focus:ring-[#FFE27C]/40 bg-white"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">Password</label>
+                  <label className="block text-sm font-medium text-[#1B1B1B] mb-1.5">Password</label>
                   <div className="relative">
                     <input
                       type={showPassword ? "text" : "password"}
@@ -195,12 +201,12 @@ export default function SignupPage() {
                       placeholder="Min. 8 characters"
                       required
                       minLength={8}
-                      className="w-full border border-border rounded-xl px-4 py-3 pr-11 text-sm text-[#1B1B1B] focus:outline-none focus:ring-2 focus:ring-primary/40 bg-white"
+                      className="w-full border border-[#E8E8E4] rounded-xl px-4 py-3 pr-11 text-sm text-[#1B1B1B] placeholder-[#9B9B9B] focus:outline-none focus:ring-2 focus:ring-[#FFE27C]/40 bg-white"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(s => !s)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9B9B9B] hover:text-[#1B1B1B]"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -209,7 +215,7 @@ export default function SignupPage() {
                     <div className="mt-1.5 flex gap-1">
                       {[8, 12, 16].map(len => (
                         <div key={len} className={cn("h-1 flex-1 rounded-full transition-colors",
-                          password.length >= len ? "bg-primary" : "bg-border"
+                          password.length >= len ? "bg-[#FFE27C]" : "bg-[#E8E8E4]"
                         )} />
                       ))}
                     </div>
@@ -219,38 +225,38 @@ export default function SignupPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-primary text-primary-foreground font-semibold py-3 rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full bg-[#FFE27C] hover:bg-[#FFD84A] active:bg-[#FFC800] text-[#1B1B1B] font-semibold py-3 rounded-xl transition-all shadow-[0_2px_8px_rgba(255,226,124,0.4)] disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                   Create Account →
                 </button>
 
-                <p className="text-xs text-muted-foreground text-center">
+                <p className="text-xs text-[#6B6B6B] text-center">
                   By signing up you agree to our{" "}
-                  <a href="#" className="text-primary hover:underline">Terms of Service</a>
+                  <a href="#" className="text-[#1B1B1B] font-medium hover:text-[#FFE27C] underline">Terms of Service</a>
                   {" "}and{" "}
-                  <a href="#" className="text-primary hover:underline">Privacy Policy</a>
+                  <a href="#" className="text-[#1B1B1B] font-medium hover:text-[#FFE27C] underline">Privacy Policy</a>
                 </p>
               </form>
             </>
           ) : step === "check-email" ? (
             <div className="text-center space-y-6 py-4 animate-in fade-in duration-300">
-              <div className="w-16 h-16 bg-primary/10 border border-primary/20 rounded-full flex items-center justify-center mx-auto">
-                <CheckCircle className="w-8 h-8 text-primary" />
+              <div className="w-16 h-16 bg-[#FFE27C]/10 border border-[#FFE27C]/20 rounded-full flex items-center justify-center mx-auto">
+                <CheckCircle className="w-8 h-8 text-[#FFE27C]" />
               </div>
               <div className="space-y-2">
-                <h1 className="text-2xl font-bold text-foreground">Verify your email</h1>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  We&apos;ve sent a verification link to <span className="font-semibold text-foreground">{email}</span>.
+                <h1 className="text-2xl font-bold text-[#1B1B1B]">Verify your email</h1>
+                <p className="text-sm text-[#6B6B6B] leading-relaxed">
+                  We&apos;ve sent a verification link to <span className="font-semibold text-[#1B1B1B]">{email}</span>.
                 </p>
-                <p className="text-sm text-muted-foreground leading-relaxed">
+                <p className="text-sm text-[#6B6B6B] leading-relaxed">
                   Please check your inbox and click the link to confirm your account, then sign in to setup your workspace.
                 </p>
               </div>
               <div className="pt-2">
                 <Link
-                  href="/auth/login"
-                  className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-6 py-2.5 rounded-xl hover:bg-primary/90 transition-colors shadow-sm"
+                  href={searchParams.toString() ? `/auth/login?${searchParams.toString()}` : "/auth/login"}
+                  className="inline-flex items-center gap-2 bg-[#FFE27C] hover:bg-[#FFD84A] text-[#1B1B1B] font-semibold px-6 py-2.5 rounded-xl transition-all shadow-[0_2px_8px_rgba(255,226,124,0.4)]"
                 >
                   Go to Sign In
                 </Link>
@@ -259,29 +265,29 @@ export default function SignupPage() {
           ) : (
             <>
               <div className="mb-6">
-                <h1 className="text-2xl font-bold text-foreground">Set up your workspace</h1>
-                <p className="text-sm text-muted-foreground mt-1">This is where your team will collaborate</p>
+                <h1 className="text-2xl font-bold text-[#1B1B1B]">Set up your workspace</h1>
+                <p className="text-sm text-[#6B6B6B] mt-1">This is where your team will collaborate</p>
               </div>
 
               <form onSubmit={handleCreateWorkspace} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">Company / Workspace Name</label>
+                  <label className="block text-sm font-medium text-[#1B1B1B] mb-1.5">Company / Workspace Name</label>
                   <input
                     type="text"
                     value={workspaceName}
                     onChange={e => setWorkspaceName(e.target.value)}
                     placeholder="Acme Corp"
                     required
-                    className="w-full border border-border rounded-xl px-4 py-3 text-sm text-[#1B1B1B] focus:outline-none focus:ring-2 focus:ring-primary/40 bg-white"
+                    className="w-full border border-[#E8E8E4] rounded-xl px-4 py-3 text-sm text-[#1B1B1B] placeholder-[#9B9B9B] focus:outline-none focus:ring-2 focus:ring-[#FFE27C]/40 bg-white"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">Industry (optional)</label>
+                  <label className="block text-sm font-medium text-[#1B1B1B] mb-1.5">Industry (optional)</label>
                   <select
                     value={industry}
                     onChange={e => setIndustry(e.target.value)}
-                    className="w-full border border-border rounded-xl px-4 py-3 text-sm text-[#1B1B1B] focus:outline-none focus:ring-2 focus:ring-primary/40 bg-white"
+                    className="w-full border border-[#E8E8E4] rounded-xl px-4 py-3 text-sm text-[#1B1B1B] focus:outline-none focus:ring-2 focus:ring-[#FFE27C]/40 bg-white"
                   >
                     <option value="">Select industry…</option>
                     <option value="saas">SaaS / Technology</option>
@@ -295,12 +301,12 @@ export default function SignupPage() {
                   </select>
                 </div>
 
-                <div className="bg-primary/5 border border-primary/20 rounded-xl p-4">
-                  <p className="text-sm font-medium text-foreground mb-1">What happens next</p>
+                <div className="bg-[#FFE27C]/5 border border-[#FFE27C]/20 rounded-xl p-4">
+                  <p className="text-sm font-medium text-[#1B1B1B] mb-1">What happens next</p>
                   <ul className="space-y-1">
                     {["Connect your WhatsApp Business API", "Import your first contacts", "Create your first AI workflow"].map((s, i) => (
-                      <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span className="w-5 h-5 rounded-full bg-primary/20 text-primary text-xs flex items-center justify-center font-bold">{i + 1}</span>
+                      <li key={i} className="flex items-center gap-2 text-sm text-[#6B6B6B]">
+                        <span className="w-5 h-5 rounded-full bg-[#FFE27C]/20 text-[#1B1B1B] text-xs flex items-center justify-center font-bold">{i + 1}</span>
                         {s}
                       </li>
                     ))}
@@ -310,7 +316,7 @@ export default function SignupPage() {
                 <button
                   type="submit"
                   disabled={loading || !workspaceName}
-                  className="w-full bg-primary text-primary-foreground font-semibold py-3 rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full bg-[#FFE27C] hover:bg-[#FFD84A] active:bg-[#FFC800] text-[#1B1B1B] font-semibold py-3 rounded-xl transition-all shadow-[0_2px_8px_rgba(255,226,124,0.4)] disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                   Launch My Workspace →
@@ -319,14 +325,25 @@ export default function SignupPage() {
             </>
           )}
 
-          <p className="text-sm text-muted-foreground text-center mt-6">
+          <p className="text-sm text-[#6B6B6B] text-center mt-6">
             Already have an account?{" "}
-            <Link href="/auth/login" className="text-primary font-medium hover:underline">
+            <Link 
+              href={searchParams.toString() ? `/auth/login?${searchParams.toString()}` : "/auth/login"} 
+              className="text-[#1B1B1B] font-semibold hover:text-[#FFE27C] transition-colors"
+            >
               Sign in
             </Link>
           </p>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#FAFAF8]" />}>
+      <SignupForm />
+    </Suspense>
   );
 }

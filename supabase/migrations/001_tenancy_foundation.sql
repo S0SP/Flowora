@@ -85,7 +85,6 @@ CREATE TABLE IF NOT EXISTS workspace_members (
   permissions   JSONB NOT NULL DEFAULT '{}',
   credit_limit  INTEGER, -- NULL = unlimited
   invited_by    UUID REFERENCES auth.users(id),
-  joined_at     TIMESTAMPTZ,
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE(workspace_id, user_id)
 );

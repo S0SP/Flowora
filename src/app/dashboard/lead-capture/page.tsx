@@ -6,14 +6,18 @@ export const dynamic = "force-dynamic";
 
 export default async function LeadCapturePage() {
   return (
-    <PageShell>
-      <PageHeader
-        icon={Zap}
-        title="Lead Capture"
-        description="Listen to live Google Sheets and send automated WhatsApp templates to new leads."
-      />
+    <div className="flex-1 flex flex-col min-h-0 p-8 h-full">
+      <div className="shrink-0 mb-6">
+        <PageHeader
+          icon={Zap}
+          title="Lead Capture"
+          description="Listen to live Google Sheets and send automated WhatsApp templates to new leads."
+        />
+      </div>
 
-      <LeadCaptureClient />
-    </PageShell>
+      <div className="flex-1 min-h-0 flex flex-col">
+        <LeadCaptureClient />
+      </div>
+    </div>
   );
 }

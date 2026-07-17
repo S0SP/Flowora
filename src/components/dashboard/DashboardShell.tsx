@@ -40,11 +40,12 @@ export function DashboardShell({ workspaceData, children }: Props) {
     pathname === "/dashboard/broadcasts" ||
     pathname?.startsWith("/dashboard/settings") ||
     pathname?.startsWith("/dashboard/workflows") ||
-    pathname === "/dashboard/team" ||
-    pathname === "/dashboard/tickets" ||
+    pathname?.startsWith("/dashboard/team") ||
+    pathname?.startsWith("/dashboard/tickets") ||
     pathname?.startsWith("/dashboard/chatbot") ||
     pathname?.startsWith("/dashboard/voice-agent") ||
-    pathname?.startsWith("/dashboard/analytics");
+    pathname?.startsWith("/dashboard/analytics") ||
+    pathname === "/dashboard/lead-capture";
 
   return (
     <WorkspaceProvider value={workspaceData}>

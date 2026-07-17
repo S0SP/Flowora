@@ -4,160 +4,157 @@
 
 /*
  * ═══════════════════════════════════════════════════════
- *  FLOWORA — Deel-Inspired Brand Color System
+ *  FLOWORA — Premium SaaS Color System (Stripe/Linear Inspired)
  *
- *  Primary:   Kournikova   #FFE27C  hsl(47 100% 74%)
- *  Neutral:   Cod Gray     #1B1B1B  hsl(0 0% 11%)
- *  Surface:   White / Linen
- *  Accent A:  Perfume      #C4B1F9  hsl(256 86% 84%) — lavender
- *  Accent B:  French Pass  #B1D8FC  hsl(209 93% 84%) — sky blue
+ *  Primary:   Emerald      #10B981  hsl(160 84% 39%)
+ *  Neutral:   Slate/Zinc   #111827  hsl(221 39% 11%)
+ *  Surface:   Off-White    #F9FAFB  hsl(210 40% 98%)
  *
- *  Yellow is used for primary actions & active states.
- *  Pastels provide category tinting (email, voice, etc).
- *  Cod Gray carries structure; warm grays carry layout.
+ *  A high-density, professional aesthetic emphasizing stark 
+ *  data presentation and subtle, unified borders.
  * ═══════════════════════════════════════════════════════
  */
 
 @layer base {
   :root {
-    /* — surfaces (warm-tinted) — */
-    --background:              38 100% 99%;           /* Linen #FFFBF4 */
-    --foreground:              0 0% 11%;              /* Cod Gray #1B1B1B */
+    /* — surfaces (crisp whites & light grays) — */
+    --background:              210 40% 98%;           /* Gray 50 #F9FAFB */
+    --foreground:              221 39% 11%;           /* Gray 900 #111827 */
     --card:                    0 0% 100%;             /* White */
-    --card-foreground:         0 0% 11%;
+    --card-foreground:         221 39% 11%;
     --popover:                 0 0% 100%;
-    --popover-foreground:      0 0% 11%;
+    --popover-foreground:      221 39% 11%;
 
-    /* — brand primary: Kournikova yellow — */
-    --primary:                 47 100% 74%;
-    --primary-foreground:      0 0% 11%;             /* Dark text on yellow */
+    /* — brand primary: WhatsApp Emerald — */
+    --primary:                 160 84% 39%;           /* Emerald 500 #10B981 */
+    --primary-foreground:      0 0% 100%;             /* White text on Emerald */
 
-    /* — secondary / muted (warm grays) — */
-    --secondary:               38 20% 96%;
-    --secondary-foreground:    0 0% 15%;
-    --muted:                   38 15% 95%;
-    --muted-foreground:        0 0% 46%;
-    --accent:                  47 70% 95%;            /* Very pale yellow tint */
-    --accent-foreground:       47 100% 30%;
+    /* — secondary / muted (slate grays) — */
+    --secondary:               220 14% 96%;           /* Gray 100 #F3F4F6 */
+    --secondary-foreground:    215 16% 47%;           /* Gray 500 #6B7280 */
+    --muted:                   220 14% 96%;
+    --muted-foreground:        215 16% 47%;
+    --accent:                  160 84% 96%;           /* 10% Emerald tint */
+    --accent-foreground:       160 84% 39%;           /* Emerald 500 */
 
-    /* — destructive: coral red — */
-    --destructive:             4 78% 58%;
+    /* — destructive: crisp red — */
+    --destructive:             348 83% 47%;           /* Rose 600 #E11D48 */
     --destructive-foreground:  0 0% 100%;
 
-    /* — borders / inputs (warm) — */
-    --border:                  38 15% 90%;
-    --input:                   38 15% 90%;
-    --ring:                    47 100% 74%;
-    --radius:                  0.75rem;
+    /* — borders / inputs (subtle dividers) — */
+    --border:                  220 13% 91%;           /* Gray 200 #E5E7EB */
+    --input:                   220 13% 91%;
+    --ring:                    160 84% 39%;
+    --radius:                  0.5rem;                /* Slightly tighter radius for professional feel */
 
     /* — charts — */
-    --chart-1: 47 100% 74%;   /* Kournikova */
-    --chart-2: 256 86% 84%;   /* Perfume */
-    --chart-3: 209 93% 84%;   /* French Pass */
-    --chart-4: 148 60% 50%;   /* Success green */
-    --chart-5: 4 78% 58%;     /* Destructive red */
+    --chart-1: 160 84% 39%;   /* Emerald */
+    --chart-2: 221 39% 11%;   /* Slate */
+    --chart-3: 215 16% 47%;   /* Gray */
+    --chart-4: 217 91% 60%;   /* Blue */
+    --chart-5: 348 83% 47%;   /* Red */
 
-    /* — sidebar: Cod Gray — */
-    --sidebar-background:          0 0% 9%;
-    --sidebar-foreground:          38 10% 85%;
-    --sidebar-primary:             47 100% 74%;
-    --sidebar-primary-foreground:  0 0% 11%;
-    --sidebar-accent:              0 0% 13%;
-    --sidebar-accent-foreground:   38 10% 95%;
-    --sidebar-border:              0 0% 15%;
-    --sidebar-ring:                47 100% 74%;
+    /* — sidebar: Light Theme Default — */
+    --sidebar-background:          220 14% 96%;       /* Gray 100 */
+    --sidebar-foreground:          215 14% 34%;       /* Gray 700 */
+    --sidebar-primary:             160 84% 39%;       /* Emerald */
+    --sidebar-primary-foreground:  0 0% 100%;
+    --sidebar-accent:              220 13% 91%;       /* Gray 200 (hover state) */
+    --sidebar-accent-foreground:   221 39% 11%;       /* Gray 900 */
+    --sidebar-border:              220 13% 91%;       /* Gray 200 */
+    --sidebar-ring:                160 84% 39%;
 
     /* — Node Canvas (Light) — */
     --canvas-bg: #F9FAFB;
     --node-bg: #FFFFFF;
     --node-border: #E5E7EB;
     --panel-bg: #FFFFFF;
-    --node-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+    --node-shadow: 0 1px 2px rgba(0,0,0,0.05);
     
     --text-primary: #111827;
     --text-secondary: #6B7280;
     --text-tertiary: #9CA3AF;
 
-    --node-whatsapp: #16A34A;
-    --node-voice: #7C3AED;
-    --node-delay: #EA580C;
-    --node-form: #4F46E5;
-    --node-webhook: #0284C7;
+    --node-whatsapp: #10B981;
+    --node-voice: #6366F1;
+    --node-delay: #F59E0B;
+    --node-form: #3B82F6;
+    --node-webhook: #0EA5E9;
     --node-sheets: #059669;
     --node-condition: #E11D48;
-    --node-reminder: #CA8A04;
+    --node-reminder: #D97706;
     --node-email: #2563EB;
-    --node-default: #52525B;
+    --node-default: #4B5563;
   }
 
   .dark {
-    /* — surfaces — */
-    --background:              0 0% 6%;
-    --foreground:              38 15% 95%;
-    --card:                    0 0% 9%;
-    --card-foreground:         38 15% 95%;
-    --popover:                 0 0% 9%;
-    --popover-foreground:      38 15% 95%;
+    /* — surfaces (deep slate/zinc) — */
+    --background:              240 10% 4%;            /* Zinc 950 #09090B */
+    --foreground:              210 40% 98%;           /* Gray 50 #F9FAFB */
+    --card:                    240 5% 10%;            /* Very dark zinc */
+    --card-foreground:         210 40% 98%;
+    --popover:                 240 5% 10%;
+    --popover-foreground:      210 40% 98%;
 
-    /* — primary: slightly brighter — */
-    --primary:                 47 100% 76%;
-    --primary-foreground:      0 0% 11%;
+    /* — primary: Emerald remains vibrant — */
+    --primary:                 160 84% 39%;
+    --primary-foreground:      0 0% 100%;
 
     /* — secondary / muted — */
-    --secondary:               0 0% 14%;
-    --secondary-foreground:    38 15% 92%;
-    --muted:                   0 0% 12%;
-    --muted-foreground:        38 10% 55%;
-    --accent:                  47 40% 15%;
-    --accent-foreground:       47 100% 80%;
+    --secondary:               240 4% 16%;            /* Zinc 900 */
+    --secondary-foreground:    240 5% 65%;            /* Zinc 400 */
+    --muted:                   240 4% 16%;
+    --muted-foreground:        240 5% 65%;
+    --accent:                  160 84% 15%;           /* Dark Emerald tint */
+    --accent-foreground:       160 84% 50%;
 
     /* — destructive — */
-    --destructive:             4 68% 55%;
-    --destructive-foreground:  0 0% 98%;
+    --destructive:             348 83% 47%;
+    --destructive-foreground:  0 0% 100%;
 
     /* — borders / inputs — */
-    --border:                  0 0% 16%;
-    --input:                   0 0% 16%;
-    --ring:                    47 100% 76%;
+    --border:                  240 4% 16%;            /* Zinc 900 */
+    --input:                   240 4% 16%;
+    --ring:                    160 84% 39%;
 
     /* — charts — */
-    --chart-1: 47 100% 78%;
-    --chart-2: 256 86% 86%;
-    --chart-3: 209 93% 86%;
-    --chart-4: 148 60% 55%;
-    --chart-5: 4 78% 60%;
+    --chart-1: 160 84% 45%;
+    --chart-2: 240 5% 85%;
+    --chart-3: 240 5% 65%;
+    --chart-4: 217 91% 60%;
+    --chart-5: 348 83% 55%;
 
     /* — sidebar — */
-    --sidebar-background:          0 0% 5%;
-    --sidebar-foreground:          38 10% 82%;
-    --sidebar-primary:             47 100% 76%;
-    --sidebar-primary-foreground:  0 0% 11%;
-    --sidebar-accent:              0 0% 10%;
-    --sidebar-accent-foreground:   38 10% 92%;
-    --sidebar-border:              0 0% 12%;
-    --sidebar-ring:                47 100% 76%;
+    --sidebar-background:          240 10% 4%;        /* Zinc 950 */
+    --sidebar-foreground:          240 5% 65%;        /* Zinc 400 */
+    --sidebar-primary:             160 84% 39%;
+    --sidebar-primary-foreground:  0 0% 100%;
+    --sidebar-accent:              240 4% 16%;        /* Zinc 900 */
+    --sidebar-accent-foreground:   210 40% 98%;       /* Gray 50 */
+    --sidebar-border:              240 4% 16%;
+    --sidebar-ring:                160 84% 39%;
 
     /* — Node Canvas (Dark) — */
-    --canvas-bg: #0E0E11;
+    --canvas-bg: #09090B;
     --node-bg: #18181B;
     --node-border: #27272A;
     --panel-bg: #18181B;
-    --node-shadow: 0 4px 6px -1px rgba(0,0,0,0.5);
+    --node-shadow: none;
 
-    --text-primary: #F4F4F5;
-    --text-secondary: #A1A1AA;
+    --text-primary: #F9FAFB;
+    --text-secondary: #9CA3AF;
     --text-tertiary: #52525B;
 
-    --node-whatsapp: #22C55E;
-    --node-voice: #8B5CF6;
-    --node-delay: #F97316;
-    --node-form: #818CF8;
+    --node-whatsapp: #10B981;
+    --node-voice: #818CF8;
+    --node-delay: #FBBF24;
+    --node-form: #60A5FA;
     --node-webhook: #38BDF8;
     --node-sheets: #34D399;
     --node-condition: #FB7185;
     --node-reminder: #FACC15;
     --node-email: #60A5FA;
-    --node-default: #A1A1AA;
+    --node-default: #9CA3AF;
   }
 }
 
@@ -172,6 +169,23 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Global Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400;
   }
 }
 
@@ -203,12 +217,6 @@
     animation: shimmer 2s linear infinite;
   }
 
-  /* Category accent tints (used for channel chips, section badges) */
-  .accent-lavender   { background: hsl(256 86% 95%); color: hsl(256 60% 50%); }
-  .accent-sky        { background: hsl(209 93% 95%); color: hsl(209 60% 45%); }
-  .accent-lemon      { background: hsl(47 100% 93%);  color: hsl(47 80% 35%); }
-  .accent-mint       { background: hsl(148 60% 94%);  color: hsl(148 50% 35%); }
-
   /* Hide scrollbar but keep scroll functionality */
   .no-scrollbar {
     scrollbar-width: none;
@@ -218,3 +226,4 @@
     display: none;
   }
 }
+

@@ -5,15 +5,19 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { 
   Upload, Plus, Users, MessageCircle, Search, SlidersHorizontal, 
   MoreHorizontal, X, MessageSquare, Phone, Mail, Ticket, Loader2,
-  Trash2, Tag, Check, Edit2, AlertCircle, Sparkles, Filter
+  Trash2, Tag, Check, Edit2, AlertCircle, Sparkles, Filter, ChevronDown
 } from "lucide-react"
+import * as Select from "@radix-ui/react-select"
 import { toast } from "sonner"
 import { Input } from "@/components/atoms/Input"
 import { Badge } from "@/components/atoms/Badge"
+import { CustomSelect } from "@/components/ui"
+import { createPortal } from "react-dom"
 import { Avatar, AvatarFallback } from "@/components/atoms/Avatar"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { cn, formatRelativeTime } from "@/lib/utils"
 import Papa from "papaparse"
+import { ContactSidebar } from "@/components/contacts/contact-sidebar"
 
 export interface Contact {
   id: string
@@ -23,6 +27,7 @@ export interface Contact {
   company: string
   status: string
   tags: string[]
+  custom_fields?: Record<string, any>
   lastContact: string
 }
 
@@ -86,6 +91,7 @@ export default function ContactsPage() {
         company: c.company || "—",
         status: c.status || "Lead",
         tags: c.tags || [],
+        custom_fields: c.custom_fields || {},
         lastContact: c.last_message_at ? formatRelativeTime(c.last_message_at) : "—",
       }))
     },
@@ -138,7 +144,8 @@ export default function ContactsPage() {
           email: data.contact.email || "—",
           company: data.contact.company || "—",
           status: data.contact.status || "Lead",
-          tags: data.contact.tags || []
+          tags: data.contact.tags || [],
+          custom_fields: data.contact.custom_fields || {}
         })
       }
       toast.success("Contact updated successfully")
@@ -417,23 +424,23 @@ export default function ContactsPage() {
   const leadsCount = contacts.filter((c: any) => c.status === "Lead").length
 
   return (
-    <div className="flex h-full flex-col relative overflow-hidden p-6 md:px-8 max-w-full w-full bg-muted/10">
+    <div className="flex h-full flex-col relative overflow-hidden p-6 md:px-8 max-w-full w-full bg-gray-100/10">
       {/* Page Header */}
       <div className="flex items-center justify-between pb-6 flex-shrink-0">
         <div>
-          <h1 className="text-2xl font-bold text-foreground tracking-tight">Contacts Directory</h1>
-          <p className="text-xs text-muted-foreground mt-1 font-semibold">{totalContacts} database contacts synced</p>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Contacts Directory</h1>
+          <p className="text-xs text-gray-500 mt-1 font-semibold">{totalContacts} database contacts synced</p>
         </div>
         <div className="flex items-center gap-3">
           <button 
             onClick={() => setIsImportCsvOpen(true)}
-            className="inline-flex items-center justify-center rounded-lg text-xs font-semibold border border-border bg-white hover:bg-muted text-muted-foreground h-9 px-4 gap-2 shadow-sm transition-all"
+            className="inline-flex items-center justify-center rounded-md text-xs font-semibold text-gray-500 hover:text-gray-900 hover:bg-gray-50 h-9 px-4 gap-2 transition-all"
           >
             <Upload className="h-4 w-4" /> Import CSV
           </button>
           <button 
             onClick={() => setIsAddContactOpen(true)}
-            className="inline-flex items-center justify-center rounded-lg text-xs font-bold bg-primary hover:bg-primary/90 text-primary-foreground h-9 px-4 gap-2 shadow-sm transition-all"
+            className="inline-flex items-center justify-center rounded-md text-xs font-bold bg-[#10B981] hover:bg-[#10B981]/90 text-white h-9 px-4 gap-2 shadow-sm transition-all"
           >
             <Plus className="h-4 w-4" /> Add Contact
           </button>
@@ -441,53 +448,55 @@ export default function ContactsPage() {
       </div>
 
       {/* Stats Strip */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 pb-6 flex-shrink-0">
-        {[
-          { label: "Total Contacts", val: totalContacts, icon: Users, bg: "bg-primary/10 text-primary border-primary/10" },
-          { label: "Hot Leads", val: leadsCount, icon: Sparkles, bg: "bg-amber-500/10 text-amber-600 border-amber-500/10" },
-          { label: "Customers", val: totalContacts - leadsCount, icon: Check, bg: "bg-emerald-500/10 text-emerald-600 border-emerald-500/10" },
-          { label: "WhatsApp Active", val: leadsCount, icon: MessageCircle, bg: "bg-indigo-500/10 text-indigo-600 border-indigo-500/10" }
-        ].map((stat, i) => (
-          <div key={i} className="flex items-center p-4 bg-white rounded-xl border border-border shadow-sm gap-4">
-            <div className={cn("rounded-lg p-2.5 shrink-0 border", stat.bg)}>
-              <stat.icon className="h-5 w-5" />
+      <div className="flex pb-6 flex-shrink-0 w-full">
+        <div className="flex w-full bg-white rounded-xl border border-border shadow-sm overflow-hidden divide-x divide-border">
+          {[
+            { label: "Total Contacts", val: totalContacts, icon: Users, bg: "bg-[#10B981]/10 text-[#10B981]" },
+            { label: "Hot Leads", val: leadsCount, icon: Sparkles, bg: "bg-amber-500/10 text-amber-600" },
+            { label: "Customers", val: totalContacts - leadsCount, icon: Check, bg: "bg-emerald-500/10 text-emerald-600" },
+            { label: "WhatsApp Active", val: leadsCount, icon: MessageCircle, bg: "bg-indigo-500/10 text-indigo-600" }
+          ].map((stat, i) => (
+            <div key={i} className="flex flex-1 items-center p-4 gap-4">
+              <div className={cn("rounded-lg p-2.5 shrink-0", stat.bg)}>
+                <stat.icon className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-[10px] uppercase font-bold tracking-wider text-gray-500">{stat.label}</p>
+                <p className="text-xl font-bold text-gray-900 mt-0.5">{stat.val}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground">{stat.label}</p>
-              <p className="text-xl font-bold text-foreground mt-0.5">{stat.val}</p>
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       {/* Filter Toolbar */}
       <div className="flex flex-col sm:flex-row items-center justify-between pb-4 gap-4 flex-shrink-0">
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <div className="relative w-full sm:w-[320px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
             <input
               type="text"
               placeholder="Search by name, number, email or tags..."
-              className="w-full pl-9 pr-4 py-2 bg-white border border-border rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-primary shadow-xs"
+              className="w-full pl-9 pr-4 py-2 bg-white border border-border rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-primary shadow-xs"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <button className="inline-flex items-center justify-center rounded-xl text-xs font-semibold border border-border bg-white hover:bg-muted h-9 px-4 gap-2 text-muted-foreground shrink-0 shadow-sm transition-all">
+          <button className="inline-flex items-center justify-center rounded-md text-xs font-semibold border border-border bg-white hover:bg-gray-100 h-9 px-4 gap-2 text-gray-500 shrink-0 shadow-sm transition-all">
             <Filter className="h-3.5 w-3.5" /> Filter list
           </button>
         </div>
         
-        <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 hide-scrollbar">
+        <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto hide-scrollbar">
           {["All Contacts", "Hot Leads", "Customers"].map((status) => (
              <button
                key={status}
                onClick={() => setFilterStatus(status)}
                className={cn(
-                 "h-8 px-3 rounded-lg text-xs font-semibold border transition-all shadow-xs shrink-0",
+                 "h-8 px-3 rounded-md text-xs font-semibold border transition-all shadow-xs shrink-0",
                  filterStatus === status 
-                   ? "bg-primary text-primary-foreground border-primary" 
-                   : "bg-white text-muted-foreground border-border hover:bg-muted hover:text-foreground"
+                   ? "bg-[#10B981] text-white border-[#10B981]" 
+                   : "bg-white text-gray-500 border-border hover:bg-gray-100 hover:text-gray-900"
                )}
              >
                {status}
@@ -541,7 +550,7 @@ export default function ContactsPage() {
       )}
 
       {/* Contacts Table View */}
-      <div className="bg-white rounded-xl border border-border shadow-sm flex-1 overflow-auto">
+      <div className="bg-white rounded-xl flex-1 overflow-auto">
         <Table>
           <TableHeader className="sticky top-0 bg-white z-10">
             <TableRow>
@@ -553,28 +562,28 @@ export default function ContactsPage() {
                   onChange={(e) => handleSelectAll(e.target.checked)}
                 />
               </TableHead>
-              <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground py-3">Name</TableHead>
-              <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground py-3">Phone</TableHead>
-              <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground py-3">Email</TableHead>
-              <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground py-3">Company</TableHead>
-              <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground py-3">Status</TableHead>
-              <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground py-3">Tags</TableHead>
-              <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground py-3">Last Activity</TableHead>
+              <TableHead className="text-xs font-bold uppercase tracking-wider text-gray-500 py-3">Name</TableHead>
+              <TableHead className="text-xs font-bold uppercase tracking-wider text-gray-500 py-3">Phone</TableHead>
+              <TableHead className="text-xs font-bold uppercase tracking-wider text-gray-500 py-3">Email</TableHead>
+              <TableHead className="text-xs font-bold uppercase tracking-wider text-gray-500 py-3">Company</TableHead>
+              <TableHead className="text-xs font-bold uppercase tracking-wider text-gray-500 py-3">Status</TableHead>
+              <TableHead className="text-xs font-bold uppercase tracking-wider text-gray-500 py-3">Tags</TableHead>
+              <TableHead className="text-xs font-bold uppercase tracking-wider text-gray-500 py-3">Last Activity</TableHead>
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody className="text-xs text-foreground divide-y">
+          <TableBody className="text-xs text-gray-900 divide-y">
             {isLoading ? (
               <TableRow>
                 <TableCell colSpan={9} className="text-center py-12">
-                  <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                  <div className="flex items-center justify-center gap-2 text-gray-500">
                     <Loader2 className="h-5 w-5 animate-spin text-primary" /> Loading contacts database...
                   </div>
                 </TableCell>
               </TableRow>
             ) : filteredContacts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
+                <TableCell colSpan={9} className="text-center py-12 text-gray-500">
                   No contacts match your query. Add a contact or import a CSV file to get started.
                 </TableCell>
               </TableRow>
@@ -582,7 +591,7 @@ export default function ContactsPage() {
               filteredContacts.map((contact) => (
                 <TableRow 
                   key={contact.id} 
-                  className="cursor-pointer hover:bg-muted/30 transition-all"
+                  className="cursor-pointer hover:bg-gray-100/30 transition-all"
                   onClick={() => setSelectedContact(contact)}
                 >
                   <TableCell className="pl-4" onClick={e => e.stopPropagation()}>
@@ -593,28 +602,28 @@ export default function ContactsPage() {
                       onChange={(e) => handleSelectOne(contact.id, e.target.checked)}
                     />
                   </TableCell>
-                  <TableCell className="font-semibold text-foreground py-3.5">
+                  <TableCell className="font-semibold text-gray-900 py-2">
                     <div className="flex items-center gap-2">
                       <Avatar className="h-7 w-7 shrink-0">
-                        <AvatarFallback className="text-[10px] font-bold bg-[#FFE27C] text-foreground">
+                        <AvatarFallback className="text-[10px] font-bold bg-gray-100 text-gray-500">
                           {contact.name.substring(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <span>{contact.name}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-muted-foreground py-3.5 font-mono">{contact.phone}</TableCell>
-                  <TableCell className="text-muted-foreground py-3.5">{contact.email}</TableCell>
-                  <TableCell className="text-muted-foreground py-3.5 font-medium">{contact.company}</TableCell>
-                  <TableCell className="py-3.5">
+                  <TableCell className="text-gray-500 py-2 font-mono">{contact.phone}</TableCell>
+                  <TableCell className="text-gray-500 py-2">{contact.email}</TableCell>
+                  <TableCell className="text-gray-500 py-2 font-medium">{contact.company}</TableCell>
+                  <TableCell className="py-2">
                     <span className={cn(
                       "px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider",
-                      contact.status === "Lead" ? "bg-amber-500/10 text-amber-600 border border-amber-500/20" : "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
+                      contact.status === "Lead" ? "bg-amber-500/10 text-amber-600" : "bg-emerald-500/10 text-emerald-600"
                     )}>
                       {contact.status}
                     </span>
                   </TableCell>
-                  <TableCell className="py-3.5">
+                  <TableCell className="py-2">
                     <div className="flex flex-wrap gap-1 max-w-[150px]">
                       {contact.tags.slice(0, 3).map((tag, idx) => (
                         <Badge key={idx} className="bg-primary/5 text-primary hover:bg-primary/10 border border-primary/10 font-semibold px-1 h-4 text-[9px] rounded">
@@ -622,13 +631,13 @@ export default function ContactsPage() {
                         </Badge>
                       ))}
                       {contact.tags.length > 3 && (
-                        <Badge className="bg-muted text-muted-foreground font-semibold px-1 h-4 text-[9px] rounded">
+                        <Badge className="bg-gray-100 text-gray-500 font-semibold px-1 h-4 text-[9px] rounded">
                           +{contact.tags.length - 3}
                         </Badge>
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="text-muted-foreground py-3.5">{contact.lastContact}</TableCell>
+                  <TableCell className="text-gray-500 py-2">{contact.lastContact}</TableCell>
                   <TableCell onClick={e => e.stopPropagation()}>
                     <button 
                       onClick={() => {
@@ -636,7 +645,7 @@ export default function ContactsPage() {
                           deleteContactsMutation.mutate([contact.id])
                         }
                       }}
-                      className="p-1 text-muted-foreground hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      className="p-1 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                       title="Delete Contact"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -652,7 +661,7 @@ export default function ContactsPage() {
       {/* Drawer Overlay Backdrop */}
       {selectedContact && (
         <div 
-          className="fixed inset-0 z-40 bg-black/35 backdrop-blur-xs transition-opacity"
+          className="fixed inset-0 z-40 bg-black/35 backdrop-blur-xs transition-opacity duration-200 linear"
           onClick={() => { setSelectedContact(null); setIsEditingInDrawer(false) }}
         />
       )}
@@ -660,17 +669,17 @@ export default function ContactsPage() {
       {/* Contact Details Drawer */}
       <div 
         className={cn(
-          "fixed top-0 right-0 z-50 h-screen w-[420px] bg-white border-l border-border shadow-2xl transition-transform duration-300 transform flex flex-col",
-          selectedContact ? "translate-x-0" : "translate-x-full"
+          "fixed top-0 right-0 z-50 h-screen w-[420px] bg-white border-l border-border shadow-2xl transform flex flex-col",
+          selectedContact ? "translate-x-0 transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]" : "translate-x-full transition-transform duration-150 ease-in"
         )}
       >
         {selectedContact && (
           <div className="flex flex-col h-full overflow-hidden bg-white">
             <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
-              <h2 className="font-bold text-sm text-foreground uppercase tracking-wider">Contact Profile</h2>
+              <h2 className="font-bold text-[13px] text-gray-500 uppercase tracking-wider">Contact Profile</h2>
               <button 
                 onClick={() => { setSelectedContact(null); setIsEditingInDrawer(false) }}
-                className="p-1.5 hover:bg-muted rounded-full text-muted-foreground transition-all"
+                className="p-1.5 hover:bg-gray-100 rounded-full text-gray-500 transition-all"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -680,7 +689,7 @@ export default function ContactsPage() {
               {/* Profile card area */}
               <div className="flex flex-col items-center text-center pb-6 border-b border-border">
                 <Avatar className="h-20 w-20 mb-3 shadow-md border-2 border-white">
-                  <AvatarFallback className="text-2xl bg-gradient-to-tr from-primary to-lavender text-foreground font-black">
+                  <AvatarFallback className="text-2xl bg-gray-100 text-gray-900 font-black">
                     {selectedContact.name.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
@@ -690,18 +699,30 @@ export default function ContactsPage() {
                     <Input value={drawerEditName} onChange={e => setDrawerEditName(e.target.value)} placeholder="Full Name" className="text-center font-semibold bg-white" />
                     <Input value={drawerEditEmail} onChange={e => setDrawerEditEmail(e.target.value)} placeholder="Email" className="text-center bg-white" />
                     <Input value={drawerEditCompany} onChange={e => setDrawerEditCompany(e.target.value)} placeholder="Company" className="text-center bg-white" />
-                    <select 
-                      value={drawerEditStatus} 
-                      onChange={e => setDrawerEditStatus(e.target.value)}
-                      className="w-full px-3 py-2 border rounded-xl bg-white text-xs focus:ring-1 focus:ring-primary outline-none"
-                    >
-                      <option value="Lead">Lead</option>
-                      <option value="Customer">Customer</option>
-                    </select>
+                    <Select.Root value={drawerEditStatus} onValueChange={setDrawerEditStatus}>
+                      <Select.Trigger className="w-full px-3 py-2 border rounded-lg bg-white text-xs flex items-center justify-between outline-none focus:ring-1 focus:ring-[#10B981]">
+                        <Select.Value placeholder="Select status" />
+                        <Select.Icon>
+                          <ChevronDown className="h-4 w-4 text-gray-500" />
+                        </Select.Icon>
+                      </Select.Trigger>
+                      <Select.Portal>
+                        <Select.Content className="overflow-hidden bg-white rounded-lg border border-border shadow-lg z-[70] min-w-[120px]">
+                          <Select.Viewport className="p-1">
+                            <Select.Item value="Lead" className="text-xs px-2 py-1.5 outline-none cursor-pointer rounded-md hover:bg-[#10B981]/10 focus:bg-[#10B981]/10 focus:text-[#10B981] font-medium data-[highlighted]:bg-[#10B981]/10 data-[highlighted]:text-[#10B981]">
+                              <Select.ItemText>Lead</Select.ItemText>
+                            </Select.Item>
+                            <Select.Item value="Customer" className="text-xs px-2 py-1.5 outline-none cursor-pointer rounded-md hover:bg-[#10B981]/10 focus:bg-[#10B981]/10 focus:text-[#10B981] font-medium data-[highlighted]:bg-[#10B981]/10 data-[highlighted]:text-[#10B981]">
+                              <Select.ItemText>Customer</Select.ItemText>
+                            </Select.Item>
+                          </Select.Viewport>
+                        </Select.Content>
+                      </Select.Portal>
+                    </Select.Root>
                     <div className="flex justify-center gap-2 pt-1">
                       <button 
                         onClick={() => setIsEditingInDrawer(false)}
-                        className="px-3 py-1.5 border rounded-lg text-xs font-semibold hover:bg-muted text-muted-foreground"
+                        className="px-3 py-1.5 border rounded-lg text-xs font-semibold hover:bg-gray-100 text-gray-500"
                       >
                         Cancel
                       </button>
@@ -716,14 +737,14 @@ export default function ContactsPage() {
                   </div>
                 ) : (
                   <>
-                    <h3 className="text-lg font-bold text-foreground leading-tight">{selectedContact.name}</h3>
-                    <p className="text-xs text-muted-foreground mt-1 font-semibold">{selectedContact.company}</p>
+                    <h3 className="text-lg font-bold text-gray-900 leading-tight">{selectedContact.name}</h3>
+                    <p className="text-xs text-gray-500 mt-1 font-semibold">{selectedContact.company}</p>
                     
                     <div className="flex flex-wrap gap-1.5 justify-center mt-3 mb-5">
-                      <Badge className="bg-primary/5 text-primary hover:bg-primary/10 font-bold px-2 py-0.5 text-[10px] gap-1 border-transparent rounded">
+                      <Badge className="bg-[#10B981]/10 text-[#10B981] hover:bg-[#10B981]/20 font-bold px-2 py-0.5 text-[10px] gap-1 border-transparent rounded-[6px]">
                         <Phone className="h-3 w-3" /> {selectedContact.phone}
                       </Badge>
-                      <Badge className="bg-chart-3/5 text-chart-3 hover:bg-chart-3/10 font-bold px-2 py-0.5 text-[10px] gap-1 border-transparent rounded">
+                      <Badge className="bg-[#10B981]/10 text-[#10B981] hover:bg-[#10B981]/20 font-bold px-2 py-0.5 text-[10px] gap-1 border-transparent rounded-[6px]">
                         <Mail className="h-3 w-3" /> {selectedContact.email}
                       </Badge>
                     </div>
@@ -731,7 +752,7 @@ export default function ContactsPage() {
                     <div className="grid grid-cols-2 gap-2 w-full">
                       <button 
                         onClick={handleStartDrawerEdit}
-                        className="inline-flex items-center justify-center rounded-xl text-xs font-bold border border-border bg-white hover:bg-muted h-9 px-4 gap-1.5 shadow-sm transition-all"
+                        className="inline-flex items-center justify-center rounded-[6px] text-xs font-bold border border-gray-200 bg-white hover:bg-gray-50 text-gray-500 h-9 px-4 gap-1.5 shadow-sm transition-all"
                       >
                         <Edit2 className="h-3.5 w-3.5" /> Edit details
                       </button>
@@ -742,7 +763,7 @@ export default function ContactsPage() {
                           setTicketDescription("")
                           setTicketSeverity("medium")
                         }}
-                        className="inline-flex items-center justify-center rounded-xl text-xs font-bold border border-amber-200 bg-amber-50 hover:bg-amber-100/50 text-amber-700 h-9 px-4 gap-1.5 transition-all"
+                        className="inline-flex items-center justify-center rounded-[6px] text-xs font-bold bg-[#10B981] hover:bg-[#10B981]/90 text-white h-9 px-4 gap-1.5 transition-all"
                       >
                         <Ticket className="h-3.5 w-3.5" /> Create Ticket
                       </button>
@@ -751,53 +772,21 @@ export default function ContactsPage() {
                 )}
               </div>
 
-              {/* Tags Area */}
-              <div className="py-2 border-b border-border">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Tags & Labels</h4>
-                </div>
-                <div className="flex flex-wrap gap-1.5 mb-3">
-                  {selectedContact.tags && selectedContact.tags.map((tag, idx) => (
-                    <span 
-                      key={idx}
-                      className="inline-flex items-center gap-1 bg-primary/5 text-primary border border-primary/20 rounded-md px-2 py-0.5 text-[10px] font-bold"
-                    >
-                      {tag}
-                      <button onClick={() => handleRemoveTagInDrawer(tag)} className="hover:text-red-500">
-                        <X className="w-2.5 h-2.5" />
-                      </button>
-                    </span>
-                  ))}
-                  {(!selectedContact.tags || selectedContact.tags.length === 0) && (
-                    <span className="text-xs text-muted-foreground italic">No tags assigned.</span>
-                  )}
-                </div>
-                <div className="relative mt-2">
-                  <Tag className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
-                  <input
-                    type="text"
-                    value={newTagInput}
-                    onChange={e => setNewTagInput(e.target.value)}
-                    onKeyDown={handleAddTagInDrawer}
-                    placeholder="Type new tag and press Enter..."
-                    className="w-full pl-8 pr-3 py-1.5 border border-border rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-primary bg-muted/20 focus:bg-white transition-all"
-                  />
-                </div>
-              </div>
-              
-              {/* Properties Area */}
-              <div className="py-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">System Properties</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-muted/30 p-2.5 rounded-lg border border-border/40">
-                    <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Status</p>
-                    <p className="text-xs font-bold text-foreground mt-0.5">{selectedContact.status}</p>
-                  </div>
-                  <div className="bg-muted/30 p-2.5 rounded-lg border border-border/40">
-                    <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Last Activity</p>
-                    <p className="text-xs font-bold text-foreground mt-0.5">{selectedContact.lastContact}</p>
-                  </div>
-                </div>
+              {/* Contact Sidebar for Tags and Custom Fields */}
+              <div className="w-full mt-4 -mx-6 px-1">
+                <ContactSidebar 
+                  contact={selectedContact as any} 
+                  hideHeader 
+                  onContactUpdated={(updated: any) => {
+                    // Update local state without full reload
+                    setSelectedContact((prev: any) => ({
+                      ...prev,
+                      tags: updated.tags || [],
+                      custom_fields: updated.custom_fields || {}
+                    }));
+                    queryClient.invalidateQueries({ queryKey: ["contacts"] });
+                  }}
+                />
               </div>
             </div>
           </div>
@@ -806,49 +795,65 @@ export default function ContactsPage() {
 
       {/* Modal - Add Contact */}
       {isAddContactOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-xs">
-          <div className="bg-white w-[420px] rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white w-[420px] rounded-[12px] shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between p-4 border-b border-border">
-              <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">Add New Contact</h2>
-              <button onClick={() => setIsAddContactOpen(false)} className="p-1 hover:bg-muted rounded-full text-muted-foreground transition-all">
+              <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Add New Contact</h2>
+              <button onClick={() => setIsAddContactOpen(false)} className="p-1 hover:bg-gray-100 rounded-full text-gray-500 transition-all">
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <form onSubmit={handleAddContactSubmit} className="p-5 space-y-4 text-xs text-foreground">
+            <form onSubmit={handleAddContactSubmit} className="p-5 space-y-4 text-xs text-gray-900">
               <div>
-                <label className="block font-bold text-muted-foreground uppercase tracking-wider mb-1">Full Name *</label>
-                <input required type="text" value={addForm.name} onChange={e => setAddForm({ ...addForm, name: e.target.value })} className="w-full border border-border rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-primary outline-none" placeholder="John Doe" />
+                <label className="block font-bold text-gray-500 uppercase tracking-wider mb-1">Full Name *</label>
+                <input required type="text" value={addForm.name} onChange={e => setAddForm({ ...addForm, name: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-[#10B981] outline-none" placeholder="John Doe" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-muted-foreground uppercase tracking-wider mb-1">Phone Number *</label>
-                  <input required type="text" value={addForm.phone} onChange={e => setAddForm({ ...addForm, phone: e.target.value })} className="w-full border border-border rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-primary outline-none" placeholder="+919876543210" />
+                  <label className="block font-bold text-gray-500 uppercase tracking-wider mb-1">Phone Number *</label>
+                  <input required type="text" value={addForm.phone} onChange={e => setAddForm({ ...addForm, phone: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-[#10B981] outline-none" placeholder="+919876543210" />
                 </div>
                 <div>
-                  <label className="block font-bold text-muted-foreground uppercase tracking-wider mb-1">Email</label>
-                  <input type="email" value={addForm.email} onChange={e => setAddForm({ ...addForm, email: e.target.value })} className="w-full border border-border rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-primary outline-none" placeholder="john@example.com" />
+                  <label className="block font-bold text-gray-500 uppercase tracking-wider mb-1">Email</label>
+                  <input type="email" value={addForm.email} onChange={e => setAddForm({ ...addForm, email: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-[#10B981] outline-none" placeholder="john@example.com" />
                 </div>
               </div>
               <div>
-                <label className="block font-bold text-muted-foreground uppercase tracking-wider mb-1">Company Name</label>
-                <input type="text" value={addForm.company} onChange={e => setAddForm({ ...addForm, company: e.target.value })} className="w-full border border-border rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-primary outline-none" placeholder="Acme Corp" />
+                <label className="block font-bold text-gray-500 uppercase tracking-wider mb-1">Company Name</label>
+                <input type="text" value={addForm.company} onChange={e => setAddForm({ ...addForm, company: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-[#10B981] outline-none" placeholder="Acme Corp" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-muted-foreground uppercase tracking-wider mb-1">Status</label>
-                  <select value={addForm.status} onChange={e => setAddForm({ ...addForm, status: e.target.value })} className="w-full border border-border rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-primary outline-none bg-white">
-                    <option value="Lead">Lead</option>
-                    <option value="Customer">Customer</option>
-                  </select>
+                  <label className="block font-bold text-gray-500 uppercase tracking-wider mb-1">Status</label>
+                  <Select.Root value={addForm.status} onValueChange={(val) => setAddForm({ ...addForm, status: val })}>
+                    <Select.Trigger className="w-full border border-border rounded-lg px-3 py-2 text-xs flex items-center justify-between outline-none focus:ring-1 focus:ring-[#10B981] bg-white transition-shadow">
+                      <Select.Value placeholder="Select status" />
+                      <Select.Icon>
+                        <ChevronDown className="h-4 w-4 text-gray-500" />
+                      </Select.Icon>
+                    </Select.Trigger>
+                    <Select.Portal>
+                      <Select.Content className="overflow-hidden bg-white rounded-lg border border-border shadow-lg z-[70] min-w-[120px]">
+                        <Select.Viewport className="p-1">
+                          <Select.Item value="Lead" className="text-xs px-2 py-1.5 outline-none cursor-pointer rounded-md hover:bg-[#10B981]/10 focus:bg-[#10B981]/10 focus:text-[#10B981] font-medium data-[highlighted]:bg-[#10B981]/10 data-[highlighted]:text-[#10B981]">
+                            <Select.ItemText>Lead</Select.ItemText>
+                          </Select.Item>
+                          <Select.Item value="Customer" className="text-xs px-2 py-1.5 outline-none cursor-pointer rounded-md hover:bg-[#10B981]/10 focus:bg-[#10B981]/10 focus:text-[#10B981] font-medium data-[highlighted]:bg-[#10B981]/10 data-[highlighted]:text-[#10B981]">
+                            <Select.ItemText>Customer</Select.ItemText>
+                          </Select.Item>
+                        </Select.Viewport>
+                      </Select.Content>
+                    </Select.Portal>
+                  </Select.Root>
                 </div>
                 <div>
-                  <label className="block font-bold text-muted-foreground uppercase tracking-wider mb-1">Tags (comma-separated)</label>
-                  <input type="text" value={addForm.tags} onChange={e => setAddForm({ ...addForm, tags: e.target.value })} className="w-full border border-border rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-primary outline-none" placeholder="VIP, warm-lead" />
+                  <label className="block font-bold text-gray-500 uppercase tracking-wider mb-1">Tags (comma-separated)</label>
+                  <input type="text" value={addForm.tags} onChange={e => setAddForm({ ...addForm, tags: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-[#10B981] outline-none" placeholder="VIP, warm-lead" />
                 </div>
               </div>
               <div className="pt-3 border-t border-border flex justify-end gap-2 shrink-0">
-                <button type="button" onClick={() => setIsAddContactOpen(false)} className="px-4 py-2 border border-border rounded-xl font-bold hover:bg-muted text-muted-foreground bg-white">Cancel</button>
-                <button type="submit" disabled={addContactMutation.isPending} className="px-4 py-2 bg-primary text-primary-foreground font-bold rounded-xl shadow transition-all">
+                <button type="button" onClick={() => setIsAddContactOpen(false)} className="px-4 py-2 border border-border rounded-lg font-bold hover:bg-gray-100 text-gray-500 bg-white">Cancel</button>
+                <button type="submit" disabled={addContactMutation.isPending} className="px-4 py-2 bg-[#10B981] text-white font-bold rounded-lg shadow transition-all">
                   {addContactMutation.isPending ? "Adding..." : "Add Contact"}
                 </button>
               </div>
@@ -859,60 +864,60 @@ export default function ContactsPage() {
 
       {/* Modal - Import CSV */}
       {isImportCsvOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-xs">
-          <div className="bg-white w-[460px] rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white w-[460px] rounded-[12px] shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between p-4 border-b border-border">
-              <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">Import Contacts</h2>
-              <button onClick={() => setIsImportCsvOpen(false)} className="p-1 hover:bg-muted rounded-full text-muted-foreground transition-all">
+              <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Import Contacts</h2>
+              <button onClick={() => setIsImportCsvOpen(false)} className="p-1 hover:bg-gray-100 rounded-full text-gray-500 transition-all">
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="p-5 space-y-4 text-xs text-foreground">
-              <p className="text-muted-foreground text-xs leading-relaxed">
+            <div className="p-5 space-y-4 text-xs text-gray-900">
+              <p className="text-gray-500 text-xs leading-relaxed">
                 Import multiple contacts. Make sure you map columns for **name** and **phone** correctly. Optional columns include: *email*, *company*, *status*, and *tags* (semi-colon separated).
               </p>
               
               <div className="space-y-1.5">
-                <label className="block font-bold text-muted-foreground uppercase tracking-wider">Upload CSV File</label>
-                <div className="border-2 border-dashed border-border hover:border-primary/55 rounded-xl p-6 text-center transition-colors relative cursor-pointer bg-muted/10 hover:bg-primary/5">
+                <label className="block font-bold text-gray-500 uppercase tracking-wider">Upload CSV File</label>
+                <div className="border-2 border-dashed border-border hover:border-primary/55 rounded-xl p-6 text-center transition-colors relative cursor-pointer bg-gray-100/10 hover:bg-primary/5">
                   <input 
                     type="file" 
                     accept=".csv"
                     onChange={e => setCsvFile(e.target.files?.[0] || null)}
                     className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                   />
-                  <Upload className="h-7 w-7 mx-auto text-muted-foreground mb-2" />
-                  <span className="text-[11px] font-semibold text-foreground block">
+                  <Upload className="h-7 w-7 mx-auto text-gray-500 mb-2" />
+                  <span className="text-[11px] font-semibold text-gray-900 block">
                     {csvFile ? `Selected: ${csvFile.name}` : "Click to select CSV file"}
                   </span>
-                  <span className="text-[9px] text-muted-foreground mt-0.5 block">File size limit: 5MB</span>
+                  <span className="text-[9px] text-gray-500 mt-0.5 block">File size limit: 5MB</span>
                 </div>
               </div>
 
               <div className="relative flex items-center py-1">
                 <div className="flex-grow border-t border-border"></div>
-                <span className="flex-shrink mx-3 text-muted-foreground text-[10px] uppercase font-bold tracking-widest">Or</span>
+                <span className="flex-shrink mx-3 text-gray-500 text-[10px] uppercase font-bold tracking-widest">Or</span>
                 <div className="flex-grow border-t border-border"></div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="block font-bold text-muted-foreground uppercase tracking-wider">Paste raw CSV text data</label>
+                <label className="block font-bold text-gray-500 uppercase tracking-wider">Paste raw CSV text data</label>
                 <textarea 
                   rows={4}
                   value={csvTextData}
                   onChange={e => setCsvTextData(e.target.value)}
                   placeholder="name,phone,email,company,status,tags&#10;John Doe,+919000000001,john@acme.com,Acme,Customer,VIP;warm-lead"
-                  className="w-full border border-border rounded-xl p-2.5 font-mono text-[10px] focus:outline-none focus:ring-1 focus:ring-primary bg-muted/20"
+                  className="w-full border border-border rounded-xl p-2.5 font-mono text-[10px] focus:outline-none focus:ring-1 focus:ring-primary bg-gray-100/20"
                 />
               </div>
 
               <div className="pt-3 border-t border-border flex justify-end gap-2 shrink-0">
-                <button type="button" onClick={() => setIsImportCsvOpen(false)} className="px-4 py-2 border border-border rounded-xl font-bold hover:bg-muted text-muted-foreground bg-white">Cancel</button>
+                <button type="button" onClick={() => setIsImportCsvOpen(false)} className="px-4 py-2 border border-border rounded-lg font-bold hover:bg-gray-100 text-gray-500 bg-white">Cancel</button>
                 <button 
                   type="button" 
                   onClick={handleImportCsv}
                   disabled={isImporting || (!csvFile && !csvTextData.trim())}
-                  className="px-4 py-2 bg-primary text-primary-foreground font-bold rounded-xl shadow transition-all flex items-center gap-1.5"
+                  className="px-4 py-2 bg-[#10B981] text-white font-bold rounded-lg shadow transition-all flex items-center gap-1.5"
                 >
                   {isImporting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   {isImporting ? "Importing..." : "Process Import"}
@@ -925,30 +930,30 @@ export default function ContactsPage() {
 
       {/* Modal - Bulk Tag */}
       {isBulkTagOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-xs">
-          <div className="bg-white w-[380px] rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white w-[380px] rounded-[12px] shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between p-4 border-b border-border">
-              <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">Append Bulk Tags</h2>
-              <button onClick={() => setIsBulkTagOpen(false)} className="p-1.5 hover:bg-muted rounded-full text-muted-foreground transition-all">
+              <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Append Bulk Tags</h2>
+              <button onClick={() => setIsBulkTagOpen(false)} className="p-1.5 hover:bg-gray-100 rounded-full text-gray-500 transition-all">
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="p-5 space-y-4 text-xs text-foreground">
-              <p className="text-muted-foreground text-xs leading-relaxed">
+            <div className="p-5 space-y-4 text-xs text-gray-900">
+              <p className="text-gray-500 text-xs leading-relaxed">
                 Provide tags to add to all {selectedContactIds.length} selected contacts. Existing tags will not be overwritten.
               </p>
               <div>
-                <label className="block font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Tags (comma-separated)</label>
+                <label className="block font-bold text-gray-500 uppercase tracking-wider mb-1.5">Tags (comma-separated)</label>
                 <input 
                   type="text" 
                   value={bulkTags}
                   onChange={e => setBulkTags(e.target.value)}
                   placeholder="VIP, campaign-july, inbound"
-                  className="w-full border border-border rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-primary outline-none"
+                  className="w-full border border-border rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-[#10B981] outline-none"
                 />
               </div>
               <div className="pt-3 border-t border-border flex justify-end gap-2 shrink-0">
-                <button type="button" onClick={() => setIsBulkTagOpen(false)} className="px-4 py-2 border border-border rounded-xl font-bold hover:bg-muted text-muted-foreground bg-white">Cancel</button>
+                <button type="button" onClick={() => setIsBulkTagOpen(false)} className="px-4 py-2 border border-border rounded-lg font-bold hover:bg-gray-100 text-gray-500 bg-white">Cancel</button>
                 <button 
                   type="button" 
                   onClick={() => {
@@ -959,7 +964,7 @@ export default function ContactsPage() {
                     }
                     bulkAddTagsMutation.mutate({ ids: selectedContactIds, newTags: tagList })
                   }}
-                  className="px-4 py-2 bg-primary text-primary-foreground font-bold rounded-xl shadow transition-all"
+                  className="px-4 py-2 bg-[#10B981] text-white font-bold rounded-lg shadow transition-all"
                 >
                   Append Tags
                 </button>
@@ -970,77 +975,77 @@ export default function ContactsPage() {
       )}
 
       {/* Create Ticket Modal (Drawer trigger) */}
-      {isTicketModalOpen && selectedContact && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-xs">
-          <div className="bg-white w-[420px] rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 p-6 flex flex-col gap-4">
+      {isTicketModalOpen && selectedContact && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white w-[420px] rounded-[12px] shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 p-6 flex flex-col gap-4">
             <div className="flex items-center justify-between border-b border-border pb-3">
-              <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">Create Support Ticket</h2>
+              <h2 className="text-[13px] font-bold text-gray-500 uppercase tracking-wider">Create Support Ticket</h2>
               <button 
                 onClick={() => setIsTicketModalOpen(false)} 
-                className="p-1 hover:bg-muted rounded-full text-muted-foreground transition-all"
+                className="p-1 hover:bg-gray-100 rounded-full text-gray-500 transition-all"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateTicket} className="space-y-4 text-xs text-foreground">
+            <form onSubmit={handleCreateTicket} className="space-y-4 text-xs text-gray-900">
               <div>
-                <label className="block font-bold text-muted-foreground uppercase tracking-wider mb-1">Contact</label>
-                <div className="px-3 py-2 border rounded-xl bg-muted/30 font-medium">
-                  <p className="font-semibold">{selectedContact.name}</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">{selectedContact.phone}</p>
+                <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Contact</label>
+                <div className="px-3 py-2 border border-gray-200 rounded-[6px] bg-gray-50 font-medium">
+                  <p className="font-semibold text-gray-900">{selectedContact.name}</p>
+                  <p className="text-[10px] text-gray-500 mt-0.5 font-mono">{selectedContact.phone}</p>
                 </div>
               </div>
 
               <div>
-                <label className="block font-bold text-muted-foreground uppercase tracking-wider mb-1">Subject *</label>
+                <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Subject *</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Issue with payment verification"
                   value={ticketSubject}
                   onChange={(e) => setTicketSubject(e.target.value)}
-                  className="w-full px-3 py-2 border border-border rounded-xl text-xs focus:ring-1 focus:ring-primary outline-none"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-[6px] text-xs focus:ring-1 focus:ring-[#10B981] outline-none"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-muted-foreground uppercase tracking-wider mb-1">Description</label>
+                <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Description</label>
                 <textarea
                   placeholder="Provide details about the customer's request..."
                   value={ticketDescription}
                   onChange={(e) => setTicketDescription(e.target.value)}
                   rows={3}
-                  className="w-full px-3 py-2 border border-border rounded-xl text-xs focus:ring-1 focus:ring-primary outline-none resize-none"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-[6px] text-xs focus:ring-1 focus:ring-[#10B981] outline-none resize-none"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-muted-foreground uppercase tracking-wider mb-1">Severity</label>
-                <select
+                <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Severity</label>
+                <CustomSelect
                   value={ticketSeverity}
-                  onChange={(e) => setTicketSeverity(e.target.value)}
-                  className="w-full px-3 py-2 border border-border rounded-xl text-xs focus:ring-1 focus:ring-primary outline-none bg-white cursor-pointer"
-                >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="critical">Critical</option>
-                </select>
+                  onValueChange={setTicketSeverity}
+                  options={[
+                    { label: "Low", value: "low" },
+                    { label: "Medium", value: "medium" },
+                    { label: "High", value: "high" },
+                    { label: "Critical", value: "critical" },
+                  ]}
+                />
               </div>
 
-              <div className="pt-3 border-t border-border flex justify-end gap-2 shrink-0">
+              <div className="pt-3 border-t border-gray-100 flex justify-end gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsTicketModalOpen(false)}
-                  className="px-4 py-2 border border-border rounded-xl font-bold hover:bg-muted text-muted-foreground bg-white"
+                  className="px-4 py-2 border border-gray-200 rounded-[6px] font-bold hover:bg-gray-50 text-gray-500 bg-white"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submittingTicket}
-                  className="px-4 py-2 bg-primary text-primary-foreground font-bold rounded-xl shadow transition-all flex items-center gap-1.5"
+                  className="px-4 py-2 bg-[#10B981] text-white font-bold rounded-[6px] shadow hover:bg-[#10B981]/90 transition-all flex items-center gap-1.5"
                 >
                   {submittingTicket && <Loader2 className="w-3 h-3 animate-spin" />}
                   Create Ticket
@@ -1048,7 +1053,8 @@ export default function ContactsPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

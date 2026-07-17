@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { getTenant } from "@/lib/tenant";
-
+import { tasks } from "@trigger.dev/sdk/v3";
 export const runtime = "nodejs";
 
 // GET — list all knowledge sources for workspace
@@ -18,18 +18,21 @@ export async function GET() {
 
     if (error) throw error;
 
-    // Get chunk counts per source
+    // Get chunk counts per source from knowledge_chunks table
     const { data: chunkCounts } = await admin
       .from("knowledge_chunks")
       .select("source_id")
       .eq("workspace_id", workspaceId);
 
-    const countMap = (chunkCounts ?? []).reduce<Record<string, number>>((acc, r) => {
-      acc[r.source_id] = (acc[r.source_id] ?? 0) + 1;
-      return acc;
-    }, {});
+    const countMap = (chunkCounts ?? []).reduce<Record<string, number>>(
+      (acc, r) => {
+        acc[r.source_id] = (acc[r.source_id] ?? 0) + 1;
+        return acc;
+      },
+      {}
+    );
 
-    const enriched = (sources ?? []).map(s => ({
+    const enriched = (sources ?? []).map((s) => ({
       ...s,
       chunk_count: countMap[s.id] ?? 0,
     }));
@@ -37,19 +40,34 @@ export async function GET() {
     return NextResponse.json({ sources: enriched });
   } catch (err) {
     console.error("[knowledge/documents GET]", err);
-    return NextResponse.json({ error: "Failed to fetch sources" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch sources" },
+      { status: 500 }
+    );
   }
 }
 
-// POST — add a URL / text source
+// POST — add a URL / text source and trigger processing
 export async function POST(req: NextRequest) {
   try {
     const { workspaceId } = await getTenant();
     const body = await req.json();
-    const { name, type, source_url, content } = body;
+    const {
+      name,
+      type,
+      source_url,
+      content,
+      usePreciseTokenizer,
+      useServiceAccount,
+      overrideChunkTokens,
+      sheetRange,
+    } = body;
 
     if (!name || !type) {
-      return NextResponse.json({ error: "name and type are required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "name and type are required" },
+        { status: 400 }
+      );
     }
 
     const admin = await createAdminClient();
@@ -61,51 +79,67 @@ export async function POST(req: NextRequest) {
         type,
         source_url: source_url ?? null,
         status: "pending",
-        metadata: { raw_content: content ?? null },
+        metadata: {
+          raw_content: content ?? null,
+          usePreciseTokenizer: !!usePreciseTokenizer,
+          useServiceAccount: !!useServiceAccount,
+          sheetRange: sheetRange ?? null,
+          overrideChunkTokens: overrideChunkTokens
+            ? Number(overrideChunkTokens)
+            : null,
+        },
       })
       .select()
       .single();
 
     if (error) throw error;
 
-    // Trigger background processing
-    const host = req.headers.get("host") ?? "localhost:3000";
-    const proto = host.startsWith("localhost") ? "http" : "https";
-    const baseUrl = `${proto}://${host}`;
-
-    fetch(`${baseUrl}/api/knowledge/process`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        // Pass workspaceId directly since this is a server-to-server call
-        "x-internal-workspace-id": workspaceId,
-      },
-      body: JSON.stringify({ sourceId: source.id, workspaceId }),
-    }).catch(e => console.error("[knowledge process trigger]", e));
+    // Trigger background processing using Trigger.dev
+    await tasks.trigger("knowledge.process", {
+      sourceId: source.id,
+      workspaceId,
+      overrideChunkTokens: overrideChunkTokens && Number(overrideChunkTokens) > 0 ? Number(overrideChunkTokens) : undefined,
+      usePreciseTokenizer: !!usePreciseTokenizer,
+    });
 
     return NextResponse.json({ source }, { status: 201 });
   } catch (err) {
     console.error("[knowledge/documents POST]", err);
-    return NextResponse.json({ error: "Failed to add source" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to add source" },
+      { status: 500 }
+    );
   }
 }
 
-// DELETE — remove a knowledge source (and all its chunks)
+// DELETE — remove a knowledge source and all its chunks
 export async function DELETE(req: NextRequest) {
   try {
     const { workspaceId } = await getTenant();
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
-    if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
+    if (!id)
+      return NextResponse.json({ error: "id required" }, { status: 400 });
 
     const admin = await createAdminClient();
-    // Chunks cascade delete via FK, but let's be explicit
-    await admin.from("knowledge_chunks").delete().eq("source_id", id).eq("workspace_id", workspaceId);
-    await admin.from("knowledge_sources").delete().eq("id", id).eq("workspace_id", workspaceId);
+    // Chunks cascade delete via FK, but be explicit
+    await admin
+      .from("knowledge_chunks")
+      .delete()
+      .eq("source_id", id)
+      .eq("workspace_id", workspaceId);
+    await admin
+      .from("knowledge_sources")
+      .delete()
+      .eq("id", id)
+      .eq("workspace_id", workspaceId);
 
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[knowledge/documents DELETE]", err);
-    return NextResponse.json({ error: "Failed to delete source" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to delete source" },
+      { status: 500 }
+    );
   }
 }

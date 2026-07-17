@@ -21,9 +21,9 @@ const voices = [
   { id: "sophia", name: "Sophia", gender: "Female", tone: "Professional", gradient: "from-[#6C47FF] to-[#8868FF]", initials: "S", waveColor: "bg-[#6C47FF]", genderBg: "bg-[#F3EFFF]", genderText: "text-[#6C47FF]" },
   { id: "maya", name: "Maya", gender: "Female", tone: "Friendly", gradient: "from-[#B1D8FC] to-[#7CB9F9]", initials: "M", waveColor: "bg-[#B1D8FC]", genderBg: "bg-[#F3EFFF]", genderText: "text-[#6C47FF]" },
   { id: "emma", name: "Emma", gender: "Female", tone: "Warm", gradient: "from-[#FDE68A] to-[#FBBF24]", initials: "E", waveColor: "bg-[#FDE68A]", genderBg: "bg-[#F3EFFF]", genderText: "text-[#6C47FF]" },
-  { id: "ryan", name: "Ryan", gender: "Male", tone: "Professional", gradient: "from-[#1B1B1B] to-[#404040]", initials: "R", waveColor: "bg-[#404040]", genderBg: "bg-muted", genderText: "text-muted-foreground" },
-  { id: "alex", name: "Alex", gender: "Male", tone: "Friendly", gradient: "from-[#A7F3D0] to-[#34D399]", initials: "A", waveColor: "bg-[#A7F3D0]", genderBg: "bg-muted", genderText: "text-muted-foreground" },
-  { id: "james", name: "James", gender: "Male", tone: "Executive", gradient: "from-[#FCA5A5] to-[#F87171]", initials: "J", waveColor: "bg-[#FCA5A5]", genderBg: "bg-muted", genderText: "text-muted-foreground" },
+  { id: "ryan", name: "Ryan", gender: "Male", tone: "Professional", gradient: "from-[#1B1B1B] to-[#404040]", initials: "R", waveColor: "bg-[#404040]", genderBg: "bg-gray-100", genderText: "text-gray-500" },
+  { id: "alex", name: "Alex", gender: "Male", tone: "Friendly", gradient: "from-[#A7F3D0] to-[#34D399]", initials: "A", waveColor: "bg-[#A7F3D0]", genderBg: "bg-gray-100", genderText: "text-gray-500" },
+  { id: "james", name: "James", gender: "Male", tone: "Executive", gradient: "from-[#FCA5A5] to-[#F87171]", initials: "J", waveColor: "bg-[#FCA5A5]", genderBg: "bg-gray-100", genderText: "text-gray-500" },
 ]
 
 const voiceSettingsSchema = z.object({
@@ -73,20 +73,20 @@ export default function VoiceAgentPage() {
             </div>
             <div>
               <div className="flex items-center gap-3 mb-1">
-                <h1 className="text-2xl font-bold text-foreground">AI Voice Agent</h1>
+                <h1 className="text-2xl font-bold text-gray-900">AI Voice Agent</h1>
                 <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-md">
                   <Zap className="h-3.5 w-3.5 text-amber-500" />
                   <span className="text-[12px] font-medium text-amber-600">~15 credits per minute</span>
                 </div>
               </div>
-              <p className="text-[14px] text-muted-foreground">
+              <p className="text-[14px] text-gray-500">
                 Your AI-powered voice assistant for lead conversion and retention — via phone call and WhatsApp.
               </p>
             </div>
           </div>
           
           <div className="flex items-center gap-3">
-            <button type="button" className="px-4 py-2 border border-border rounded-lg text-[14px] font-medium text-foreground hover:bg-muted transition-colors flex items-center gap-2">
+            <button type="button" className="px-4 py-2 border border-border rounded-lg text-[14px] font-medium text-gray-900 hover:bg-gray-100 transition-colors flex items-center gap-2">
               <List className="h-4 w-4" /> View Call Logs
             </button>
             <button 
@@ -107,15 +107,15 @@ export default function VoiceAgentPage() {
                 <div className={cn("w-10 h-10 rounded-full flex items-center justify-center", stat.bg)}>
                   <stat.icon className="h-5 w-5" />
                 </div>
-                <span className="text-[14px] font-medium text-muted-foreground">{stat.label}</span>
+                <span className="text-[14px] font-medium text-gray-500">{stat.label}</span>
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-foreground">{stat.value}</span>
+                <span className="text-2xl font-bold text-gray-900">{stat.value}</span>
                 {stat.change && (
                   <span className={cn("text-[13px] font-medium", stat.changeColor)}>{stat.change}</span>
                 )}
                 {stat.subtext && (
-                  <span className="text-[13px] text-muted-foreground">{stat.subtext}</span>
+                  <span className="text-[13px] text-gray-500">{stat.subtext}</span>
                 )}
               </div>
             </div>
@@ -126,8 +126,8 @@ export default function VoiceAgentPage() {
 
         {/* Call Type Selection */}
         <div>
-          <h2 className="text-[18px] font-bold text-foreground mb-1">Call Type</h2>
-          <p className="text-[13px] text-muted-foreground mb-4">Choose how your AI agent will reach leads</p>
+          <h2 className="text-[18px] font-bold text-gray-900 mb-1">Call Type</h2>
+          <p className="text-[13px] text-gray-500 mb-4">Choose how your AI agent will reach leads</p>
 
           <Controller
             name="callType"
@@ -153,20 +153,20 @@ export default function VoiceAgentPage() {
                     </div>
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-[15px] font-bold text-foreground">Normal Phone Call</h3>
+                        <h3 className="text-[15px] font-bold text-gray-900">Normal Phone Call</h3>
                         <span className="bg-[#E6F4EA] text-[#137333] text-[10px] font-bold px-2 py-0.5 rounded">Most Effective</span>
                       </div>
-                      <p className="text-[13px] text-muted-foreground leading-relaxed mb-3">
+                      <p className="text-[13px] text-gray-500 leading-relaxed mb-3">
                         AI agent calls lead's mobile number directly. Best for immediate, high-urgency outreach.
                       </p>
                       <ul className="space-y-1.5">
-                        <li className="text-[13px] text-muted-foreground flex items-center gap-2">
+                        <li className="text-[13px] text-gray-500 flex items-center gap-2">
                           <span className="text-[#137333]">✓</span> Works on any mobile number
                         </li>
-                        <li className="text-[13px] text-muted-foreground flex items-center gap-2">
+                        <li className="text-[13px] text-gray-500 flex items-center gap-2">
                           <span className="text-[#137333]">✓</span> Higher answer rate
                         </li>
-                        <li className="text-[13px] text-muted-foreground flex items-center gap-2">
+                        <li className="text-[13px] text-gray-500 flex items-center gap-2">
                           <span className="text-[#137333]">✓</span> Full call recording + transcript
                         </li>
                       </ul>
@@ -193,20 +193,20 @@ export default function VoiceAgentPage() {
                     </div>
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-[15px] font-bold text-foreground">WhatsApp Voice Call</h3>
+                        <h3 className="text-[15px] font-bold text-gray-900">WhatsApp Voice Call</h3>
                         <span className="bg-[#E6F4EA] text-[#137333] text-[10px] font-bold px-2 py-0.5 rounded">WhatsApp API</span>
                       </div>
-                      <p className="text-[13px] text-muted-foreground leading-relaxed mb-3">
+                      <p className="text-[13px] text-gray-500 leading-relaxed mb-3">
                         AI agent calls via WhatsApp. Lead must have WhatsApp installed. Great for warm leads.
                       </p>
                       <ul className="space-y-1.5">
-                        <li className="text-[13px] text-muted-foreground flex items-center gap-2">
+                        <li className="text-[13px] text-gray-500 flex items-center gap-2">
                           <span className="text-[#137333]">✓</span> Familiar WhatsApp interface
                         </li>
-                        <li className="text-[13px] text-muted-foreground flex items-center gap-2">
+                        <li className="text-[13px] text-gray-500 flex items-center gap-2">
                           <span className="text-[#137333]">✓</span> Higher trust from known brand
                         </li>
-                        <li className="text-[13px] text-muted-foreground flex items-center gap-2">
+                        <li className="text-[13px] text-gray-500 flex items-center gap-2">
                           <span className="text-[#137333]">✓</span> Call + chat follow-up in one thread
                         </li>
                       </ul>
@@ -222,8 +222,8 @@ export default function VoiceAgentPage() {
 
         {/* Voice Selection */}
         <div>
-          <h2 className="text-[18px] font-bold text-foreground mb-1">Select Voice</h2>
-          <p className="text-[13px] text-muted-foreground mb-5">Choose your AI agent's voice. Preview before selecting.</p>
+          <h2 className="text-[18px] font-bold text-gray-900 mb-1">Select Voice</h2>
+          <p className="text-[13px] text-gray-500 mb-5">Choose your AI agent's voice. Preview before selecting.</p>
           
           {/* Filters */}
           <div className="flex items-center gap-2 mb-6">
@@ -236,7 +236,7 @@ export default function VoiceAgentPage() {
                   "px-4 py-1.5 rounded-full text-[13px] font-medium transition-colors border",
                   activeFilter === filter 
                     ? "bg-[#F3EFFF] border-[#6C47FF] text-[#6C47FF]"
-                    : "bg-white border-border text-muted-foreground hover:bg-muted"
+                    : "bg-white border-border text-gray-500 hover:bg-gray-100"
                 )}
               >
                 {filter}
@@ -269,11 +269,11 @@ export default function VoiceAgentPage() {
                       {voice.initials}
                     </div>
                     
-                    <h3 className="text-[15px] font-bold text-foreground mb-2">{voice.name}</h3>
+                    <h3 className="text-[15px] font-bold text-gray-900 mb-2">{voice.name}</h3>
                     
                     <div className="flex items-center gap-2 mb-4">
                       <span className={cn("text-[11px] font-medium px-2 py-0.5 rounded", voice.genderBg, voice.genderText)}>{voice.gender}</span>
-                      <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-muted text-muted-foreground">{voice.tone}</span>
+                      <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-gray-100 text-gray-500">{voice.tone}</span>
                     </div>
 
                     {/* Waveform preview (static visual) */}
@@ -290,7 +290,7 @@ export default function VoiceAgentPage() {
                     <button 
                       type="button" 
                       onClick={(e) => { e.stopPropagation(); toast("Playing voice preview..."); }}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-border rounded-md text-[12px] font-medium text-foreground hover:bg-muted transition-colors w-full justify-center"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-border rounded-md text-[12px] font-medium text-gray-900 hover:bg-gray-100 transition-colors w-full justify-center"
                     >
                       <Volume2 className="h-3.5 w-3.5" /> Preview
                     </button>

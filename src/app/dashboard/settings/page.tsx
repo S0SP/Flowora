@@ -327,7 +327,7 @@ export default function SettingsPage() {
           setWaAccountId(wa.config?.wabaId || "")
           setWaToken("••••••••••••••••")
         }
-        const smtp = connections.find((c: any) => c.type === "smtp")
+        const smtp = connections.find((c: any) => c.type === "email")
         if (smtp) {
           setSmtpHost(smtp.config?.host || "")
           setSmtpPort(smtp.config?.port || "")
@@ -345,6 +345,30 @@ export default function SettingsPage() {
       })
       .catch(console.error)
   }, [])
+
+  const [testingSmtp, setTestingSmtp] = useState(false)
+  const handleTestSmtp = async () => {
+    try {
+      setTestingSmtp(true)
+      const res = await fetch("/api/settings/test-smtp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          host: smtpHost,
+          port: parseInt(smtpPort),
+          user: smtpUser,
+          password: smtpPass
+        })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Failed to connect to SMTP server")
+      toast.success("SMTP connection successful!")
+    } catch (err: any) {
+      toast.error(err.message)
+    } finally {
+      setTestingSmtp(false)
+    }
+  }
 
   // 2. Save settings to DB
   const handleSave = async () => {
@@ -387,7 +411,7 @@ export default function SettingsPage() {
       } else if (activeItem === "Email (SMTP)") {
         const body: any = {
           workspaceId: wsId,
-          type: "smtp",
+          type: "email",
           config: {
             host: smtpHost,
             port: smtpPort,
@@ -444,51 +468,51 @@ export default function SettingsPage() {
       case "General":
         return (
           <div className="max-w-[800px]">
-            <h1 className="text-[22px] font-bold text-foreground mb-1">General Settings</h1>
-            <p className="text-[14px] text-muted-foreground mb-7">Configure your workspace name, timezone, and preferences</p>
+            <h1 className="text-[22px] font-bold text-gray-900 mb-1">General Settings</h1>
+            <p className="text-[14px] text-gray-500 mb-7">Configure your workspace name, timezone, and preferences</p>
             
             <div className="space-y-6">
               
               {/* Workspace Identity */}
               <div>
-                <h3 className="text-[15px] font-semibold text-foreground mb-3">Workspace Identity</h3>
+                <h3 className="text-[15px] font-semibold text-gray-900 mb-3">Workspace Identity</h3>
                 <div className="bg-card border border-border rounded-xl p-6 shadow-sm space-y-5">
                   
                   <div className="space-y-1.5">
-                    <label className="text-[13px] font-semibold text-foreground">Workspace Name</label>
+                    <label className="text-[13px] font-semibold text-gray-900">Workspace Name</label>
                     <input 
                       type="text" 
                       value={workspaceName}
                       onChange={e => setWorkspaceName(e.target.value)}
-                      className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                      className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-gray-900 focus:outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[13px] font-semibold text-foreground">Workspace Logo</label>
-                    <div className="border-2 border-dashed border-border rounded-lg p-6 bg-muted/30 flex flex-col items-center justify-center text-center cursor-pointer hover:border-[#FFE27C] transition-colors">
-                      <Upload className="h-6 w-6 text-muted-foreground mb-2" />
-                      <p className="text-[13px] text-muted-foreground mb-1">Drop logo here or click to upload</p>
-                      <p className="text-[11px] text-muted-foreground">PNG, JPG up to 2MB. Recommended 200x200px</p>
+                    <label className="text-[13px] font-semibold text-gray-900">Workspace Logo</label>
+                    <div className="border-2 border-dashed border-border rounded-lg p-6 bg-gray-100/30 flex flex-col items-center justify-center text-center cursor-pointer hover:border-[#FFE27C] transition-colors">
+                      <Upload className="h-6 w-6 text-gray-500 mb-2" />
+                      <p className="text-[13px] text-gray-500 mb-1">Drop logo here or click to upload</p>
+                      <p className="text-[11px] text-gray-500">PNG, JPG up to 2MB. Recommended 200x200px</p>
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[13px] font-semibold text-foreground">Website URL</label>
+                    <label className="text-[13px] font-semibold text-gray-900">Website URL</label>
                     <input 
                       type="url" 
                       value={websiteUrl}
                       onChange={e => setWebsiteUrl(e.target.value)}
-                      className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                      className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-gray-900 focus:outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[13px] font-semibold text-foreground">Industry</label>
+                    <label className="text-[13px] font-semibold text-gray-900">Industry</label>
                     <select 
                       value={industry}
                       onChange={e => setIndustry(e.target.value)}
-                      className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary appearance-none bg-white"
+                      className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-gray-900 focus:outline-none focus:ring-1 focus:ring-primary appearance-none bg-white"
                     >
                       <option>SaaS</option>
                       <option>E-commerce</option>
@@ -503,14 +527,14 @@ export default function SettingsPage() {
 
               {/* Localization */}
               <div>
-                <h3 className="text-[15px] font-semibold text-foreground mb-3">Localization</h3>
+                <h3 className="text-[15px] font-semibold text-gray-900 mb-3">Localization</h3>
                 <div className="bg-card border border-border rounded-xl p-6 shadow-sm space-y-5">
                   <div className="space-y-1.5">
-                    <label className="text-[13px] font-semibold text-foreground">Timezone</label>
+                    <label className="text-[13px] font-semibold text-gray-900">Timezone</label>
                     <select 
                       value={timezone}
                       onChange={e => setTimezone(e.target.value)}
-                      className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary appearance-none bg-white"
+                      className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-gray-900 focus:outline-none focus:ring-1 focus:ring-primary appearance-none bg-white"
                     >
                       <option value="Asia/Kolkata">Asia/Kolkata (UTC +5:30)</option>
                       <option value="America/New_York">America/New_York (UTC -5:00)</option>
@@ -518,19 +542,19 @@ export default function SettingsPage() {
                     </select>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[13px] font-semibold text-foreground">Date Format</label>
-                    <select className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary appearance-none bg-white">
+                    <label className="text-[13px] font-semibold text-gray-900">Date Format</label>
+                    <select className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-gray-900 focus:outline-none focus:ring-1 focus:ring-primary appearance-none bg-white">
                       <option>DD/MM/YYYY</option>
                       <option>MM/DD/YYYY</option>
                       <option>YYYY-MM-DD</option>
                     </select>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[13px] font-semibold text-foreground">Language</label>
+                    <label className="text-[13px] font-semibold text-gray-900">Language</label>
                     <select 
                       value={language}
                       onChange={e => setLanguage(e.target.value)}
-                      className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary appearance-none bg-white"
+                      className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-gray-900 focus:outline-none focus:ring-1 focus:ring-primary appearance-none bg-white"
                     >
                       <option value="en">English (US)</option>
                       <option value="hi">Hindi</option>
@@ -543,8 +567,8 @@ export default function SettingsPage() {
 
               {/* Business Hours */}
               <div>
-                <h3 className="text-[15px] font-semibold text-foreground mb-1">Business Hours</h3>
-                <p className="text-[13px] text-muted-foreground mb-3">Set your business hours so the AI chatbot knows when to route to a human agent</p>
+                <h3 className="text-[15px] font-semibold text-gray-900 mb-1">Business Hours</h3>
+                <p className="text-[13px] text-gray-500 mb-3">Set your business hours so the AI chatbot knows when to route to a human agent</p>
                 
                 <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
                   {businessDays.map((d, i) => (
@@ -566,7 +590,7 @@ export default function SettingsPage() {
                             d.enabled ? "left-[18px]" : "left-0.5"
                           )} />
                         </button>
-                        <span className="text-[13px] font-medium text-foreground">{d.day}</span>
+                        <span className="text-[13px] font-medium text-gray-900">{d.day}</span>
                       </div>
 
                       {d.enabled ? (
@@ -581,7 +605,7 @@ export default function SettingsPage() {
                             }}
                             className="border border-border rounded-md px-2.5 py-1.5 text-[13px] focus:outline-none"
                           />
-                          <span className="text-muted-foreground text-[13px]">-</span>
+                          <span className="text-gray-500 text-[13px]">-</span>
                           <input
                             type="time"
                             value={d.close}
@@ -594,7 +618,7 @@ export default function SettingsPage() {
                           />
                         </div>
                       ) : (
-                        <span className="text-[13px] text-muted-foreground">Closed</span>
+                        <span className="text-[13px] text-gray-500">Closed</span>
                       )}
                     </div>
                   ))}
@@ -605,7 +629,7 @@ export default function SettingsPage() {
                 <button
                   onClick={handleSave}
                   disabled={isSaving}
-                  className="px-6 py-2 bg-primary hover:bg-primary/90 text-foreground font-semibold text-[14px] rounded-lg shadow-sm disabled:opacity-50 transition-all"
+                  className="px-6 py-2 bg-primary hover:bg-primary/90 text-gray-900 font-semibold text-[14px] rounded-lg shadow-sm disabled:opacity-50 transition-all"
                 >
                   {isSaving ? "Saving..." : "Save General Settings"}
                 </button>
@@ -626,12 +650,12 @@ export default function SettingsPage() {
       case "Email (SMTP)":
         return (
           <div className="max-w-[800px]">
-            <h1 className="text-[22px] font-bold text-foreground mb-1">Email Integration</h1>
-            <p className="text-[14px] text-muted-foreground mb-7">Configure SMTP to send emails directly from workflows.</p>
+            <h1 className="text-[22px] font-bold text-gray-900 mb-1">Email Integration</h1>
+            <p className="text-[14px] text-gray-500 mb-7">Configure SMTP to send emails directly from workflows.</p>
             <div className="bg-white border border-border rounded-xl p-6 shadow-sm space-y-5">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[13px] font-semibold text-foreground mb-1.5">SMTP Host</label>
+                  <label className="block text-[13px] font-semibold text-gray-900 mb-1.5">SMTP Host</label>
                   <input 
                     type="text" 
                     value={smtpHost}
@@ -640,7 +664,7 @@ export default function SettingsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-[13px] font-semibold text-foreground mb-1.5">Port</label>
+                  <label className="block text-[13px] font-semibold text-gray-900 mb-1.5">Port</label>
                   <input 
                     type="text" 
                     value={smtpPort}
@@ -651,7 +675,7 @@ export default function SettingsPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[13px] font-semibold text-foreground mb-1.5">Username</label>
+                  <label className="block text-[13px] font-semibold text-gray-900 mb-1.5">Username</label>
                   <input 
                     type="text" 
                     value={smtpUser}
@@ -660,7 +684,7 @@ export default function SettingsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-[13px] font-semibold text-foreground mb-1.5">Password</label>
+                  <label className="block text-[13px] font-semibold text-gray-900 mb-1.5">Password</label>
                   <input 
                     type="password" 
                     value={smtpPass}
@@ -670,11 +694,18 @@ export default function SettingsPage() {
                 </div>
               </div>
               <div className="flex justify-end gap-3 pt-2">
-                <button className="px-4 py-2 bg-gray-100 rounded-lg text-sm font-medium hover:bg-gray-200">Test Connection</button>
+                <button
+                  onClick={handleTestSmtp}
+                  disabled={testingSmtp}
+                  className="px-4 py-2 bg-gray-100 rounded-lg text-sm font-medium hover:bg-gray-200 disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  {testingSmtp && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  Test Connection
+                </button>
                 <button
                   onClick={handleSave}
                   disabled={isSaving}
-                  className="px-6 py-2 bg-primary hover:bg-primary/90 text-foreground font-semibold text-[14px] rounded-lg shadow-sm disabled:opacity-50 transition-all"
+                  className="px-6 py-2 bg-primary hover:bg-primary/90 text-gray-900 font-semibold text-[14px] rounded-lg shadow-sm disabled:opacity-50 transition-all"
                 >
                   {isSaving ? "Saving..." : "Save Email Settings"}
                 </button>
@@ -685,36 +716,36 @@ export default function SettingsPage() {
       case "Voice & Calling":
         return (
           <div className="max-w-[800px]">
-            <h1 className="text-[22px] font-bold text-foreground mb-1">Voice & Calling Configuration</h1>
-            <p className="text-[14px] text-muted-foreground mb-7">Configure Sarvam AI (TTS), Deepgram (STT), and Gemini Live for the Dograh voice worker.</p>
+            <h1 className="text-[22px] font-bold text-gray-900 mb-1">Voice & Calling Configuration</h1>
+            <p className="text-[14px] text-gray-500 mb-7">Configure Sarvam AI (TTS), Deepgram (STT), and Gemini Live for the Dograh voice worker.</p>
             <div className="bg-card border border-border rounded-xl p-6 shadow-sm space-y-5">
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[13px] font-semibold text-foreground">Deepgram API Key (STT)</label>
+                  <label className="text-[13px] font-semibold text-gray-900">Deepgram API Key (STT)</label>
                   <input 
                     type="password" 
                     value={deepgramApiKey}
                     onChange={e => setDeepgramApiKey(e.target.value)}
                     placeholder="Deepgram API key" 
-                    className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-foreground bg-background focus:outline-none focus:ring-1 focus:ring-primary" 
+                    className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-gray-900 bg-white focus:outline-none focus:ring-1 focus:ring-primary" 
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[13px] font-semibold text-foreground">Sarvam API Key (TTS)</label>
+                  <label className="text-[13px] font-semibold text-gray-900">Sarvam API Key (TTS)</label>
                   <input 
                     type="password" 
                     value={sarvamApiKey}
                     onChange={e => setSarvamApiKey(e.target.value)}
                     placeholder="Sarvam API key" 
-                    className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-foreground bg-background focus:outline-none focus:ring-1 focus:ring-primary" 
+                    className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-gray-900 bg-white focus:outline-none focus:ring-1 focus:ring-primary" 
                   />
                 </div>
               </div>
 
               <div className="bg-primary/8 border border-primary/20 rounded-lg p-4">
-                <p className="text-[12px] font-semibold text-foreground mb-1">Dograh Integration Note</p>
-                <p className="text-[12px] text-muted-foreground">
+                <p className="text-[12px] font-semibold text-gray-900 mb-1">Dograh Integration Note</p>
+                <p className="text-[12px] text-gray-500">
                   Dograh API keys and phone number assignments are managed by your admin on the private Dograh panel. 
                   Voice call presets (system prompt, intent, TTS voice) are configured in Voice Agent settings.
                 </p>
@@ -724,7 +755,7 @@ export default function SettingsPage() {
                 <button
                   onClick={handleSave}
                   disabled={isSaving}
-                  className="px-6 py-2 bg-primary hover:bg-primary/90 text-foreground font-semibold text-[14px] rounded-lg shadow-sm disabled:opacity-50 transition-all"
+                  className="px-6 py-2 bg-primary hover:bg-primary/90 text-gray-900 font-semibold text-[14px] rounded-lg shadow-sm disabled:opacity-50 transition-all"
                 >
                   {isSaving ? "Saving..." : "Save Voice Settings"}
                 </button>
@@ -738,8 +769,8 @@ export default function SettingsPage() {
           <div className="max-w-[800px]">
             <div className="flex items-center justify-between mb-7">
               <div>
-                <h1 className="text-[22px] font-bold text-foreground mb-1">API Keys</h1>
-                <p className="text-[14px] text-muted-foreground">Manage developer keys for programmatic access.</p>
+                <h1 className="text-[22px] font-bold text-gray-900 mb-1">API Keys</h1>
+                <p className="text-[14px] text-gray-500">Manage developer keys for programmatic access.</p>
               </div>
               <button
                 onClick={() => { setGeneratedKey(null); setShowCreateKeyModal(true) }}
@@ -764,9 +795,9 @@ export default function SettingsPage() {
             )}
 
             {loadingApiKeys ? (
-              <div className="flex items-center justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+              <div className="flex items-center justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-gray-500" /></div>
             ) : apiKeys.length === 0 ? (
-              <div className="bg-card border border-border rounded-xl p-10 text-center text-muted-foreground text-[14px]">
+              <div className="bg-card border border-border rounded-xl p-10 text-center text-gray-500 text-[14px]">
                 No API keys yet. Generate one above.
               </div>
             ) : (
@@ -774,8 +805,8 @@ export default function SettingsPage() {
                 {apiKeys.map((k, i) => (
                   <div key={k.id} className={cn("p-5 flex items-center justify-between", i < apiKeys.length - 1 && "border-b border-border")}>
                     <div>
-                      <h4 className="font-bold text-[14px] text-foreground">{k.name}</h4>
-                      <p className="text-[12px] text-muted-foreground">
+                      <h4 className="font-bold text-[14px] text-gray-900">{k.name}</h4>
+                      <p className="text-[12px] text-gray-500">
                         {k.key_prefix}••••••• · Created {new Date(k.created_at).toLocaleDateString()}
                         {k.last_used_at && ` · Last used ${new Date(k.last_used_at).toLocaleDateString()}`}
                       </p>
@@ -796,12 +827,12 @@ export default function SettingsPage() {
               <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setShowCreateKeyModal(false)}>
                 <div className="bg-card rounded-2xl shadow-xl w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
                   <div className="flex items-center justify-between mb-5">
-                    <h3 className="text-[16px] font-bold text-foreground">Generate API Key</h3>
-                    <button onClick={() => setShowCreateKeyModal(false)}><X className="h-5 w-5 text-muted-foreground" /></button>
+                    <h3 className="text-[16px] font-bold text-gray-900">Generate API Key</h3>
+                    <button onClick={() => setShowCreateKeyModal(false)}><X className="h-5 w-5 text-gray-500" /></button>
                   </div>
                   <div className="space-y-4">
                     <div>
-                      <label className="text-[13px] font-semibold text-foreground mb-1.5 block">Key Name</label>
+                      <label className="text-[13px] font-semibold text-gray-900 mb-1.5 block">Key Name</label>
                       <input
                         type="text"
                         value={newKeyName}
@@ -813,7 +844,7 @@ export default function SettingsPage() {
                     </div>
                   </div>
                   <div className="flex gap-3 mt-6">
-                    <button onClick={() => setShowCreateKeyModal(false)} className="flex-1 py-2 border border-border rounded-lg text-[14px] font-medium text-foreground hover:bg-muted">Cancel</button>
+                    <button onClick={() => setShowCreateKeyModal(false)} className="flex-1 py-2 border border-border rounded-lg text-[14px] font-medium text-gray-900 hover:bg-gray-100">Cancel</button>
                     <button
                       onClick={handleCreateKey}
                       disabled={creatingKey || !newKeyName.trim()}
@@ -832,8 +863,8 @@ export default function SettingsPage() {
           <div className="max-w-[860px]">
             <div className="flex items-center justify-between mb-7">
               <div>
-                <h1 className="text-[22px] font-bold text-foreground mb-1">Team Members</h1>
-                <p className="text-[14px] text-muted-foreground">Manage who has access to your workspace.</p>
+                <h1 className="text-[22px] font-bold text-gray-900 mb-1">Team Members</h1>
+                <p className="text-[14px] text-gray-500">Manage who has access to your workspace.</p>
               </div>
               <button
                 onClick={() => { setGeneratedInviteUrl(null); setShowInviteModal(true) }}
@@ -844,7 +875,7 @@ export default function SettingsPage() {
             </div>
 
             {loadingMembers ? (
-              <div className="flex items-center justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+              <div className="flex items-center justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-gray-500" /></div>
             ) : (
               <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
                 <div className="divide-y divide-border">
@@ -876,12 +907,12 @@ export default function SettingsPage() {
                         {/* Name + email */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="text-[14px] font-semibold text-foreground truncate">{m.full_name || m.email}</span>
+                            <span className="text-[14px] font-semibold text-gray-900 truncate">{m.full_name || m.email}</span>
                             {m.user_id === profile.id && (
-                              <span className="text-[10px] font-bold text-muted-foreground bg-border px-1.5 py-0.5 rounded">YOU</span>
+                              <span className="text-[10px] font-bold text-gray-500 bg-border px-1.5 py-0.5 rounded">YOU</span>
                             )}
                           </div>
-                          <span className="text-[12px] text-muted-foreground truncate block">{m.email}</span>
+                          <span className="text-[12px] text-gray-500 truncate block">{m.email}</span>
                         </div>
 
                         {/* Role selector */}
@@ -890,17 +921,17 @@ export default function SettingsPage() {
                             <select
                               value={m.role}
                               onChange={e => handleChangeRole(m.id, e.target.value)}
-                              className="appearance-none bg-muted/50 border border-border rounded-lg px-3 py-1.5 text-[13px] font-medium text-foreground pr-7 focus:outline-none focus:ring-1 focus:ring-primary"
+                              className="appearance-none bg-gray-50 border border-border rounded-lg px-3 py-1.5 text-[13px] font-medium text-gray-900 pr-7 focus:outline-none focus:ring-1 focus:ring-primary"
                             >
                               <option value="owner">Owner</option>
                               <option value="admin">Admin</option>
                               <option value="manager">Manager</option>
                               <option value="agent">Agent</option>
                             </select>
-                            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-500 pointer-events-none" />
                           </div>
                         ) : (
-                          <span className="text-[13px] font-medium text-muted-foreground capitalize">{m.role}</span>
+                          <span className="text-[13px] font-medium text-gray-500 capitalize">{m.role}</span>
                         )}
 
                         {/* Status badge */}
@@ -929,11 +960,11 @@ export default function SettingsPage() {
 
             {/* Pending Invitations Section */}
             <div className="mt-10">
-              <h2 className="text-[16px] font-bold text-foreground mb-3">Pending Invitations</h2>
+              <h2 className="text-[16px] font-bold text-gray-900 mb-3">Pending Invitations</h2>
               {loadingInvites ? (
-                <div className="flex items-center justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+                <div className="flex items-center justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-gray-500" /></div>
               ) : activeInvites.length === 0 ? (
-                <div className="bg-card border border-border rounded-xl p-6 text-center text-muted-foreground text-[13px]">
+                <div className="bg-card border border-border rounded-xl p-6 text-center text-gray-500 text-[13px]">
                   No pending invitation links. Create one above.
                 </div>
               ) : (
@@ -949,7 +980,7 @@ export default function SettingsPage() {
                       <div key={inv.id} className="p-4 flex items-center justify-between gap-4">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="text-[13px] font-semibold text-foreground truncate">
+                            <span className="text-[13px] font-semibold text-gray-900 truncate">
                               {inv.label || "Unnamed Invite"}
                             </span>
                             <span className="text-[10px] font-bold bg-primary/10 text-primary-foreground px-2 py-0.5 rounded capitalize">
@@ -970,7 +1001,7 @@ export default function SettingsPage() {
                                 />
                               </div>
                             </div>
-                            <span className="text-[11px] text-muted-foreground shrink-0 font-medium">
+                            <span className="text-[11px] text-gray-500 shrink-0 font-medium">
                               Expires in {daysLeft} {daysLeft === 1 ? "day" : "days"}
                             </span>
                           </div>
@@ -994,8 +1025,8 @@ export default function SettingsPage() {
               <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setShowInviteModal(false)}>
                 <div className="bg-card rounded-2xl shadow-xl w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
                   <div className="flex items-center justify-between mb-5">
-                    <h3 className="text-[16px] font-bold text-foreground">Invite Team Member</h3>
-                    <button onClick={() => setShowInviteModal(false)}><X className="h-5 w-5 text-muted-foreground" /></button>
+                    <h3 className="text-[16px] font-bold text-gray-900">Invite Team Member</h3>
+                    <button onClick={() => setShowInviteModal(false)}><X className="h-5 w-5 text-gray-500" /></button>
                   </div>
 
                   {generatedInviteUrl ? (
@@ -1042,20 +1073,20 @@ export default function SettingsPage() {
                         </button>
                         <button 
                           onClick={() => { setGeneratedInviteUrl(null); setGeneratedInviteExpiry(null); setInviteLabel(""); }} 
-                          className="flex-1 py-2.5 border border-border rounded-lg text-[13px] font-medium text-foreground hover:bg-muted flex items-center justify-center gap-2"
+                          className="flex-1 py-2.5 border border-border rounded-lg text-[13px] font-medium text-gray-900 hover:bg-gray-100 flex items-center justify-center gap-2"
                         >
                           <RefreshCw className="h-3.5 w-3.5" />
                           New Link
                         </button>
                       </div>
-                      <p className="text-[11px] text-muted-foreground text-center">
+                      <p className="text-[11px] text-gray-500 text-center">
                         Share this link with your team member. It can only be used once.
                       </p>
                     </div>
                   ) : (
                     <div className="space-y-4">
                       <div>
-                        <label className="text-[13px] font-semibold text-foreground mb-1.5 block">Role</label>
+                        <label className="text-[13px] font-semibold text-gray-900 mb-1.5 block">Role</label>
                         <select
                           value={inviteRole}
                           onChange={e => setInviteRole(e.target.value)}
@@ -1067,7 +1098,7 @@ export default function SettingsPage() {
                         </select>
                       </div>
                       <div>
-                        <label className="text-[13px] font-semibold text-foreground mb-1.5 block">Label (optional)</label>
+                        <label className="text-[13px] font-semibold text-gray-900 mb-1.5 block">Label (optional)</label>
                         <input
                           type="text"
                           value={inviteLabel}
@@ -1077,7 +1108,7 @@ export default function SettingsPage() {
                         />
                       </div>
                       <div>
-                        <label className="text-[13px] font-semibold text-foreground mb-1.5 block">Expires in</label>
+                        <label className="text-[13px] font-semibold text-gray-900 mb-1.5 block">Expires in</label>
                         <select
                           value={inviteExpiryDays}
                           onChange={e => setInviteExpiryDays(Number(e.target.value))}
@@ -1089,7 +1120,7 @@ export default function SettingsPage() {
                         </select>
                       </div>
                       <div className="flex gap-3 mt-2">
-                        <button onClick={() => setShowInviteModal(false)} className="flex-1 py-2 border border-border rounded-lg text-[14px] font-medium text-foreground hover:bg-muted">Cancel</button>
+                        <button onClick={() => setShowInviteModal(false)} className="flex-1 py-2 border border-border rounded-lg text-[14px] font-medium text-gray-900 hover:bg-gray-100">Cancel</button>
                         <button
                           onClick={handleCreateInvite}
                           disabled={creatingInvite}
@@ -1108,11 +1139,11 @@ export default function SettingsPage() {
       default:
         return (
           <div className="max-w-[800px] h-full flex flex-col items-center justify-center text-center">
-            <div className="w-16 h-16 bg-muted/50 rounded-full flex items-center justify-center mb-4">
-              <Shield className="h-8 w-8 text-muted-foreground" />
+            <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+              <Shield className="h-8 w-8 text-gray-500" />
             </div>
-            <h2 className="text-[20px] font-bold text-foreground mb-2">{activeItem}</h2>
-            <p className="text-[14px] text-muted-foreground max-w-[400px]">
+            <h2 className="text-[20px] font-bold text-gray-900 mb-2">{activeItem}</h2>
+            <p className="text-[14px] text-gray-500 max-w-[400px]">
               This section is currently under development. Configure your {activeItem.toLowerCase()} settings here soon.
             </p>
           </div>
@@ -1122,16 +1153,16 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="absolute inset-0 flex bg-muted/10 overflow-hidden">
+    <div className="absolute inset-0 flex bg-gray-100/10 overflow-hidden">
       
       {/* Settings Subnav */}
       <div className="w-[220px] bg-card border-r border-border py-6 flex-shrink-0 h-full overflow-y-auto">
-        <h2 className="text-[16px] font-bold text-foreground px-5 mb-4">Settings</h2>
+        <h2 className="text-[16px] font-bold text-gray-900 px-5 mb-4">Settings</h2>
         
         <div className="space-y-6">
           {navGroups.map(group => (
             <div key={group.group_label}>
-              <h3 className="text-[10px] font-semibold text-muted-foreground uppercase px-5 mb-2 tracking-wider">
+              <h3 className="text-[10px] font-semibold text-gray-500 uppercase px-5 mb-2 tracking-wider">
                 {group.group_label}
               </h3>
               <div className="space-y-0.5">
@@ -1142,8 +1173,8 @@ export default function SettingsPage() {
                     className={cn(
                       "w-full flex items-center gap-2.5 px-5 py-2.5 text-[14px] transition-colors relative",
                       activeItem === item.label
-                        ? "bg-primary/10 text-foreground font-medium"
-                        : "text-muted-foreground hover:bg-muted"
+                        ? "bg-primary/10 text-gray-900 font-medium"
+                        : "text-gray-500 hover:bg-gray-100"
                     )}
                   >
                     <item.icon className="h-4 w-4 shrink-0" />
@@ -1168,13 +1199,13 @@ export default function SettingsPage() {
         {/* Sticky Save Bar */}
         {["General", "Email (SMTP)", "Voice & Calling"].includes(activeItem) && (
           <div className="bg-white border-t border-border p-4 flex justify-end gap-3 shrink-0">
-            <button className="px-5 py-2 border border-border rounded-lg text-[14px] font-medium text-foreground hover:bg-muted">
+            <button className="px-5 py-2 border border-border rounded-lg text-[14px] font-medium text-gray-900 hover:bg-gray-100">
               Cancel
             </button>
             <button 
               onClick={handleSave}
               disabled={isSaving}
-              className="px-6 py-2 bg-primary hover:bg-primary/90 text-foreground font-semibold text-[14px] rounded-lg shadow-sm shadow-primary/20 disabled:opacity-50 transition-all"
+              className="px-6 py-2 bg-primary hover:bg-primary/90 text-gray-900 font-semibold text-[14px] rounded-lg shadow-sm shadow-primary/20 disabled:opacity-50 transition-all"
             >
               {isSaving ? "Saving..." : "Save Changes"}
             </button>

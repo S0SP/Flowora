@@ -377,7 +377,8 @@ export default function CallHistoryPage() {
   const totalSpend = calls.reduce((acc, c) => acc + (c.cost_breakdown?.total_inr ?? 0), 0);
 
   return (
-    <PageShell size="medium">
+    <div className="flex-1 overflow-y-auto p-6 lg:p-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <PageShell size="medium">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-lg font-bold text-foreground">Call History</h1>
@@ -446,5 +447,6 @@ export default function CallHistoryPage() {
         </>
       )}
     </PageShell>
+    </div>
   );
 }

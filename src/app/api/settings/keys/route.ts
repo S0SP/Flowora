@@ -6,7 +6,7 @@ import { z } from "zod"
 
 const keySchema = z.object({
   workspaceId: z.string().uuid(),
-  type: z.enum(["whatsapp", "openai", "gemini", "livekit", "smtp", "sms", "voice"]),
+  type: z.enum(["whatsapp", "openai", "gemini", "livekit", "email", "sms", "voice"]),
   config: z.record(z.any()).default({}),
   secrets: z.record(z.string()).default({}),
   label: z.string().optional(),

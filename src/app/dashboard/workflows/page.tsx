@@ -29,7 +29,7 @@ type Workflow = {
 
 const STATUS_CONFIG: Record<WorkflowStatus, { label: string; dot: string; badge: string }> = {
   active:   { label: "Active",   dot: "bg-green-500",  badge: "bg-green-100 text-green-700" },
-  draft:    { label: "Draft",    dot: "bg-gray-400",   badge: "bg-gray-100 text-gray-600"   },
+  draft:    { label: "Draft",    dot: "bg-gray-400",   badge: "bg-gray-100 text-gray-500"   },
   paused:   { label: "Paused",   dot: "bg-amber-400",  badge: "bg-amber-100 text-amber-700" },
   archived: { label: "Archived", dot: "bg-red-400",    badge: "bg-red-100 text-red-700"     },
 }
@@ -60,9 +60,9 @@ function WorkflowCard({ wf, onDelete, onToggle }: {
             <Workflow className="h-5 w-5 text-primary" />
           </div>
           <div className="min-w-0">
-            <h3 className="text-[15px] font-semibold text-foreground truncate">{wf.name}</h3>
+            <h3 className="text-[15px] font-semibold text-gray-900 truncate">{wf.name}</h3>
             {wf.description && (
-              <p className="text-[12px] text-muted-foreground truncate mt-0.5">{wf.description}</p>
+              <p className="text-[12px] text-gray-500 truncate mt-0.5">{wf.description}</p>
             )}
           </div>
         </div>
@@ -74,7 +74,7 @@ function WorkflowCard({ wf, onDelete, onToggle }: {
           <div className="relative">
             <button
               onClick={() => setMenuOpen(o => !o)}
-              className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+              className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity"
             >
               <MoreHorizontal className="h-4 w-4" />
             </button>
@@ -83,12 +83,12 @@ function WorkflowCard({ wf, onDelete, onToggle }: {
                 <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
                 <div className="absolute right-0 top-8 z-20 bg-white border border-border rounded-xl shadow-xl w-44 py-1 text-[13px]">
                   <Link href={`/dashboard/workflows/builder?id=${wf.id}`}
-                    className="flex items-center gap-2 px-4 py-2 hover:bg-muted text-foreground">
+                    className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-gray-900">
                     <Edit3 className="h-3.5 w-3.5" /> Edit
                   </Link>
                   <button
                     onClick={() => { onToggle(wf.id, wf.status === "active" ? "paused" : "active"); setMenuOpen(false) }}
-                    className="w-full flex items-center gap-2 px-4 py-2 hover:bg-muted text-foreground"
+                    className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-gray-900"
                   >
                     {wf.status === "active"
                       ? <><Pause className="h-3.5 w-3.5" /> Pause</>
@@ -111,14 +111,14 @@ function WorkflowCard({ wf, onDelete, onToggle }: {
 
       {/* Trigger */}
       <div className="flex items-center gap-2 mb-3">
-        <div className="flex items-center gap-1.5 text-[12px] text-muted-foreground bg-muted/50 rounded-lg px-2.5 py-1">
+        <div className="flex items-center gap-1.5 text-[12px] text-gray-500 bg-gray-50 rounded-lg px-2.5 py-1">
           <TriggerIcon className={cn("h-3.5 w-3.5", triggerCfg.color)} />
           <span className="capitalize">{(wf.trigger_type ?? "manual").replace(/_/g, " ")} trigger</span>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="flex items-center gap-4 text-[12px] text-muted-foreground">
+      <div className="flex items-center gap-4 text-[12px] text-gray-500">
         <div className="flex items-center gap-1">
           <Activity className="h-3.5 w-3.5" />
           <span>{(wf.total_runs ?? 0).toLocaleString()} runs</span>
@@ -204,11 +204,11 @@ export default function WorkflowsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Workflow Builder</h1>
-          <p className="text-[14px] text-muted-foreground mt-0.5">Automate lead engagement with multi-channel AI workflows</p>
+          <h1 className="text-2xl font-bold text-gray-900">Workflow Builder</h1>
+          <p className="text-[14px] text-gray-500 mt-0.5">Automate lead engagement with multi-channel AI workflows</p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={fetchWorkflows} className="p-2 rounded-xl border border-border bg-white hover:bg-muted text-muted-foreground">
+          <button onClick={fetchWorkflows} className="p-2 rounded-xl border border-border bg-white hover:bg-gray-100 text-gray-500">
             <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
           </button>
           <Link
@@ -223,13 +223,13 @@ export default function WorkflowsPage() {
       {/* Stats */}
       <div className="grid grid-cols-4 gap-4">
         {[
-          { label: "Total", value: counts.all, color: "text-foreground" },
+          { label: "Total", value: counts.all, color: "text-gray-900" },
           { label: "Active", value: counts.active, color: "text-green-600" },
           { label: "Draft", value: counts.draft, color: "text-gray-500" },
           { label: "Total Runs", value: workflows.reduce((s, w) => s + (w.total_runs ?? 0), 0), color: "text-primary" },
         ].map((s, i) => (
           <div key={i} className="bg-white border border-border rounded-xl p-4 shadow-sm">
-            <p className="text-[12px] text-muted-foreground">{s.label}</p>
+            <p className="text-[12px] text-gray-500">{s.label}</p>
             <p className={cn("text-[22px] font-bold mt-0.5", s.color)}>{s.value.toLocaleString()}</p>
           </div>
         ))}
@@ -238,7 +238,7 @@ export default function WorkflowsPage() {
       {/* Filters */}
       <div className="flex items-center gap-3 flex-wrap">
         <div className="relative flex-1 min-w-52">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
           <input
             type="text" value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Search workflows…"
@@ -250,7 +250,7 @@ export default function WorkflowsPage() {
             key={f}
             onClick={() => setFilter(f)}
             className={cn("px-3 py-2 rounded-xl text-[13px] font-medium transition-all",
-              filter === f ? "bg-foreground text-background" : "bg-white border border-border text-muted-foreground hover:text-foreground"
+              filter === f ? "bg-foreground text-background" : "bg-white border border-border text-gray-500 hover:text-gray-900"
             )}
           >
             {f === "all" ? `All (${counts.all})` : `${f.charAt(0).toUpperCase() + f.slice(1)} (${counts[f as keyof typeof counts] ?? 0})`}
@@ -267,11 +267,11 @@ export default function WorkflowsPage() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
-            <Workflow className="h-8 w-8 text-muted-foreground/40" />
+          <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+            <Workflow className="h-8 w-8 text-gray-500/40" />
           </div>
-          <p className="text-lg font-semibold text-foreground">No workflows yet</p>
-          <p className="text-[14px] text-muted-foreground mt-1 mb-5">
+          <p className="text-lg font-semibold text-gray-900">No workflows yet</p>
+          <p className="text-[14px] text-gray-500 mt-1 mb-5">
             Build your first automated lead funnel
           </p>
           <Link
@@ -297,10 +297,10 @@ export default function WorkflowsPage() {
             href="/dashboard/workflows/builder"
             className="border-2 border-dashed border-border rounded-2xl p-5 flex flex-col items-center justify-center gap-3 hover:border-primary hover:bg-primary/5 transition-all group min-h-[160px]"
           >
-            <div className="w-10 h-10 rounded-xl bg-muted group-hover:bg-primary/10 flex items-center justify-center transition-colors">
-              <Plus className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+            <div className="w-10 h-10 rounded-xl bg-gray-100 group-hover:bg-primary/10 flex items-center justify-center transition-colors">
+              <Plus className="h-5 w-5 text-gray-500 group-hover:text-primary transition-colors" />
             </div>
-            <p className="text-[14px] font-medium text-muted-foreground group-hover:text-primary transition-colors">
+            <p className="text-[14px] font-medium text-gray-500 group-hover:text-primary transition-colors">
               New Workflow
             </p>
           </Link>

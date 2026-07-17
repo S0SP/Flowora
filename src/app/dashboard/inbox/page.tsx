@@ -125,7 +125,7 @@ function MessageBubble({ msg }: { msg: Message }) {
   if (isSystem) {
     return (
       <div className="flex justify-center my-2">
-        <span className="text-[11px] text-muted-foreground bg-muted px-3 py-1 rounded-full">{msg.content}</span>
+        <span className="text-[11px] text-gray-500 bg-gray-100 px-3 py-1 rounded-full">{msg.content}</span>
       </div>
     )
   }
@@ -149,8 +149,8 @@ function MessageBubble({ msg }: { msg: Message }) {
     <div className={cn("flex gap-2 max-w-[80%]", isOutbound ? "ml-auto flex-row-reverse" : "mr-auto")}>
       <div className={cn("px-3 py-2 rounded-2xl text-[13px] leading-relaxed shadow-sm",
         isOutbound 
-          ? "bg-[#DCF8C6] dark:bg-emerald-950/40 text-foreground dark:text-emerald-300 rounded-br-none" 
-          : "bg-white dark:bg-muted border border-border/60 dark:border-border/10 rounded-bl-none text-foreground"
+          ? "bg-[#DCF8C6] dark:bg-emerald-950/40 text-gray-900 dark:text-emerald-300 rounded-br-none" 
+          : "bg-white dark:bg-gray-100 border border-border/60 dark:border-border/10 rounded-bl-none text-gray-900"
       )}>
         {msg.sender_type === "bot" && (
           <div className="flex items-center gap-1 mb-1">
@@ -179,14 +179,14 @@ function MessageBubble({ msg }: { msg: Message }) {
           <video controls src={msg.file_url} className="max-w-[220px] rounded-lg mb-1" />
         )}
 
-        {msg.content && <p className="text-foreground whitespace-pre-wrap break-words">{msg.content}</p>}
+        {msg.content && <p className="text-gray-900 whitespace-pre-wrap break-words">{msg.content}</p>}
 
         <div className={cn("flex items-center gap-1 mt-1", isOutbound ? "justify-end" : "justify-start")}>
-          <span className="text-[10px] text-muted-foreground/70">{format(new Date(msg.created_at), "HH:mm")}</span>
+          <span className="text-[10px] text-gray-500/70">{format(new Date(msg.created_at), "HH:mm")}</span>
           {isOutbound && (
             msg.status === "read" ? <CheckCheck className="h-3 w-3 text-blue-500" />
-              : msg.status === "delivered" ? <CheckCheck className="h-3 w-3 text-muted-foreground/50" />
-                : <Check className="h-3 w-3 text-muted-foreground/50" />
+              : msg.status === "delivered" ? <CheckCheck className="h-3 w-3 text-gray-500/50" />
+                : <Check className="h-3 w-3 text-gray-500/50" />
           )}
         </div>
       </div>
@@ -208,7 +208,7 @@ function ComposerInput({ composerMode, pendingMedia, sending, uploadingMedia, on
 
   return (
     <div className="flex items-end gap-2">
-      <div className={cn("flex-1 rounded-xl px-3 py-2 min-h-[44px] flex items-end", composerMode === "note" ? "bg-amber-50 border border-amber-200" : "bg-muted")}>
+      <div className={cn("flex-1 rounded-xl px-3 py-2 min-h-[44px] flex items-end", composerMode === "note" ? "bg-amber-50 border border-amber-200" : "bg-gray-100")}>
         <textarea
           value={text}
           onChange={e => setText(e.target.value)}
@@ -1206,26 +1206,26 @@ export default function InboxPage() {
   }), [threads])
 
   return (
-    <div className="absolute inset-0 flex bg-background overflow-hidden">
+    <div className="absolute inset-0 flex bg-white overflow-hidden">
       <div className="w-[300px] border-r border-border bg-card flex flex-col shrink-0 relative">
         <div className="p-3 border-b border-border space-y-2">
           <div className="flex items-center justify-between">
-            <h2 className="text-[15px] font-bold text-foreground">Shared Inbox</h2>
-            <button onClick={() => fetchThreads(false, true)} className="p-1 rounded hover:bg-muted text-muted-foreground">
+            <h2 className="text-[15px] font-bold text-gray-900">Shared Inbox</h2>
+            <button onClick={() => fetchThreads(false, true)} className="p-1 rounded hover:bg-gray-100 text-gray-500">
               <RefreshCw className={cn("h-4 w-4", loadingThreads && "animate-spin")} />
             </button>
           </div>
           <div className="flex gap-1.5">
             <div className="relative flex-1">
-              <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+              <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-gray-500" />
               <input type="text" value={searchInput} onChange={e => setSearchInput(e.target.value)}
                 placeholder="Search conversations…"
-                className="w-full pl-8 pr-3 py-1.5 bg-muted rounded-lg text-[12px] outline-none focus:ring-1 focus:ring-primary" />
+                className="w-full pl-8 pr-3 py-1.5 bg-gray-100 rounded-lg text-[12px] outline-none focus:ring-1 focus:ring-primary" />
             </div>
             <button
               onClick={() => setIsFilterModalOpen(true)}
               className={cn(
-                "p-1.5 rounded-lg border border-border bg-card hover:bg-muted text-muted-foreground transition-colors shrink-0 flex items-center justify-center",
+                "p-1.5 rounded-lg border border-border bg-card hover:bg-gray-100 text-gray-500 transition-colors shrink-0 flex items-center justify-center",
                 isAnyFilterActive ? "border-primary text-primary bg-primary/5" : ""
               )}
               title="Filter Chats"
@@ -1237,7 +1237,7 @@ export default function InboxPage() {
             {(["all", "open", "bot", "assigned"] as const).map(tab => (
               <button key={tab} onClick={() => setTabFilter(tab)}
                 className={cn("px-1 py-1 rounded-md text-[10px] font-semibold transition-all text-center truncate",
-                  tabFilter === tab ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"
+                  tabFilter === tab ? "bg-primary text-primary-foreground" : "bg-gray-100 text-gray-500 hover:text-gray-900"
                 )}>
                 {tab.charAt(0).toUpperCase() + tab.slice(1)}
                 {TAB_COUNTS[tab] > 0 && ` (${TAB_COUNTS[tab]})`}
@@ -1256,12 +1256,12 @@ export default function InboxPage() {
 
         <div className="flex-1 overflow-y-auto divide-y divide-border/50">
           {loadingThreads ? (
-            <div className="flex items-center justify-center py-12 gap-2 text-muted-foreground">
+            <div className="flex items-center justify-center py-12 gap-2 text-gray-500">
               <Loader2 className="h-4 w-4 animate-spin" />
               <span className="text-[12px]">Loading…</span>
             </div>
           ) : threads.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
+            <div className="text-center py-12 text-gray-500">
               <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-40" />
               <p className="text-[12px]">No conversations</p>
             </div>
@@ -1274,22 +1274,22 @@ export default function InboxPage() {
                 setComposerMode("message")
                 setPendingMedia(null)
               }}
-                className={cn("w-full flex items-start gap-2.5 p-3 text-left hover:bg-muted/40 transition-colors",
+                className={cn("w-full flex items-start gap-2.5 p-3 text-left hover:bg-gray-100/40 transition-colors",
                   isSelected ? "bg-primary/5 border-l-2 border-primary" : "border-l-2 border-transparent"
                 )}>
                 <div className="shrink-0 pt-0.5">
-                  {c ? <Avatar name={c.full_name} phone={c.phone} avatarUrl={c.avatar_url} size={36} /> : <div className="w-9 h-9 rounded-full bg-muted" />}
+                  {c ? <Avatar name={c.full_name} phone={c.phone} avatarUrl={c.avatar_url} size={36} /> : <div className="w-9 h-9 rounded-full bg-gray-100" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-1 mb-0.5">
-                    <span className="text-[13px] font-semibold text-foreground truncate">
+                    <span className="text-[13px] font-semibold text-gray-900 truncate">
                       {c?.full_name ?? c?.phone ?? "Unknown"}
                     </span>
-                    <span className="text-[10px] text-muted-foreground shrink-0">
+                    <span className="text-[10px] text-gray-500 shrink-0">
                       {thread.last_message_at ? formatRelativeTime(thread.last_message_at) : ""}
                     </span>
                   </div>
-                  <p className="text-[11px] text-muted-foreground truncate">{thread.last_message_preview ?? "No messages"}</p>
+                  <p className="text-[11px] text-gray-500 truncate">{thread.last_message_preview ?? "No messages"}</p>
                 </div>
               </button>
             )
@@ -1305,7 +1305,7 @@ export default function InboxPage() {
               {contact && <Avatar name={contact.full_name} phone={contact.phone} avatarUrl={contact.avatar_url} size={36} />}
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <p className="text-[14px] font-semibold text-foreground truncate">
+                  <p className="text-[14px] font-semibold text-gray-900 truncate">
                     {contact?.full_name ?? contact?.phone ?? "Unknown"}
                   </p>
                   {activeTicket && (
@@ -1322,13 +1322,13 @@ export default function InboxPage() {
                     </span>
                   )}
                 </div>
-                <p className="text-[11px] text-muted-foreground">{contact?.phone}</p>
+                <p className="text-[11px] text-gray-500">{contact?.phone}</p>
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => setIsSmartCardsCollapsed(!isSmartCardsCollapsed)}
-                className="p-1.5 hover:bg-muted text-muted-foreground hover:text-foreground rounded-lg transition-colors border border-border shadow-sm flex items-center justify-center bg-card"
+                className="p-1.5 hover:bg-gray-100 text-gray-500 hover:text-gray-900 rounded-lg transition-colors border border-border shadow-sm flex items-center justify-center bg-card"
                 title={isSmartCardsCollapsed ? "Expand Details" : "Collapse Details"}
               >
                 {isSmartCardsCollapsed ? (
@@ -1346,11 +1346,11 @@ export default function InboxPage() {
             <div className="flex-1 flex flex-col min-w-0">
               <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#F0F2F5]">
                 {loadingMessages ? (
-                  <div className="flex items-center justify-center py-12 gap-2 text-muted-foreground">
+                  <div className="flex items-center justify-center py-12 gap-2 text-gray-500">
                     <Loader2 className="h-4 w-4 animate-spin" /><span className="text-[12px]">Loading messages...</span>
                   </div>
                 ) : messages.length === 0 ? (
-                  <div className="flex items-center justify-center h-full text-muted-foreground text-[13px]">No messages yet</div>
+                  <div className="flex items-center justify-center h-full text-gray-500 text-[13px]">No messages yet</div>
                 ) : (
                   messages.map(m => <MessageBubble key={m.id} msg={m} />)
                 )}
@@ -1376,26 +1376,26 @@ export default function InboxPage() {
                 <div className="flex gap-1 mb-2">
                   <button onClick={() => { setComposerMode("message"); setPendingMedia(null) }}
                     className={cn("flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors",
-                      composerMode === "message" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"
+                      composerMode === "message" ? "bg-primary/10 text-primary" : "text-gray-500 hover:text-gray-900"
                     )}>
                     <MessageSquare className="h-3 w-3" /> Message
                   </button>
                   <button onClick={() => { setComposerMode("note"); setPendingMedia(null) }}
                     className={cn("flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors",
-                      composerMode === "note" ? "bg-amber-100 text-amber-700" : "text-muted-foreground hover:text-foreground"
+                      composerMode === "note" ? "bg-amber-100 text-amber-700" : "text-gray-500 hover:text-gray-900"
                     )}>
                     <StickyNote className="h-3 w-3" /> Note
                   </button>
                   <button onClick={() => { setComposerMode("template"); setPendingMedia(null); fetchMetaTemplates() }}
                     className={cn("flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors",
-                      composerMode === "template" ? "bg-blue-100 text-blue-700" : "text-muted-foreground hover:text-foreground"
+                      composerMode === "template" ? "bg-blue-100 text-blue-700" : "text-gray-500 hover:text-gray-900"
                     )}>
                     <FileText className="h-3 w-3" /> Template
                   </button>
                   <div className="flex-1" />
                   {/* Media attach */}
                   <input ref={fileInputRef} type="file" className="hidden" accept="image/*,video/*,audio/*,.pdf,.doc,.docx" onChange={onFileChange} />
-                  <button onClick={() => fileInputRef.current?.click()} className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors" title="Attach media">
+                  <button onClick={() => fileInputRef.current?.click()} className="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" title="Attach media">
                     <Paperclip className="h-4 w-4" />
                   </button>
                 </div>
@@ -1417,16 +1417,16 @@ export default function InboxPage() {
 
                 {/* Pending media preview */}
                 {pendingMedia && (
-                  <div className="mb-2 p-2 bg-muted/50 rounded-xl border border-border flex items-center gap-2">
+                  <div className="mb-2 p-2 bg-gray-50 rounded-xl border border-border flex items-center gap-2">
                     {pendingMedia.type === "image" && pendingMedia.preview && (
                       <img src={pendingMedia.preview} alt="preview" className="w-12 h-12 rounded-lg object-cover" />
                     )}
-                    {pendingMedia.type !== "image" && <FileText className="h-8 w-8 text-muted-foreground" />}
+                    {pendingMedia.type !== "image" && <FileText className="h-8 w-8 text-gray-500" />}
                     <div className="flex-1 min-w-0">
                       <p className="text-[11px] font-semibold truncate">{pendingMedia.file.name}</p>
-                      <p className="text-[10px] text-muted-foreground capitalize">{pendingMedia.type}</p>
+                      <p className="text-[10px] text-gray-500 capitalize">{pendingMedia.type}</p>
                     </div>
-                    <button onClick={clearPendingMedia} className="text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
+                    <button onClick={clearPendingMedia} className="text-gray-500 hover:text-gray-900"><X className="h-4 w-4" /></button>
                   </div>
                 )}
 
@@ -1447,7 +1447,7 @@ export default function InboxPage() {
 
                 {/* Panel header */}
                 <div className="px-4 py-3 border-b border-border shrink-0">
-                  <p className="text-[13px] font-bold text-foreground">Smart Cards</p>
+                  <p className="text-[13px] font-bold text-gray-900">Smart Cards</p>
                 </div>
 
                 {/* Contact card */}
@@ -1455,8 +1455,8 @@ export default function InboxPage() {
                   <div className="flex items-center gap-3 mb-3">
                     {contact && <Avatar name={contact.full_name} phone={contact.phone} avatarUrl={contact.avatar_url} size={40} />}
                     <div className="min-w-0">
-                      <p className="text-[13px] font-bold text-foreground truncate">{contact?.full_name ?? "Unknown"}</p>
-                      <p className="text-[11px] text-muted-foreground truncate">{contact?.phone}</p>
+                      <p className="text-[13px] font-bold text-gray-900 truncate">{contact?.full_name ?? "Unknown"}</p>
+                      <p className="text-[11px] text-gray-500 truncate">{contact?.phone}</p>
                     </div>
                   </div>
                   {/* Removed Message / Call action buttons */}
@@ -1465,7 +1465,7 @@ export default function InboxPage() {
                 {/* Active Ticket */}
                 <div className="p-4 border-b border-border">
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-[11px] font-bold text-foreground">Active Ticket</p>
+                    <p className="text-[11px] font-bold text-gray-900">Active Ticket</p>
                     {activeTicket && (
                       <button onClick={() => router.push(`/dashboard/tickets/${activeTicket.id}`)} className="text-[10px] text-primary font-semibold hover:opacity-70 flex items-center gap-0.5">
                         View <ExternalLink className="h-3 w-3" />
@@ -1477,12 +1477,12 @@ export default function InboxPage() {
                       <p className="text-[11px] font-bold text-amber-800 mb-1">
                         TKT-{activeTicket.ref.toString(16).toUpperCase().padStart(8, "0")}
                       </p>
-                      <p className="text-[12px] font-semibold text-foreground mb-2 leading-snug">{activeTicket.subject}</p>
+                      <p className="text-[12px] font-semibold text-gray-900 mb-2 leading-snug">{activeTicket.subject}</p>
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className={cn("px-2 py-0.5 rounded-md text-[10px] font-bold", STATUS_COLOR[activeTicket.status] ?? "bg-muted text-foreground")}>
+                        <span className={cn("px-2 py-0.5 rounded-md text-[10px] font-bold", STATUS_COLOR[activeTicket.status] ?? "bg-gray-100 text-gray-900")}>
                           {activeTicket.status}
                         </span>
-                        <span className={cn("px-2 py-0.5 rounded-md text-[10px] font-bold", SEVERITY_COLOR[activeTicket.severity] ?? "bg-muted text-foreground")}>
+                        <span className={cn("px-2 py-0.5 rounded-md text-[10px] font-bold", SEVERITY_COLOR[activeTicket.severity] ?? "bg-gray-100 text-gray-900")}>
                           {activeTicket.severity}
                         </span>
                       </div>
@@ -1491,7 +1491,7 @@ export default function InboxPage() {
                     <button
                       onClick={createTicketFromThread}
                       disabled={creatingTicket}
-                      className="w-full py-2 text-[11px] font-semibold border border-dashed border-border rounded-xl hover:bg-muted transition-colors text-muted-foreground flex items-center justify-center gap-1.5">
+                      className="w-full py-2 text-[11px] font-semibold border border-dashed border-border rounded-xl hover:bg-gray-100 transition-colors text-gray-500 flex items-center justify-center gap-1.5">
                       {creatingTicket ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Ticket className="h-3.5 w-3.5" />}
                       Create Ticket
                     </button>
@@ -1502,8 +1502,8 @@ export default function InboxPage() {
                 <div className="p-4 border-b border-border">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <BotIcon className="h-4 w-4 text-muted-foreground" />
-                      <p className="text-[12px] font-bold text-foreground">AI Auto-Reply</p>
+                      <BotIcon className="h-4 w-4 text-gray-500" />
+                      <p className="text-[12px] font-bold text-gray-900">AI Auto-Reply</p>
                     </div>
                     {/* Toggle */}
                     <button
@@ -1524,7 +1524,7 @@ export default function InboxPage() {
                       )} />
                     </button>
                   </div>
-                  <p className="text-[10px] text-muted-foreground mt-2 ml-6">
+                  <p className="text-[10px] text-gray-500 mt-2 ml-6">
                     {selectedThread.ai_active ? "AI is handling replies." : "Human agent in control."}
                   </p>
                 </div>
@@ -1532,26 +1532,26 @@ export default function InboxPage() {
                 {/* Assigned To */}
                 <div className="p-4 border-b border-border">
                   <div className="flex items-center gap-2 mb-1">
-                    <User className="h-3.5 w-3.5 text-muted-foreground" />
-                    <p className="text-[12px] font-bold text-foreground">Assigned To</p>
+                    <User className="h-3.5 w-3.5 text-gray-500" />
+                    <p className="text-[12px] font-bold text-gray-900">Assigned To</p>
                   </div>
                   <div className="relative">
                     <button
                       onClick={() => setShowAssignMenu(p => !p)}
-                      className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg border border-border bg-white hover:bg-muted transition-colors text-[12px] font-semibold text-foreground">
-                      <span className={cn(!assignedMember && "text-muted-foreground font-normal")}>
+                      className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg border border-border bg-white hover:bg-gray-100 transition-colors text-[12px] font-semibold text-gray-900">
+                      <span className={cn(!assignedMember && "text-gray-500 font-normal")}>
                         {assignedMember?.full_name ?? assignedMember?.email ?? "Unassigned"}
                       </span>
-                      <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                      <ChevronDown className="h-3.5 w-3.5 text-gray-500" />
                     </button>
                     {showAssignMenu && (
                       <div className="absolute left-0 top-full mt-1 w-full bg-white border border-border rounded-xl shadow-lg z-30 overflow-hidden">
-                        <button onClick={() => handleAssign(null, "assign")} className="w-full text-left px-3 py-2 text-[12px] hover:bg-muted text-muted-foreground">
+                        <button onClick={() => handleAssign(null, "assign")} className="w-full text-left px-3 py-2 text-[12px] hover:bg-gray-100 text-gray-500">
                           Unassigned
                         </button>
                         {teamMembers.map(m => (
                           <button key={m.id} onClick={() => handleAssign(m.user_id, "assign")}
-                            className="w-full text-left px-3 py-2 text-[12px] hover:bg-muted flex items-center gap-2">
+                            className="w-full text-left px-3 py-2 text-[12px] hover:bg-gray-100 flex items-center gap-2">
                             <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-[9px] font-bold text-primary shrink-0">
                               {(m.full_name || m.email || "?").charAt(0).toUpperCase()}
                             </div>
@@ -1567,8 +1567,8 @@ export default function InboxPage() {
                 <div className="p-4 border-b border-border">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <Tag className="h-3.5 w-3.5 text-muted-foreground" />
-                      <p className="text-[12px] font-bold text-foreground">Tags</p>
+                      <Tag className="h-3.5 w-3.5 text-gray-500" />
+                      <p className="text-[12px] font-bold text-gray-900">Tags</p>
                     </div>
                     <button onClick={() => setEditingTags(p => !p)} className="text-[10px] text-primary font-semibold hover:opacity-70">
                       {editingTags ? "Done" : "Edit"}
@@ -1576,7 +1576,7 @@ export default function InboxPage() {
                   </div>
                   <div className="flex flex-wrap gap-1 mb-2">
                     {(selectedThread.tags ?? []).map((tag, i) => (
-                      <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-foreground dark:text-primary rounded-full text-[10px] font-semibold">
+                      <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-gray-900 dark:text-primary rounded-full text-[10px] font-semibold">
                         {tag}
                         {editingTags && (
                           <button onClick={() => {
@@ -1601,7 +1601,7 @@ export default function InboxPage() {
                         }
                       }}
                       placeholder="+ Add tag"
-                      className="flex-1 text-[11px] text-muted-foreground placeholder:text-muted-foreground/60 bg-transparent outline-none"
+                      className="flex-1 text-[11px] text-gray-500 placeholder:text-gray-500/60 bg-transparent outline-none"
                     />
                     {tagInput.trim() && (
                       <button
@@ -1619,7 +1619,7 @@ export default function InboxPage() {
 
                 {/* Lead Stage */}
                 <div className="p-4 border-b border-border">
-                  <p className="text-[12px] font-bold text-foreground mb-2">Lead Stage</p>
+                  <p className="text-[12px] font-bold text-gray-900 mb-2">Lead Stage</p>
                   <select
                     value={leadStatus ?? ""}
                     onChange={e => handleUpdateLeadStatus(e.target.value)}
@@ -1636,7 +1636,7 @@ export default function InboxPage() {
 
                 {/* Thread Info */}
                 <div className="p-4 border-b border-border">
-                  <p className="text-[12px] font-bold text-foreground mb-3">Thread Info</p>
+                  <p className="text-[12px] font-bold text-gray-900 mb-3">Thread Info</p>
                   <div className="space-y-2">
                     {[
                       { label: "Messages", value: threadStats.total },
@@ -1646,8 +1646,8 @@ export default function InboxPage() {
                       { label: "Priority", value: (selectedThread.priority ?? "normal").charAt(0).toUpperCase() + (selectedThread.priority ?? "normal").slice(1) },
                     ].map(({ label, value }) => (
                       <div key={label} className="flex items-center justify-between text-[12px]">
-                        <span className="text-muted-foreground">{label}</span>
-                        <span className="font-semibold text-foreground">{value}</span>
+                        <span className="text-gray-500">{label}</span>
+                        <span className="font-semibold text-gray-900">{value}</span>
                       </div>
                     ))}
                   </div>
@@ -1656,7 +1656,7 @@ export default function InboxPage() {
                 {/* Notes & Follow-ups */}
                 <div className="p-4 flex-1">
                   <div className="flex items-center justify-between mb-3">
-                    <p className="text-[12px] font-bold text-foreground">Notes & Follow-ups</p>
+                    <p className="text-[12px] font-bold text-gray-900">Notes & Follow-ups</p>
                     <button
                       onClick={() => { setNoteText(""); setFollowupDate(""); setIsAddNoteModalOpen(true) }}
                       className="text-[10px] text-primary font-semibold hover:opacity-70 flex items-center gap-0.5">
@@ -1668,10 +1668,10 @@ export default function InboxPage() {
                         <div key={m.id} className={cn(
                           "p-2 rounded-lg border text-[10px]",
                           m.metadata?.followup_completed
-                            ? "bg-muted/20 border-border/40 opacity-60"
+                            ? "bg-gray-100/20 border-border/40 opacity-60"
                             : "bg-amber-50 border-amber-200"
                         )}>
-                          <p className="font-medium text-foreground line-clamp-3 leading-relaxed mb-1">{m.content}</p>
+                          <p className="font-medium text-gray-900 line-clamp-3 leading-relaxed mb-1">{m.content}</p>
                           {m.metadata?.followup_date && (
                             <div className="flex items-center justify-between">
                               <span className={cn("text-[9px] font-semibold px-1.5 py-0.5 rounded flex items-center gap-1", m.metadata?.followup_completed ? "bg-emerald-50 text-emerald-700" : "bg-blue-50 text-blue-700")}>
@@ -1692,7 +1692,7 @@ export default function InboxPage() {
                       ))
                     }
                     {threadStats.notes === 0 && (
-                      <p className="text-[11px] text-muted-foreground">No notes yet</p>
+                      <p className="text-[11px] text-gray-500">No notes yet</p>
                     )}
                   </div>
                 </div>
@@ -1701,7 +1701,7 @@ export default function InboxPage() {
           </div>
         </div>
       ) : (
-        <div className="flex-1 flex items-center justify-center text-muted-foreground">Select a conversation</div>
+        <div className="flex-1 flex items-center justify-center text-gray-500">Select a conversation</div>
       )}
 
       {/* ── Modals ───────────────────────────────────────────────────────────── */}
@@ -1712,14 +1712,14 @@ export default function InboxPage() {
           <div className="bg-white w-[540px] rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 border">
             {/* Modal Header */}
             <div className="flex items-center justify-between p-4 border-b border-border">
-              <h2 className="text-[16px] font-bold text-foreground">Filter Chats</h2>
-              <button onClick={() => setIsFilterModalOpen(false)} className="p-1 hover:bg-muted rounded-full">
-                <X className="h-5 w-5 text-muted-foreground" />
+              <h2 className="text-[16px] font-bold text-gray-900">Filter Chats</h2>
+              <button onClick={() => setIsFilterModalOpen(false)} className="p-1 hover:bg-gray-100 rounded-full">
+                <X className="h-5 w-5 text-gray-500" />
               </button>
             </div>
 
             {/* Filter Tabs */}
-            <div className="flex border-b text-[12px] bg-muted/20">
+            <div className="flex border-b text-[12px] bg-gray-100/20">
               {[
                 { id: "status", label: "Chat Status" },
                 { id: "assigned", label: "Assigned To" },
@@ -1734,7 +1734,7 @@ export default function InboxPage() {
                     "flex-grow py-3 text-center font-bold border-b-2 transition-all",
                     filterActiveTab === t.id
                       ? "border-primary text-primary bg-white"
-                      : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/10"
+                      : "border-transparent text-gray-500 hover:text-gray-900 hover:bg-gray-100/10"
                   )}
                 >
                   {t.label}
@@ -1746,7 +1746,7 @@ export default function InboxPage() {
             <div className="p-5 min-h-[180px] bg-white text-[12px]">
               {filterActiveTab === "status" && (
                 <div className="space-y-3">
-                  <span className="font-semibold block text-muted-foreground uppercase tracking-wider text-[10px]">Select Chat Status</span>
+                  <span className="font-semibold block text-gray-500 uppercase tracking-wider text-[10px]">Select Chat Status</span>
                   <div className="flex gap-2">
                     {["all", "open", "closed"].map(st => (
                       <button
@@ -1754,7 +1754,7 @@ export default function InboxPage() {
                         onClick={() => setFilterStatus(st)}
                         className={cn(
                           "flex-1 py-2 px-3 border rounded-xl font-semibold capitalize transition-all",
-                          filterStatus === st ? "border-primary text-primary bg-primary/5 font-bold" : "border-border hover:bg-muted"
+                          filterStatus === st ? "border-primary text-primary bg-primary/5 font-bold" : "border-border hover:bg-gray-100"
                         )}
                       >
                         {st}
@@ -1766,7 +1766,7 @@ export default function InboxPage() {
 
               {filterActiveTab === "assigned" && (
                 <div className="space-y-3">
-                  <span className="font-semibold block text-muted-foreground uppercase tracking-wider text-[10px]">Assignment Options</span>
+                  <span className="font-semibold block text-gray-500 uppercase tracking-wider text-[10px]">Assignment Options</span>
                   <div className="grid grid-cols-4 gap-2 mb-3">
                     {[
                       { id: "all", label: "All Chats" },
@@ -1779,7 +1779,7 @@ export default function InboxPage() {
                         onClick={() => setFilterAssignedTo(opt.id)}
                         className={cn(
                           "py-2 px-1 border rounded-xl font-semibold transition-all text-center text-[11px]",
-                          filterAssignedTo === opt.id ? "border-primary text-primary bg-primary/5 font-bold" : "border-border hover:bg-muted"
+                          filterAssignedTo === opt.id ? "border-primary text-primary bg-primary/5 font-bold" : "border-border hover:bg-gray-100"
                         )}
                       >
                         {opt.label}
@@ -1792,7 +1792,7 @@ export default function InboxPage() {
               {filterActiveTab === "tags" && (
                 <div className="space-y-4">
                   <div>
-                    <span className="font-semibold block text-muted-foreground uppercase tracking-wider text-[10px] mb-2">Filter by tag name</span>
+                    <span className="font-semibold block text-gray-500 uppercase tracking-wider text-[10px] mb-2">Filter by tag name</span>
                     <input
                       type="text"
                       placeholder="Enter tags comma-separated (e.g. lead, real_estate)"
@@ -1805,7 +1805,7 @@ export default function InboxPage() {
                         }
                       }}
                       defaultValue={filterTags.join(", ")}
-                      className="w-full border rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-primary bg-muted/10 font-medium"
+                      className="w-full border rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-primary bg-gray-100/10 font-medium"
                     />
                   </div>
                 </div>
@@ -1813,7 +1813,7 @@ export default function InboxPage() {
 
               {filterActiveTab === "followups" && (
                 <div className="space-y-3">
-                  <span className="font-semibold block text-muted-foreground uppercase tracking-wider text-[10px]">Filter by Follow-ups status</span>
+                  <span className="font-semibold block text-gray-500 uppercase tracking-wider text-[10px]">Filter by Follow-ups status</span>
                   <div className="flex gap-2">
                     {[
                       { id: "all", label: "All Chats" },
@@ -1825,7 +1825,7 @@ export default function InboxPage() {
                         onClick={() => setFilterFollowups(fl.id)}
                         className={cn(
                           "flex-grow py-2 px-3 border rounded-xl font-semibold transition-all text-center",
-                          filterFollowups === fl.id ? "border-primary text-primary bg-primary/5 font-bold" : "border-border hover:bg-muted"
+                          filterFollowups === fl.id ? "border-primary text-primary bg-primary/5 font-bold" : "border-border hover:bg-gray-100"
                         )}
                       >
                         {fl.label}
@@ -1838,7 +1838,7 @@ export default function InboxPage() {
               {filterActiveTab === "date" && (
                 <div className="space-y-4">
                   <div>
-                    <span className="font-semibold block text-muted-foreground uppercase tracking-wider text-[10px] mb-2">Quick Selections</span>
+                    <span className="font-semibold block text-gray-500 uppercase tracking-wider text-[10px] mb-2">Quick Selections</span>
                     <div className="grid grid-cols-4 gap-2">
                       {[
                         { id: "all", label: "All Time" },
@@ -1852,7 +1852,7 @@ export default function InboxPage() {
                           onClick={() => setFilterDateOption(dq.id)}
                           className={cn(
                             "py-2 px-1 text-center border rounded-xl font-semibold transition-all",
-                            filterDateOption === dq.id ? "border-primary text-primary bg-primary/5 font-bold" : "border-border hover:bg-muted"
+                            filterDateOption === dq.id ? "border-primary text-primary bg-primary/5 font-bold" : "border-border hover:bg-gray-100"
                           )}
                         >
                           {dq.label}
@@ -1862,10 +1862,10 @@ export default function InboxPage() {
                   </div>
                   <div className="border-t border-dashed border-border my-2" />
                   <div>
-                    <span className="font-semibold block text-muted-foreground uppercase tracking-wider text-[10px] mb-2">Custom Date Range</span>
+                    <span className="font-semibold block text-gray-500 uppercase tracking-wider text-[10px] mb-2">Custom Date Range</span>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Start Date</label>
+                        <label className="block text-[10px] font-semibold text-gray-500 uppercase mb-1">Start Date</label>
                         <input
                           type="date"
                           value={filterStartDate}
@@ -1874,7 +1874,7 @@ export default function InboxPage() {
                         />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">End Date</label>
+                        <label className="block text-[10px] font-semibold text-gray-500 uppercase mb-1">End Date</label>
                         <input
                           type="date"
                           value={filterEndDate}
@@ -1889,11 +1889,11 @@ export default function InboxPage() {
             </div>
 
             {/* Modal Actions */}
-            <div className="p-4 border-t border-border flex justify-end gap-2 bg-muted/10">
+            <div className="p-4 border-t border-border flex justify-end gap-2 bg-gray-100/10">
               <button
                 type="button"
                 onClick={clearAllFilters}
-                className="px-4 py-2 border border-border rounded-xl text-xs font-semibold hover:bg-muted transition-colors text-muted-foreground bg-white"
+                className="px-4 py-2 border border-border rounded-xl text-xs font-semibold hover:bg-gray-100 transition-colors text-gray-500 bg-white"
               >
                 Clear All
               </button>
@@ -1914,19 +1914,19 @@ export default function InboxPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-white w-[460px] rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-border">
             <div className="flex items-center justify-between p-4 border-b border-border">
-              <h2 className="text-[16px] font-bold text-foreground">Start New Chat</h2>
-              <button onClick={() => setIsNewChatModalOpen(false)} className="p-1 hover:bg-muted rounded-full">
-                <X className="h-5 w-5 text-muted-foreground" />
+              <h2 className="text-[16px] font-bold text-gray-900">Start New Chat</h2>
+              <button onClick={() => setIsNewChatModalOpen(false)} className="p-1 hover:bg-gray-100 rounded-full">
+                <X className="h-5 w-5 text-gray-500" />
               </button>
             </div>
 
             {/* Modal Tabs */}
-            <div className="flex border-b border-border text-[12px] bg-muted/20">
+            <div className="flex border-b border-border text-[12px] bg-gray-100/20">
               <button
                 type="button"
                 onClick={() => setNewChatTab("single")}
                 className={cn("flex-1 py-2.5 text-center font-bold border-b-2 transition-all",
-                  newChatTab === "single" ? "border-primary text-primary bg-white" : "border-transparent text-muted-foreground hover:bg-muted/10"
+                  newChatTab === "single" ? "border-primary text-primary bg-white" : "border-transparent text-gray-500 hover:bg-gray-100/10"
                 )}
               >
                 Single Chat
@@ -1935,7 +1935,7 @@ export default function InboxPage() {
                 type="button"
                 onClick={() => setNewChatTab("bulk")}
                 className={cn("flex-1 py-2.5 text-center font-bold border-b-2 transition-all",
-                  newChatTab === "bulk" ? "border-primary text-primary bg-white" : "border-transparent text-muted-foreground hover:bg-muted/10"
+                  newChatTab === "bulk" ? "border-primary text-primary bg-white" : "border-transparent text-gray-500 hover:bg-gray-100/10"
                 )}
               >
                 Bulk Import
@@ -1946,18 +1946,18 @@ export default function InboxPage() {
               {newChatTab === "single" ? (
                 <form onSubmit={handleCreateSingleChat} className="space-y-4">
                   <div>
-                    <label className="block font-bold text-muted-foreground uppercase text-[10px] mb-1">Contact Name</label>
+                    <label className="block font-bold text-gray-500 uppercase text-[10px] mb-1">Contact Name</label>
                     <input
                       type="text"
                       required
                       value={newChatName}
                       onChange={e => setNewChatName(e.target.value)}
                       placeholder="Enter contact name"
-                      className="w-full border border-border rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-primary bg-muted/10 font-semibold"
+                      className="w-full border border-border rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-primary bg-gray-100/10 font-semibold"
                     />
                   </div>
                   <div>
-                    <label className="block font-bold text-muted-foreground uppercase text-[10px] mb-1">WhatsApp Number *</label>
+                    <label className="block font-bold text-gray-500 uppercase text-[10px] mb-1">WhatsApp Number *</label>
                     <div className="flex gap-2">
                       <select
                         value={newChatCountryCode}
@@ -1975,12 +1975,12 @@ export default function InboxPage() {
                         value={newChatPhone}
                         onChange={e => setNewChatPhone(e.target.value)}
                         placeholder="9876543210"
-                        className="flex-1 border border-border rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-primary bg-muted/10 font-semibold"
+                        className="flex-1 border border-border rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-primary bg-gray-100/10 font-semibold"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block font-bold text-muted-foreground uppercase text-[10px] mb-1">Kanban Stage (Optional)</label>
+                    <label className="block font-bold text-gray-500 uppercase text-[10px] mb-1">Kanban Stage (Optional)</label>
                     <select
                       value={newChatStage}
                       onChange={e => setNewChatStage(e.target.value)}
@@ -1997,7 +1997,7 @@ export default function InboxPage() {
                   </div>
 
                   <div className="pt-2 flex justify-end gap-2 border-t border-border mt-4">
-                    <button type="button" onClick={() => setIsNewChatModalOpen(false)} className="px-4 py-2 border border-border rounded-xl text-xs font-semibold hover:bg-muted bg-white text-muted-foreground">Cancel</button>
+                    <button type="button" onClick={() => setIsNewChatModalOpen(false)} className="px-4 py-2 border border-border rounded-xl text-xs font-semibold hover:bg-gray-100 bg-white text-gray-500">Cancel</button>
                     <button type="submit" disabled={sending} className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-xs font-bold hover:bg-primary/95 transition-colors shadow-sm">
                       {sending ? "Creating..." : "Create Chat"}
                     </button>
@@ -2017,13 +2017,13 @@ export default function InboxPage() {
                       <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto text-primary">
                         <Upload className="h-5 w-5" />
                       </div>
-                      <span className="block font-semibold text-foreground text-xs">Choose CSV File</span>
-                      <span className="block text-[10px] text-muted-foreground mt-1">File must contain headers: 'phone' (required) and 'name' (optional)</span>
+                      <span className="block font-semibold text-gray-900 text-xs">Choose CSV File</span>
+                      <span className="block text-[10px] text-gray-500 mt-1">File must contain headers: 'phone' (required) and 'name' (optional)</span>
                     </label>
                   </div>
 
                   <div className="pt-2 flex justify-end gap-2 border-t border-border mt-4">
-                    <button type="button" onClick={() => setIsNewChatModalOpen(false)} className="px-4 py-2 border border-border rounded-xl text-xs font-semibold hover:bg-muted bg-white text-muted-foreground">Cancel</button>
+                    <button type="button" onClick={() => setIsNewChatModalOpen(false)} className="px-4 py-2 border border-border rounded-xl text-xs font-semibold hover:bg-gray-100 bg-white text-gray-500">Cancel</button>
                   </div>
                 </div>
               )}
@@ -2049,7 +2049,7 @@ export default function InboxPage() {
                   value={noteText}
                   onChange={e => setNoteText(e.target.value)}
                   placeholder="he is interested in whatsapp automation..."
-                  className="w-full border border-border rounded-lg p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 bg-muted/20 resize-none font-medium"
+                  className="w-full border border-border rounded-lg p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 bg-gray-100/20 resize-none font-medium"
                 />
               </div>
               <div>
@@ -2100,7 +2100,7 @@ export default function InboxPage() {
                   <div className="absolute inset-[-15px] rounded-full bg-emerald-500/20 animate-pulse" />
                 </>
               )}
-              <div className="relative z-10 w-28 h-28 rounded-full border-4 border-[#2C2C2E] overflow-hidden bg-muted">
+              <div className="relative z-10 w-28 h-28 rounded-full border-4 border-[#2C2C2E] overflow-hidden bg-gray-100">
                 {selectedThread.contacts.avatar_url ? (
                   <img src={selectedThread.contacts.avatar_url} alt="Contact" className="w-full h-full object-cover" />
                 ) : (

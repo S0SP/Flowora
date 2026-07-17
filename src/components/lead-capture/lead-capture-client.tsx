@@ -5,18 +5,18 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { 
-  FileSpreadsheet, 
-  Settings2, 
-  Play, 
-  Pause, 
-  Loader2, 
-  HelpCircle, 
-  RefreshCw, 
-  CheckCircle2, 
+import {
+  FileSpreadsheet,
+  Settings2,
+  Play,
+  Pause,
+  Loader2,
+  HelpCircle,
+  RefreshCw,
+  CheckCircle2,
   XCircle,
-  X, 
-  Clock, 
+  X,
+  Clock,
   Link as LinkIcon,
   Mail,
   MessageSquare,
@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { WhatsAppTemplate } from "@/types";
 import { formatDate, cn } from "@/lib/utils";
+import { CustomSelect } from "@/components/ui/custom-select";
 
 // Zod schema matching database migrations
 const schema = z.object({
@@ -280,7 +281,7 @@ export function clientInterpolate(text: string, lead: Lead, brandName?: string):
   if (!text) return "";
   const customFields = lead.channel_status?.custom_fields || {};
   const currentEmailBrandName = brandName || "My Agency";
-  
+
   let result = text
     .replace(/\{\{lead_name\}\}/g, lead.name || "friend")
     .replace(/\{\{lead_email\}\}/g, lead.email || "")
@@ -293,7 +294,7 @@ export function clientInterpolate(text: string, lead: Lead, brandName?: string):
 
   Object.entries(customFields).forEach(([key, value]) => {
     const cleanValue = value !== undefined && value !== null ? String(value) : "";
-    
+
     const regexDouble = new RegExp(`\\{\\{${key}\\}\\}`, "gi");
     result = result.replace(regexDouble, cleanValue);
 
@@ -360,7 +361,7 @@ export function LeadCaptureClient() {
     try {
       const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
       const now = ctx.currentTime;
-      
+
       const osc1 = ctx.createOscillator();
       const gain1 = ctx.createGain();
       osc1.type = "sine";
@@ -456,7 +457,7 @@ export function LeadCaptureClient() {
   };
 
   // Fetch settings & lead history logs
-  const fetchSettingsAndLeads = async (showToast = false) => {
+  const fetchSettingsAndLeads = async (showToast = false, isPolling = false) => {
     if (showToast) setRefreshing(true);
     try {
       const res = await fetch("/api/lead-capture");
@@ -465,37 +466,39 @@ export function LeadCaptureClient() {
 
       if (settings) {
         setSettingsId(settings.id);
-        reset({
-          sheet_url: settings.sheet_url,
-          phone_column: settings.phone_column,
-          name_column: settings.name_column,
-          email_column: settings.email_column,
-          template_name: settings.template_name,
-          template_language: settings.template_language,
-          delay_minutes: settings.delay_minutes,
-          is_active: settings.is_active,
-          whatsapp_enabled: settings.whatsapp_enabled !== false,
-          email_enabled: !!settings.email_enabled,
-          smtp_host: settings.smtp_host,
-          smtp_port: settings.smtp_port || 587,
-          smtp_user: settings.smtp_user,
-          smtp_password: settings.smtp_password,
-          email_from_name: settings.email_from_name,
-          email_from: settings.email_from,
-          email_subject: settings.email_subject,
-          email_template_id: settings.email_template_id || "welcome",
-          email_logo_url: settings.email_logo_url,
-          email_brand_name: settings.email_brand_name || "My Agency",
-          email_title: settings.email_title,
-          email_body: settings.email_body,
-          email_button_text: settings.email_button_text,
-          email_button_url: settings.email_button_url,
-          email_footer: settings.email_footer,
-          voice_enabled: !!settings.voice_enabled,
-          voice_agent_type: settings.voice_agent_type || "livekit",
-          voice_id: settings.voice_id || "anushka",
-          voice_prompt: settings.voice_prompt,
-        });
+        if (!isPolling) {
+          reset({
+            sheet_url: settings.sheet_url,
+            phone_column: settings.phone_column,
+            name_column: settings.name_column,
+            email_column: settings.email_column,
+            template_name: settings.template_name,
+            template_language: settings.template_language,
+            delay_minutes: settings.delay_minutes,
+            is_active: settings.is_active,
+            whatsapp_enabled: settings.whatsapp_enabled !== false,
+            email_enabled: !!settings.email_enabled,
+            smtp_host: settings.smtp_host,
+            smtp_port: settings.smtp_port || 587,
+            smtp_user: settings.smtp_user,
+            smtp_password: settings.smtp_password,
+            email_from_name: settings.email_from_name,
+            email_from: settings.email_from,
+            email_subject: settings.email_subject,
+            email_template_id: settings.email_template_id || "welcome",
+            email_logo_url: settings.email_logo_url,
+            email_brand_name: settings.email_brand_name || "My Agency",
+            email_title: settings.email_title,
+            email_body: settings.email_body,
+            email_button_text: settings.email_button_text,
+            email_button_url: settings.email_button_url,
+            email_footer: settings.email_footer,
+            voice_enabled: !!settings.voice_enabled,
+            voice_agent_type: settings.voice_agent_type || "livekit",
+            voice_id: settings.voice_id || "anushka",
+            voice_prompt: settings.voice_prompt,
+          });
+        }
       }
       const freshLeads: Lead[] = leads || [];
 
@@ -560,7 +563,7 @@ export function LeadCaptureClient() {
       } catch {
         // Non-fatal — the server cron is the source of truth; this is just a nudge.
       }
-      fetchSettingsAndLeads();
+      fetchSettingsAndLeads(false, true);
     };
     const id = setInterval(tick, 10000);
     return () => clearInterval(id);
@@ -604,11 +607,11 @@ export function LeadCaptureClient() {
       }
 
       toast.success(
-        data.is_active 
-          ? "Automation active! Google Sheet is now sync-polling..." 
+        data.is_active
+          ? "Automation active! Google Sheet is now sync-polling..."
           : "Draft settings saved successfully."
       );
-      
+
       setTimeout(() => fetchSettingsAndLeads(), 1000);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
@@ -616,6 +619,26 @@ export function LeadCaptureClient() {
       setSaving(false);
     }
   };
+
+  const onError = (errors: any) => {
+    const errorFields = Object.keys(errors);
+    if (errorFields.length > 0) {
+      toast.error("Please fix the highlighted errors before activating.");
+
+      const sheetFields = ["sheet_url", "phone_column", "name_column", "email_column", "delay_minutes"];
+      const whatsappFields = ["template_name", "template_language"];
+      const emailFields = ["email_subject", "email_logo_url", "email_brand_name", "email_title", "email_body", "email_button_text", "email_button_url", "email_footer"];
+      const voiceFields = ["voice_agent_type", "voice_id", "voice_prompt"];
+
+      const firstError = errorFields[0];
+      if (sheetFields.includes(firstError)) setActiveTab("sheet");
+      else if (whatsappFields.includes(firstError)) setActiveTab("whatsapp");
+      else if (emailFields.includes(firstError)) setActiveTab("email_template");
+      else if (voiceFields.includes(firstError)) setActiveTab("voice");
+    }
+  };
+
+  const hasError = (fields: string[]) => fields.some(f => errors[f as keyof typeof errors]);
 
   // One-click pause/resume — flips is_active and persists immediately,
   // without needing a full form re-save.
@@ -693,7 +716,7 @@ export function LeadCaptureClient() {
     return (
       <span
         title={title}
-        className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-semibold border ${styles[state] || "bg-muted text-muted-foreground border-border"}`}
+        className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-semibold border ${styles[state] || "bg-gray-100 text-gray-500 border-border"}`}
       >
         <Icon className="w-3 h-3" />
         {label} · {labels[state] || state}
@@ -735,53 +758,57 @@ export function LeadCaptureClient() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24">
-        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+        <Loader2 className="w-8 h-8 animate-spin text-gray-500" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      
+    <div className="flex-1 flex flex-col min-h-0">
+
       {/* SECTION 2: WORKFLOW CONFIGURATION & CAPTURED LEADS LIST */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-        
-        {/* Config Form (7 columns on desktop) */}
-        <div className={`xl:col-span-7 space-y-6 ${activeTab === "email_template" && emailEnabled ? "xl:col-span-12" : ""}`}>
-          <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+      <div className="flex flex-1 min-h-0 w-full relative border border-border rounded-2xl shadow-sm overflow-hidden bg-white">
+
+        {/* Left Column (Config) */}
+        <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden px-8 py-6">
+          <div>
             <div className="flex items-center gap-2 mb-4 border-b border-border pb-3">
               <Settings2 className="w-5 h-5 text-primary" />
-              <h3 className="font-semibold text-sm text-foreground">Configure Workflows</h3>
+              <h3 className="font-semibold text-sm text-gray-900">Configure Workflows</h3>
             </div>
 
             {/* Tab navigation buttons */}
-            <div className="flex bg-muted/40 p-1 rounded-xl mb-4 border border-border/50 text-[11px] font-medium grid grid-cols-4">
+            {/* Tab navigation buttons */}
+            <div className="flex flex-wrap bg-gray-100/40 p-1 rounded-xl mb-4 border border-border/50 text-[11px] font-medium gap-1">
               <button
                 onClick={() => setActiveTab("sheet")}
                 type="button"
-                className={`py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-all ${
-                  activeTab === "sheet" ? "bg-background text-foreground shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground"
-                }`}
+                className={`flex-1 py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-all relative ${activeTab === "sheet" ? "bg-white text-gray-900 shadow-sm font-semibold" : "text-gray-500 hover:text-gray-900"
+                  }`}
               >
                 <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-500" />
                 Sheet Config
+                {hasError(["sheet_url", "phone_column", "name_column", "email_column", "delay_minutes"]) && (
+                  <div className="w-1.5 h-1.5 rounded-full bg-destructive absolute top-1.5 right-1.5" />
+                )}
               </button>
               <button
                 onClick={() => setActiveTab("whatsapp")}
                 type="button"
-                className={`py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-all ${
-                  activeTab === "whatsapp" ? "bg-background text-foreground shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground"
-                }`}
+                className={`flex-1 py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-all relative ${activeTab === "whatsapp" ? "bg-white text-gray-900 shadow-sm font-semibold" : "text-gray-500 hover:text-gray-900"
+                  }`}
               >
                 <MessageSquare className="w-3.5 h-3.5 text-primary" />
                 WhatsApp
+                {hasError(["template_name", "template_language"]) && (
+                  <div className="w-1.5 h-1.5 rounded-full bg-destructive absolute top-1.5 right-1.5" />
+                )}
               </button>
               <button
                 onClick={() => setActiveTab("smtp")}
                 type="button"
-                className={`py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-all ${
-                  activeTab === "smtp" ? "bg-background text-foreground shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground"
-                }`}
+                className={`flex-1 py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-all relative ${activeTab === "smtp" ? "bg-white text-gray-900 shadow-sm font-semibold" : "text-gray-500 hover:text-gray-900"
+                  }`}
               >
                 <Server className="w-3.5 h-3.5 text-amber-500" />
                 SMTP Setup
@@ -789,55 +816,80 @@ export function LeadCaptureClient() {
               <button
                 onClick={() => setActiveTab("email_template")}
                 type="button"
-                className={`py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-all ${
-                  activeTab === "email_template" ? "bg-background text-foreground shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground"
-                }`}
+                className={`flex-1 py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-all relative ${activeTab === "email_template" ? "bg-white text-gray-900 shadow-sm font-semibold" : "text-gray-500 hover:text-gray-900"
+                  }`}
               >
                 <Layout className="w-3.5 h-3.5 text-pink-500" />
                 Email Builder
+                {hasError(["email_subject", "email_logo_url", "email_brand_name", "email_title", "email_body", "email_button_text", "email_button_url", "email_footer"]) && (
+                  <div className="w-1.5 h-1.5 rounded-full bg-destructive absolute top-1.5 right-1.5" />
+                )}
               </button>
               <button
                 onClick={() => setActiveTab("voice")}
                 type="button"
-                className={`py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-all ${
-                  activeTab === "voice" ? "bg-background text-foreground shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground"
-                }`}
+                className={`flex-1 py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-all relative ${activeTab === "voice" ? "bg-white text-gray-900 shadow-sm font-semibold" : "text-gray-500 hover:text-gray-900"
+                  }`}
               >
                 <Headphones className="w-3.5 h-3.5 text-purple-500" />
                 Voice Agent
+                {hasError(["voice_agent_type", "voice_id", "voice_prompt"]) && (
+                  <div className="w-1.5 h-1.5 rounded-full bg-destructive absolute top-1.5 right-1.5" />
+                )}
               </button>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              
-              {/* TAB 1: Google Sheet configurations */}
+            <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-4">
+
+              {/* TAB 1: Sheet & Columns */}
               {activeTab === "sheet" && (
-                <div className="space-y-4 animate-fade-in">
+                <div className="animate-fade-in space-y-4">
+                  {/* How To Share Sheet Accordion */}
+                  <details className="group border border-gray-200 rounded-lg bg-gray-50/50 open:bg-gray-50 transition-colors">
+                    <summary className="flex items-center cursor-pointer p-4 text-xs font-semibold text-gray-500">
+                      <HelpCircle className="w-4 h-4 text-primary mr-2" />
+                      How to share your Google Sheet correctly
+                      <span className="ml-auto text-gray-500 group-open:rotate-180 transition-transform">
+                        ▼
+                      </span>
+                    </summary>
+                    <div className="p-4 pt-0 text-[11px] text-gray-500 leading-relaxed border-t border-gray-100 mt-2">
+                      <ol className="list-decimal pl-4 space-y-1.5">
+                        <li>Open your Google Sheet.</li>
+                        <li>Click the <strong>Share</strong> button in the top-right corner.</li>
+                        <li>Under <strong>General Access</strong>, change Restricted to:
+                          <span className="font-medium text-gray-900 block mt-0.5">"Anyone with the link can view"</span>
+                        </li>
+                        <li>Copy the full browser URL and paste it in the config form below.</li>
+                      </ol>
+                    </div>
+                  </details>
+
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
                       Google Sheet URL
                     </label>
                     <input
                       {...register("sheet_url")}
                       placeholder="https://docs.google.com/spreadsheets/d/..."
-                      className="w-full px-3 py-2.5 bg-background border border-input rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      className="w-full px-3 py-2.5 bg-white border border-input rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                     {errors.sheet_url && (
                       <p className="text-xs text-destructive">{errors.sheet_url.message}</p>
                     )}
                   </div>
 
-                  <div className="bg-muted/30 rounded-xl p-3 border border-border/50 space-y-3">
-                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block">
+                  <div className="bg-gray-100/30 rounded-xl p-3 border border-border/50 space-y-3">
+                    <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider block">
                       Column Headers mapping
                     </span>
 
                     <div className="grid grid-cols-3 items-center gap-2">
-                      <span className="text-xs text-foreground font-medium">Phone Header:</span>
+                      <span className="text-xs text-gray-900 font-medium">Phone Header:</span>
                       <input
                         {...register("phone_column")}
                         placeholder="e.g. phone"
-                        className="col-span-2 px-2.5 py-1.5 bg-background border border-input rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-ring"
+                        className="col-span-2 px-2.5 py-1.5 bg-white border border-input rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-ring"
                       />
                     </div>
                     {errors.phone_column && (
@@ -845,39 +897,39 @@ export function LeadCaptureClient() {
                     )}
 
                     <div className="grid grid-cols-3 items-center gap-2">
-                      <span className="text-xs text-muted-foreground">Name Header:</span>
+                      <span className="text-xs text-gray-500">Name Header:</span>
                       <input
                         {...register("name_column")}
                         placeholder="e.g. name"
-                        className="col-span-2 px-2.5 py-1.5 bg-background border border-input rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-ring"
+                        className="col-span-2 px-2.5 py-1.5 bg-white border border-input rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-ring"
                       />
                     </div>
 
                     <div className="grid grid-cols-3 items-center gap-2">
-                      <span className="text-xs text-muted-foreground">Email Header:</span>
+                      <span className="text-xs text-gray-500">Email Header:</span>
                       <input
                         {...register("email_column")}
                         placeholder="e.g. email"
-                        className="col-span-2 px-2.5 py-1.5 bg-background border border-input rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-ring"
+                        className="col-span-2 px-2.5 py-1.5 bg-white border border-input rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-ring"
                       />
                     </div>
-                    
+
                     <div className="border-t border-border/40 pt-2.5 mt-2">
-                      <span className="text-[10px] text-muted-foreground leading-relaxed block font-semibold">
+                      <span className="text-[10px] text-gray-500 leading-relaxed block font-semibold">
                         💡 Auto Custom Fields: All other spreadsheet columns (e.g. Interest, Budget, Location) are automatically captured. Use them in WhatsApp templates, Email templates or Voice prompts using variables like {"{Interest}"} or {"{{Budget}}"}.
                       </span>
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
                       Workflow Delay (Minutes)
                     </label>
                     <input
                       type="number"
                       {...register("delay_minutes")}
                       placeholder="0 (send immediately)"
-                      className="w-full px-3 py-2.5 bg-background border border-input rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      className="w-full px-3 py-2.5 bg-white border border-input rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                     {errors.delay_minutes && (
                       <p className="text-xs text-destructive">{errors.delay_minutes.message}</p>
@@ -891,8 +943,8 @@ export function LeadCaptureClient() {
                 <div className="space-y-4 animate-fade-in">
                   <div className="flex items-center justify-between p-3 bg-primary/5 border border-primary/20 rounded-xl">
                     <div className="flex flex-col">
-                      <span className="text-xs font-semibold text-foreground">Send WhatsApp Message</span>
-                      <span className="text-[10px] text-muted-foreground">Auto send templates on new lead</span>
+                      <span className="text-xs font-semibold text-gray-900">Send WhatsApp Message</span>
+                      <span className="text-[10px] text-gray-500">Auto send templates on new lead</span>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input
@@ -900,38 +952,32 @@ export function LeadCaptureClient() {
                         {...register("whatsapp_enabled")}
                         className="sr-only peer"
                       />
-                      <div className="w-9 h-5 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                      <div className="w-9 h-5 bg-gray-100 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
                     </label>
                   </div>
 
                   {whatsappEnabled !== false && (
                     <div className="space-y-4 pt-1">
                       <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
                           Select WhatsApp Template
                         </label>
                         {loadingTemplates ? (
-                          <div className="flex items-center gap-2 px-3 py-2.5 bg-background border border-input rounded-xl">
-                            <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
-                            <span className="text-xs text-muted-foreground">Loading templates...</span>
+                          <div className="flex items-center gap-2 px-3 py-2.5 bg-white border border-input rounded-xl">
+                            <Loader2 className="w-4 h-4 animate-spin text-gray-500" />
+                            <span className="text-xs text-gray-500">Loading templates...</span>
                           </div>
                         ) : (
-                          <select
-                            {...register("template_name")}
-                            onChange={(e) => {
-                              const t = templates.find((t) => t.name === e.target.value);
-                              setValue("template_name", e.target.value);
+                          <CustomSelect
+                            value={watch("template_name") || ""}
+                            onValueChange={(val: string) => {
+                              const t = templates.find((t) => t.name === val);
+                              setValue("template_name", val);
                               if (t) setValue("template_language", t.language);
                             }}
-                            className="w-full px-3 py-2.5 bg-background border border-input rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                          >
-                            <option value="">Select a template</option>
-                            {templates.map((t) => (
-                              <option key={`${t.name}-${t.language}`} value={t.name}>
-                                {t.display_name} ({t.language})
-                              </option>
-                            ))}
-                          </select>
+                            placeholder="Select a template"
+                            options={templates.map((t) => ({ label: `${t.display_name} (${t.language})`, value: t.name }))}
+                          />
                         )}
                       </div>
                     </div>
@@ -942,10 +988,10 @@ export function LeadCaptureClient() {
               {/* TAB 3: SMTP Connection Server details */}
               {activeTab === "smtp" && (
                 <div className="space-y-4 animate-fade-in">
-                  <div className="flex items-center justify-between p-3 bg-amber-500/5 border border-amber-500/20 rounded-xl">
+                  <div className="flex items-center justify-between p-3 bg-primary/5 border border-primary/20 rounded-xl">
                     <div className="flex flex-col">
-                      <span className="text-xs font-semibold text-foreground">Send Branded SMTP Email</span>
-                      <span className="text-[10px] text-muted-foreground">Auto send customized emails to leads</span>
+                      <span className="text-xs font-semibold text-gray-900">Send Branded SMTP Email</span>
+                      <span className="text-[10px] text-gray-500">Auto send customized emails to leads</span>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input
@@ -953,15 +999,15 @@ export function LeadCaptureClient() {
                         {...register("email_enabled")}
                         className="sr-only peer"
                       />
-                      <div className="w-9 h-5 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                      <div className="w-9 h-5 bg-gray-100 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
                     </label>
                   </div>
 
                   {emailEnabled && (
                     <div className="space-y-4 pt-1">
-                      <div className="bg-blue-500/10 p-3 rounded-xl border border-blue-500/20 flex gap-2">
-                        <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-                        <p className="text-[10px] text-blue-700 leading-normal">
+                      <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 flex gap-2">
+                        <Info className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                        <p className="text-[10px] text-gray-500 leading-normal">
                           <strong>Workspace SMTP Integrated:</strong> This lead capture form will automatically use the global SMTP configuration saved in your <strong>Workspace Settings &gt; Channels &gt; Email</strong>.
                         </p>
                       </div>
@@ -974,188 +1020,124 @@ export function LeadCaptureClient() {
               {activeTab === "email_template" && (
                 <div className="animate-fade-in space-y-4">
                   {!emailEnabled ? (
-                    <div className="py-8 text-center bg-muted/40 rounded-2xl border border-border">
-                      <Layout className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
-                      <p className="text-xs text-muted-foreground font-medium">Please enable SMTP Email first</p>
-                      <p className="text-[10px] text-muted-foreground/60 max-w-[200px] mx-auto mt-1">
+                    <div className="py-8 text-center bg-gray-100/40 rounded-2xl border border-border">
+                      <Layout className="w-8 h-8 text-gray-500/30 mx-auto mb-2" />
+                      <p className="text-xs text-gray-500 font-medium">Please enable SMTP Email first</p>
+                      <p className="text-[10px] text-gray-500/60 max-w-[200px] mx-auto mt-1">
                         Go to the SMTP Settings tab and toggle email dispatching to design templates.
                       </p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-                      
+
                       {/* Left Side: Form Controls */}
                       <div className="space-y-4">
                         <div className="space-y-1">
-                          <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block">
+                          <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider block">
                             Select Starter Template Preset
                           </label>
-                          <select
+                          <CustomSelect
                             value={selectedEmailTemplateId}
-                            onChange={(e) => handleApplyPresetTemplate(e.target.value)}
-                            className="w-full px-2.5 py-2 bg-background border border-input rounded-xl text-xs focus:outline-none"
-                          >
-                            {PREMADE_EMAIL_TEMPLATES.map((tmpl) => (
-                              <option key={tmpl.id} value={tmpl.id}>
-                                {tmpl.name}
-                              </option>
-                            ))}
-                          </select>
+                            onValueChange={(val: string) => handleApplyPresetTemplate(val)}
+                            placeholder="Select a preset template"
+                            options={PREMADE_EMAIL_TEMPLATES.map((tmpl) => ({ label: tmpl.name, value: tmpl.id }))}
+                          />
                         </div>
 
                         <div className="space-y-1">
-                          <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block">Email Subject</label>
-                          <input {...register("email_subject")} placeholder="Exclusive Offer: 20% OFF inside!" className="w-full px-3 py-2 bg-background border border-input rounded-xl text-xs focus:outline-none" />
+                          <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider block">Email Subject</label>
+                          <input {...register("email_subject")} placeholder="Exclusive Offer: 20% OFF inside!" className="w-full px-3 py-2 bg-white border border-input rounded-xl text-xs focus:outline-none" />
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">
                           <div className="space-y-1">
-                            <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block">Logo Image URL</label>
-                            <input {...register("email_logo_url")} placeholder="https://domain.com/logo.png" className="w-full px-2.5 py-1.5 bg-background border border-input rounded-lg text-xs" />
+                            <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider block">Logo Image URL</label>
+                            <input {...register("email_logo_url")} placeholder="https://domain.com/logo.png" className="w-full px-2.5 py-1.5 bg-white border border-input rounded-lg text-xs" />
                           </div>
                           <div className="space-y-1">
-                            <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block">Brand Name</label>
-                            <input {...register("email_brand_name")} placeholder="My Agency Name" className="w-full px-2.5 py-1.5 bg-background border border-input rounded-lg text-xs" />
+                            <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider block">Brand Name</label>
+                            <input {...register("email_brand_name")} placeholder="My Agency Name" className="w-full px-2.5 py-1.5 bg-white border border-input rounded-lg text-xs" />
                           </div>
                         </div>
 
                         <div className="space-y-1">
-                          <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block">Header Heading Title</label>
-                          <input {...register("email_title")} placeholder="Your ebook is ready!" className="w-full px-3 py-2 bg-background border border-input rounded-xl text-xs focus:outline-none" />
+                          <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider block">Header Heading Title</label>
+                          <input {...register("email_title")} placeholder="Your ebook is ready!" className="w-full px-3 py-2 bg-white border border-input rounded-xl text-xs focus:outline-none" />
                         </div>
 
                         <div className="space-y-1">
                           <div className="flex justify-between items-center">
-                            <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block">Email Body Message</label>
+                            <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider block">Email Body Message</label>
                             <div className="flex gap-1.5">
-                              <span className="text-[8px] bg-muted px-1 py-0.5 rounded text-muted-foreground hover:bg-muted-foreground hover:text-white cursor-pointer" title="Inserts name dynamically" onClick={() => setValue("email_body", (previewBody || "") + " {{lead_name}}")}>{"{{lead_name}}"}</span>
-                              <span className="text-[8px] bg-muted px-1 py-0.5 rounded text-muted-foreground hover:bg-muted-foreground hover:text-white cursor-pointer" title="Inserts email dynamically" onClick={() => setValue("email_body", (previewBody || "") + " {{lead_email}}")}>{"{{lead_email}}"}</span>
+                              <span className="text-[8px] bg-gray-100 px-1 py-0.5 rounded text-gray-500 hover:bg-gray-100-foreground hover:text-white cursor-pointer" title="Inserts name dynamically" onClick={() => setValue("email_body", (previewBody || "") + " {{lead_name}}")}>{"{{lead_name}}"}</span>
+                              <span className="text-[8px] bg-gray-100 px-1 py-0.5 rounded text-gray-500 hover:bg-gray-100-foreground hover:text-white cursor-pointer" title="Inserts email dynamically" onClick={() => setValue("email_body", (previewBody || "") + " {{lead_email}}")}>{"{{lead_email}}"}</span>
                             </div>
                           </div>
                           <textarea
                             {...register("email_body")}
                             rows={6}
                             placeholder="Hi {{lead_name}},\n\nThank you for choosing us..."
-                            className="w-full px-3 py-2 bg-background border border-input rounded-xl text-xs focus:outline-none font-sans leading-relaxed"
+                            className="w-full px-3 py-2 bg-white border border-input rounded-xl text-xs focus:outline-none font-sans leading-relaxed"
                           />
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">
                           <div className="space-y-1">
-                            <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block">CTA Button Text</label>
-                            <input {...register("email_button_text")} placeholder="Download Now" className="w-full px-2.5 py-1.5 bg-background border border-input rounded-lg text-xs" />
+                            <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider block">CTA Button Text</label>
+                            <input {...register("email_button_text")} placeholder="Download Now" className="w-full px-2.5 py-1.5 bg-white border border-input rounded-lg text-xs" />
                           </div>
                           <div className="space-y-1">
-                            <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block">CTA Button URL</label>
-                            <input {...register("email_button_url")} placeholder="https://link.com" className="w-full px-2.5 py-1.5 bg-background border border-input rounded-lg text-xs" />
+                            <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider block">CTA Button URL</label>
+                            <input {...register("email_button_url")} placeholder="https://link.com" className="w-full px-2.5 py-1.5 bg-white border border-input rounded-lg text-xs" />
                           </div>
                         </div>
 
                         <div className="space-y-1">
-                          <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block">Footer Text</label>
-                          <input {...register("email_footer")} placeholder="© 2026 My Brand. All rights reserved." className="w-full px-3 py-2 bg-background border border-input rounded-xl text-xs focus:outline-none" />
+                          <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider block">Footer Text</label>
+                          <input {...register("email_footer")} placeholder="© 2026 My Brand. All rights reserved." className="w-full px-3 py-2 bg-white border border-input rounded-xl text-xs focus:outline-none" />
                         </div>
                       </div>
 
                       {/* Right Side: Real-time Device Preview Frame */}
-                      <div className="space-y-3 bg-muted/20 border border-border/80 rounded-2xl p-4 flex flex-col h-full min-h-[500px]">
-                        <div className="flex items-center justify-between border-b border-border/60 pb-2">
-                          <div className="flex items-center gap-1.5">
-                            <span className="w-2.5 h-2.5 rounded-full bg-destructive/60"></span>
-                            <span className="w-2.5 h-2.5 rounded-full bg-amber-500/60"></span>
-                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/60"></span>
-                            <span className="text-[10px] font-bold text-muted-foreground/80 font-mono ml-2">Live Preview (John Doe)</span>
-                          </div>
-                          
-                          {/* Desktop / Mobile Switch toggle */}
-                          <div className="flex bg-muted/60 p-0.5 rounded-lg border border-border">
+                      <div className="bg-gray-100 rounded-2xl p-6 flex flex-col h-[600px] border border-gray-200">
+                        <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-200">
+                          <span className="text-[10px] font-bold text-gray-500 uppercase">Live Email Preview</span>
+                          <div className="flex bg-white p-0.5 rounded-lg border border-gray-200">
                             <button
                               onClick={() => setPreviewDevice("desktop")}
                               type="button"
-                              className={`p-1 rounded ${previewDevice === "desktop" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"}`}
-                              title="Desktop View"
+                              className={`p-1 rounded ${previewDevice === "desktop" ? "bg-gray-100" : ""}`}
                             >
                               <Monitor className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => setPreviewDevice("mobile")}
                               type="button"
-                              className={`p-1 rounded ${previewDevice === "mobile" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"}`}
-                              title="Mobile View"
+                              className={`p-1 rounded ${previewDevice === "mobile" ? "bg-gray-100" : ""}`}
                             >
                               <Smartphone className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </div>
-
-                        {/* Rendering preview in sandbox container */}
-                        <div className="flex-1 flex justify-center items-center bg-muted/40 rounded-xl p-2 border border-border/40 overflow-hidden">
-                          <div className={`transition-all duration-300 overflow-hidden ${
-                            previewDevice === "mobile" 
-                              ? "w-[320px] h-[450px] border-8 border-slate-800 rounded-3xl shadow-xl bg-white" 
-                              : "w-full h-[450px] bg-white rounded-xl shadow-md border border-border/30"
-                          }`}>
-                            <iframe
-                              title="Live Email Preview"
-                              srcDoc={previewHtml}
-                              className="w-full h-full border-0 select-none"
-                            />
+                        <div className={`flex-1 flex justify-center overflow-y-auto ${previewDevice === 'mobile' ? 'items-start' : 'items-center'}`}>
+                          <div className={`bg-white shadow-lg rounded-xl overflow-hidden ${previewDevice === 'mobile' ? 'w-[320px] h-[480px]' : 'w-full h-full'}`}>
+                            <iframe title="preview" srcDoc={previewHtml} className="w-full h-full border-0" />
                           </div>
                         </div>
                       </div>
-                      
+
                     </div>
                   )}
                 </div>
               )}
 
-              {/* Automation toggle footer */}
-              <div className="flex items-center justify-between p-3 bg-muted/40 border border-border rounded-xl mt-4">
-                <div className="flex flex-col">
-                  <span className="text-xs font-semibold text-foreground">Automation Status</span>
-                  <span className="text-[10px] text-muted-foreground font-normal">Toggle to start sync polling</span>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    {...register("is_active")}
-                    className="sr-only peer"
-                  />
-                  <div className="w-9 h-5 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
-                </label>
-              </div>
-
-              {/* Submit button */}
-              <button
-                type="submit"
-                disabled={saving}
-                className={`w-full py-2.5 rounded-xl font-medium text-sm flex items-center justify-center gap-2 transition-all ${
-                  isActive 
-                    ? "bg-primary hover:bg-primary/95 text-primary-foreground" 
-                    : "bg-muted hover:bg-muted/80 text-foreground border border-border"
-                }`}
-              >
-                {saving ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : isActive ? (
-                  <>
-                    <Play className="w-4 h-4 fill-primary-foreground" />
-                    Activate Automation
-                  </>
-                ) : (
-                  <>
-                    <Pause className="w-4 h-4 fill-foreground" />
-                    Save Draft Settings
-                  </>
-                )}
-              </button>
               {/* TAB 5: Voice Configurations */}
               {activeTab === "voice" && (
                 <div className="space-y-4 animate-fade-in">
-                  <div className="flex items-center justify-between p-3 bg-purple-500/5 border border-purple-500/20 rounded-xl">
+                  <div className="flex items-center justify-between p-3 bg-primary/5 border border-primary/20 rounded-xl">
                     <div className="flex flex-col">
-                      <span className="text-xs font-semibold text-foreground">Trigger AI Voice Call</span>
-                      <span className="text-[10px] text-muted-foreground">Automatically call the lead with AI</span>
+                      <span className="text-xs font-semibold text-gray-900">Trigger AI Voice Call</span>
+                      <span className="text-[10px] text-gray-500">Automatically call the lead with AI</span>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input
@@ -1163,59 +1145,49 @@ export function LeadCaptureClient() {
                         {...register("voice_enabled")}
                         className="sr-only peer"
                       />
-                      <div className="w-9 h-5 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-500"></div>
+                      <div className="w-9 h-5 bg-gray-100 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
                     </label>
                   </div>
 
                   {voiceEnabled && (
                     <div className="space-y-4 pt-1">
                       <div className="space-y-1.5">
-                        <label className="text-[10px] font-semibold text-muted-foreground uppercase flex items-center justify-between">
+                        <label className="text-[10px] font-semibold text-gray-500 uppercase flex items-center justify-between">
                           <span>Load Preset Settings</span>
                           {presets.length === 0 && <span className="text-[9px] font-normal text-destructive-foreground">No presets configured</span>}
                         </label>
-                        <select
+                        <CustomSelect
                           value={selectedPresetId}
-                          onChange={(e) => handleSelectPreset(e.target.value)}
-                          className="w-full px-3 py-2.5 bg-background border border-input rounded-xl text-sm"
-                        >
-                          <option value="">-- Select a Preset to Prefill --</option>
-                          {presets.map((p) => (
-                            <option key={p.id} value={p.id}>
-                              {p.name} ({p.agent_type === "gemini" ? "Gemini" : "LiveKit"})
-                            </option>
-                          ))}
-                        </select>
+                          onValueChange={(val: string) => handleSelectPreset(val)}
+                          placeholder="-- Select a Preset to Prefill --"
+                          options={presets.map((p) => ({ label: `${p.name} (${p.agent_type === "gemini" ? "Gemini" : "LiveKit"})`, value: p.id }))}
+                        />
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-[10px] font-semibold text-muted-foreground uppercase">Agent Engine</label>
-                        <select
-                          {...register("voice_agent_type")}
-                          className="w-full px-3 py-2.5 bg-background border border-input rounded-xl text-sm"
-                        >
-                          <option value="livekit">LiveKit + Sarvam TTS (Hindi/English)</option>
-                          <option value="gemini">Gemini Live (Multilingual)</option>
-                        </select>
+                        <label className="text-[10px] font-semibold text-gray-500 uppercase">Agent Engine</label>
+                        <CustomSelect
+                          value={watch("voice_agent_type") || "livekit"}
+                          onValueChange={(val: string) => setValue("voice_agent_type", val)}
+                          options={[
+                            { label: "LiveKit + Sarvam TTS (Hindi/English)", value: "livekit" },
+                            { label: "Gemini Live (Multilingual)", value: "gemini" }
+                          ]}
+                        />
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-[10px] font-semibold text-muted-foreground uppercase">Voice</label>
-                        <select
-                          {...register("voice_id")}
-                          className="w-full px-3 py-2.5 bg-background border border-input rounded-xl text-sm"
-                        >
-                          {(voiceAgentType === "gemini" ? GEMINI_VOICES : SARVAM_VOICES).map((group) => (
-                            <optgroup key={group.label} label={group.label}>
-                              {group.voices.map((v) => (
-                                <option key={v.id} value={v.id}>
-                                  {v.name}
-                                </option>
-                              ))}
-                            </optgroup>
-                          ))}
-                        </select>
-                        <p className="text-[10px] text-muted-foreground">
+                        <label className="text-[10px] font-semibold text-gray-500 uppercase">Voice</label>
+                        <CustomSelect
+                          value={watch("voice_id") || ""}
+                          onValueChange={(val: string) => setValue("voice_id", val)}
+                          placeholder="Select a voice"
+                          options={(voiceAgentType === "gemini" ? GEMINI_VOICES : SARVAM_VOICES).map((group) => ({
+                            label: group.label,
+                            options: group.voices.map((v) => ({ label: v.name, value: v.id }))
+                          }))}
+                        />
+                        <p className="text-[10px] text-gray-500">
                           {voiceAgentType === "gemini"
                             ? "Gemini Live multilingual voices."
                             : "Sarvam TTS voices (Hindi + English). v3 voices are the newest & most natural."}
@@ -1223,399 +1195,426 @@ export function LeadCaptureClient() {
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-[10px] font-semibold text-muted-foreground uppercase">
+                        <label className="text-[10px] font-semibold text-gray-500 uppercase">
                           System Prompt (Context for the Agent)
                         </label>
                         <textarea
                           {...register("voice_prompt")}
                           rows={6}
                           placeholder="You are an AI assistant calling {{lead_name}}. Remind them about..."
-                          className="w-full px-3 py-2.5 bg-background border border-input rounded-xl text-sm resize-none"
+                          className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-[6px] text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary"
                         />
-                        <p className="text-[10px] text-muted-foreground">
-                          Available variables: <code className="bg-muted px-1 rounded">{"{{lead_name}}"}</code>, <code className="bg-muted px-1 rounded">{"{{brand_name}}"}</code>, <code className="bg-muted px-1 rounded">{"{{lead_phone}}"}</code>
+                        <p className="text-[10px] text-gray-500 mt-1">
+                          Available variables: <code className="font-mono bg-gray-100 text-gray-900 px-1.5 py-0.5 rounded-[4px]">{"{{lead_name}}"}</code>, <code className="font-mono bg-gray-100 text-gray-900 px-1.5 py-0.5 rounded-[4px]">{"{{brand_name}}"}</code>, <code className="font-mono bg-gray-100 text-gray-900 px-1.5 py-0.5 rounded-[4px]">{"{{lead_phone}}"}</code>
                         </p>
                       </div>
                     </div>
                   )}
                 </div>
               )}
-            </form>
-          </div>
 
-          {/* Share Helper */}
-          {activeTab !== "email_template" && (
-            <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
-              <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border/50">
-                <HelpCircle className="w-4 h-4 text-muted-foreground" />
-                <h4 className="font-semibold text-xs text-foreground uppercase tracking-wider">How to share Sheet</h4>
-              </div>
-              <ol className="text-xs text-muted-foreground list-decimal pl-4 space-y-2 leading-relaxed">
-                <li>Open your Google Sheet.</li>
-                <li>Click the **Share** button in the top-right corner.</li>
-                <li>Under **General Access**, change Restricted to:
-                   <span className="font-medium text-foreground block mt-0.5">"Anyone with the link can view"</span>
-                </li>
-                <li>Copy the full browser URL and paste it in the config form.</li>
-              </ol>
-            </div>
-          )}
-        </div>
-
-        {/* Right 5 cols: Live activity + Captured Leads log history */}
-        {(activeTab !== "email_template" || !emailEnabled) && (
-          <div className="xl:col-span-5 space-y-6">
-
-            {/* Live workflow activity feed */}
-            <div className="bg-card border border-border rounded-2xl overflow-hidden flex flex-col shadow-sm">
-              <div className="p-4 border-b border-border flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Activity className={`w-4 h-4 ${autoRefresh ? "text-primary" : "text-muted-foreground"}`} />
-                  <h3 className="font-semibold text-sm text-foreground">Live Activity</h3>
-                  {autoRefresh && (
-                    <span className="flex items-center gap-1 text-[10px] text-primary">
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                      live
-                    </span>
-                  )}
+              {/* Automation toggle footer */}
+              <div className="flex items-center justify-between p-3 bg-gray-100/40 border border-border rounded-xl mt-4">
+                <div className="flex flex-col">
+                  <span className="text-xs font-semibold text-gray-900">Automation Status</span>
+                  <span className="text-[10px] text-gray-500 font-normal">Toggle to start sync polling</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-muted-foreground">
-                    {lastSynced ? `Synced ${lastSynced.toLocaleTimeString()}` : "Not synced"}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setAutoRefresh((v) => !v)}
-                    className={`text-[10px] px-2 py-1 rounded-lg border transition-all ${
-                      autoRefresh
-                        ? "bg-primary/10 text-primary border-primary/20"
-                        : "bg-muted text-muted-foreground border-border"
-                    }`}
-                    title="Toggle 10s auto-refresh"
-                  >
-                    {autoRefresh ? "Auto" : "Paused"}
-                  </button>
-                </div>
-              </div>
-              <div className="max-h-[220px] overflow-y-auto scrollbar-thin p-3 space-y-1.5 font-mono text-[10px] bg-muted/10">
-                {activity.length === 0 ? (
-                  <p className="text-muted-foreground/60 text-center py-6">
-                    Waiting for workflow events… Activate automation and add a row to your sheet.
-                  </p>
-                ) : (
-                  activity.map((entry, i) => {
-                    const color =
-                      entry.kind === "success"
-                        ? "text-primary"
-                        : entry.kind === "error"
-                        ? "text-destructive"
-                        : entry.kind === "sync"
-                        ? "text-muted-foreground"
-                        : "text-blue-500";
-                    return (
-                      <div key={i} className="flex items-start gap-2 leading-relaxed">
-                        <span className="text-muted-foreground/50 shrink-0">{entry.ts}</span>
-                        <span className={`${color} break-all`}>{entry.message}</span>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-
-            <div className="bg-card border border-border rounded-2xl overflow-hidden flex flex-col h-full shadow-sm min-h-[400px]">
-              <div className="p-4 border-b border-border flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <FileSpreadsheet className="w-4 h-4 text-primary" />
-                  <h3 className="font-semibold text-sm text-foreground">Captured Lead Logs</h3>
-                </div>
-                <button
-                  onClick={() => fetchSettingsAndLeads(true)}
-                  disabled={refreshing}
-                  className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-muted text-muted-foreground transition-all"
-                  title="Refresh logs"
-                >
-                  <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} />
-                </button>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    {...register("is_active")}
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 bg-gray-100 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                </label>
               </div>
 
-              <div className="p-4 flex-1 max-h-[600px] overflow-y-auto space-y-3 pr-2 scrollbar-thin">
-                {capturedLeads.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-24 text-center">
-                    <FileSpreadsheet className="w-10 h-10 text-muted-foreground/30 mb-3" />
-                    <p className="text-sm font-medium text-muted-foreground">No leads captured yet</p>
-                    <p className="text-xs text-muted-foreground/50 mt-1 max-w-sm">
-                      Active automation will poll the Google Sheet every 30 seconds and list processed rows here.
-                    </p>
-                  </div>
-                ) : (
-                  capturedLeads.map((lead) => (
-                    <div 
-                      key={lead.id} 
-                      className="bg-white rounded-xl border border-border p-4 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-2 duration-200"
-                    >
-                      <div className="flex items-start gap-3 min-w-0">
-                        <div className="rounded-lg p-2 bg-primary/5 text-primary shrink-0 border border-primary/10">
-                          <FileSpreadsheet className="h-5 w-5" />
-                        </div>
-                        <div className="min-w-0">
-                          <h4 className="font-bold text-xs text-foreground flex flex-wrap items-center gap-1.5 leading-snug">
-                            <span>{lead.name || "Unknown Lead"}</span>
-                            {lead.status === "failed" ? (
-                              <span className="px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider bg-red-50 text-red-600 border border-red-200">Failed</span>
-                            ) : lead.status === "sent" ? (
-                              <span className="px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-200">Success</span>
-                            ) : lead.status === "processing" ? (
-                              <span className="px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider bg-blue-50 text-blue-600 border border-blue-200 animate-pulse">Running</span>
-                            ) : (
-                              <span className="px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider bg-muted text-muted-foreground border border-border">In Queue</span>
-                            )}
-                          </h4>
-                          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-muted-foreground mt-1 font-semibold">
-                            <span className="font-mono">{lead.phone}</span>
-                            {lead.email && <span>• {lead.email}</span>}
-                            <span>• Synced {formatDate(lead.created_at)}</span>
-                          </div>
-                          
-                          {/* Deliveries outcome breakdown */}
-                          {renderChannelBreakdown(lead)}
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-2 shrink-0">
-                        <button
-                          onClick={() => {
-                            playTestSound();
-                            setPreviewLead(lead);
-                            setPreviewTab("whatsapp");
-                          }}
-                          className="inline-flex items-center justify-center rounded-lg text-xs font-bold border border-border bg-white hover:bg-muted text-muted-foreground h-8 px-3 gap-1.5 transition-all shadow-xs"
-                          title="Preview Outreach Campaign Mockup"
-                        >
-                          <Eye className="h-3.5 w-3.5 text-primary" /> Test / Preview
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Campaign Outreach Mockup Preview Modal */}
-        {previewLead && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 backdrop-blur-xs">
-            <div className="bg-white w-[540px] rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 border flex flex-col max-h-[85vh]">
-              {/* Header */}
-              <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
-                <div>
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Lead Campaign Preview</h3>
-                  <p className="text-[10px] text-muted-foreground mt-0.5 font-semibold">
-                    Simulating live variables substitution for {previewLead.name || "John Doe"}
-                  </p>
-                </div>
-                <button 
-                  onClick={() => setPreviewLead(null)} 
-                  className="p-1.5 hover:bg-muted rounded-full text-muted-foreground transition-all"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-
-              {/* Lead detail & variables overview panel */}
-              <div className="bg-muted/30 px-5 py-4 border-b border-border shrink-0 text-xs">
-                <div className="grid grid-cols-2 gap-y-2 gap-x-4">
-                  <div>
-                    <span className="block text-[9px] uppercase font-bold text-muted-foreground tracking-wider">Full Name</span>
-                    <span className="font-semibold text-foreground">{previewLead.name || "—"}</span>
-                  </div>
-                  <div>
-                    <span className="block text-[9px] uppercase font-bold text-muted-foreground tracking-wider">Phone</span>
-                    <span className="font-semibold text-foreground font-mono">{previewLead.phone}</span>
-                  </div>
-                  {previewLead.email && (
-                    <div className="col-span-2">
-                      <span className="block text-[9px] uppercase font-bold text-muted-foreground tracking-wider">Email Address</span>
-                      <span className="font-semibold text-foreground">{previewLead.email}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Custom sheet variables */}
-                {previewLead.channel_status?.custom_fields && Object.keys(previewLead.channel_status.custom_fields).length > 0 && (
-                  <div className="mt-3 border-t border-border/40 pt-2.5">
-                    <span className="block text-[9px] uppercase font-bold text-muted-foreground tracking-widest mb-1.5">
-                      Spreadsheet Variables (Parsed)
-                    </span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {Object.entries(previewLead.channel_status.custom_fields).map(([key, val]) => (
-                        <span 
-                          key={key} 
-                          className="inline-flex items-center gap-1 bg-white border border-border/60 rounded px-1.5 py-0.5 text-[9px] text-foreground font-mono shadow-2xs"
-                        >
-                          <span className="text-primary font-bold">{key}:</span>
-                          <span className="font-semibold">{String(val)}</span>
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Channel Tabs */}
-              <div className="flex border-b text-xs bg-muted/10 shrink-0">
-                {[
-                  { id: "whatsapp", label: "WhatsApp Message", icon: MessageSquare },
-                  { id: "email", label: "Email Template", icon: Mail },
-                  { id: "voice", label: "Voice Agent Prompt", icon: Mic },
-                ].map(t => (
-                  <button
-                    key={t.id}
-                    onClick={() => setPreviewTab(t.id as any)}
-                    className={cn(
-                      "flex-1 flex items-center justify-center gap-1.5 py-2.5 font-bold transition-all border-b-2 outline-none",
-                      previewTab === t.id 
-                        ? "border-primary text-primary bg-white shadow-2xs" 
-                        : "border-transparent text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    <t.icon className="h-3.5 w-3.5" />
-                    {t.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Preview Body */}
-              <div className="p-5 overflow-y-auto flex-1 bg-muted/5 min-h-[220px]">
-                {/* ── WhatsApp Bubble View ────────────────── */}
-                {previewTab === "whatsapp" && (
-                  <div className="bg-[#e5ddd5] rounded-xl p-4 border relative min-h-[160px] flex flex-col justify-between shadow-inner">
-                    <div className="space-y-2">
-                      <div className="bg-white rounded-lg p-3 max-w-[85%] text-xs shadow-xs text-foreground leading-relaxed relative">
-                        <div className="font-bold text-primary mb-1 flex items-center gap-1">
-                          <span>📢 Meta WhatsApp Template</span>
-                          <span className="px-1 py-0.5 rounded text-[8px] bg-primary/10 uppercase tracking-widest">
-                            {watch("template_language") || "en"}
-                          </span>
-                        </div>
-                        <p className="font-semibold mb-1 text-muted-foreground text-[10px]">
-                          Template Name: <span className="font-mono bg-muted px-1.5 py-0.5 rounded">{watch("template_name") || "hello_world"}</span>
-                        </p>
-                        <p className="text-foreground leading-relaxed mt-2 bg-muted/20 p-2 rounded-lg italic">
-                          "Meta templates are rendered dynamically on the recipient's phone with variables mapping names and numbers."
-                        </p>
-                        <span className="block text-[8px] text-muted-foreground/60 text-right mt-1.5">
-                          {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-[10px] text-muted-foreground/60 text-center font-semibold mt-4">
-                      Simulated WhatsApp Cloud API delivery block.
-                    </div>
-                  </div>
-                )}
-
-                {/* ── Email Letterbox View ────────────────── */}
-                {previewTab === "email" && (
-                  <div className="bg-white border rounded-xl shadow-md p-5 text-xs space-y-4">
-                    <div className="space-y-1.5 pb-3 border-b border-border/60">
-                      <p className="text-muted-foreground font-semibold">
-                        Subject: <span className="text-foreground font-bold">{clientInterpolate(watch("email_subject") || "Outreach Campaign", previewLead)}</span>
-                      </p>
-                      <p className="text-muted-foreground font-semibold">
-                        From: <span className="text-foreground">{watch("email_from_name") || "Outreach"} &lt;{watch("email_from") || "noreply@company.com"}&gt;</span>
-                      </p>
-                    </div>
-
-                    <div className="bg-muted/10 p-4 border border-border/40 rounded-lg space-y-3 font-sans max-w-full overflow-hidden leading-relaxed">
-                      {watch("email_logo_url") && (
-                        <div className="text-center">
-                          <img src={watch("email_logo_url") || ""} alt="Logo" className="max-h-8 mx-auto" />
-                        </div>
-                      )}
-                      <h4 className="text-center font-bold text-sm text-foreground">
-                        {clientInterpolate(watch("email_title") || "Welcome", previewLead)}
-                      </h4>
-                      <p className="whitespace-pre-line text-muted-foreground">
-                        {clientInterpolate(watch("email_body") || "", previewLead)}
-                      </p>
-                      {watch("email_button_text") && (
-                        <div className="text-center py-2">
-                          <a 
-                            href={watch("email_button_url") || "#"} 
-                            target="_blank" 
-                            rel="noreferrer"
-                            className="inline-block bg-primary text-primary-foreground font-bold px-4 py-2 rounded-lg shadow-sm text-[10px] uppercase tracking-wider"
-                          >
-                            {watch("email_button_text")}
-                          </a>
-                        </div>
-                      )}
-                      <p className="text-center text-[10px] text-muted-foreground/50 border-t pt-2 mt-3 leading-snug">
-                        {clientInterpolate(watch("email_footer") || "", previewLead)}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* ── Voice Waveform View ────────────────── */}
-                {previewTab === "voice" && (
-                  <div className="bg-slate-950 text-slate-100 rounded-xl p-5 border relative min-h-[160px] flex flex-col justify-between shadow-lg">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between pb-2 border-b border-white/10">
-                        <div className="flex items-center gap-1.5">
-                          <Mic className="h-4 w-4 text-primary animate-pulse" />
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">LiveKit AI Voice Agent</span>
-                        </div>
-                        <span className="px-2 py-0.5 rounded text-[8px] bg-primary/20 text-primary font-bold uppercase tracking-widest">
-                          Voice ID: {watch("voice_id") || "anushka"} ({watch("voice_agent_type") || "livekit"})
-                        </span>
-                      </div>
-
-                      <div className="space-y-1">
-                        <span className="block text-[9px] uppercase font-bold text-slate-400 tracking-wider">Synthesized Agent Prompt</span>
-                        <p className="text-[11px] text-slate-200 bg-white/5 p-3 rounded-lg border border-white/5 whitespace-pre-line leading-relaxed italic">
-                          "{clientInterpolate(watch("voice_prompt") || "", previewLead)}"
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Interactive waveform simulation */}
-                    <div className="mt-4 flex items-center justify-between gap-4 pt-2 border-t border-white/10 shrink-0">
-                      <div className="flex items-end gap-0.5 h-6">
-                        {[4, 10, 16, 22, 14, 8, 16, 24, 20, 12, 18, 6].map((h, idx) => (
-                          <div 
-                            key={idx} 
-                            className="w-1 bg-primary rounded-full transition-all duration-300 animate-pulse"
-                            style={{ 
-                              height: `${h}px`,
-                              animationDelay: `${idx * 75}ms`,
-                              animationDuration: '900ms'
-                            }}
-                          />
-                        ))}
-                      </div>
-                      <span className="text-[9px] text-slate-400 font-medium">Bouncing audio waveforms simulate voice dialog.</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Footer */}
-              <div className="p-4 border-t border-border shrink-0 flex justify-end bg-muted/10">
+              {/* Action Footer */}
+              <div className="mt-8 pt-6 border-t border-gray-200 flex justify-end gap-3">
                 <button
                   type="button"
-                  onClick={() => setPreviewLead(null)}
-                  className="px-4 py-2 bg-foreground text-background font-bold text-xs rounded-xl shadow transition-all hover:bg-foreground/90"
+                  className="px-4 py-2.5 text-sm font-medium text-gray-500 hover:bg-gray-100 rounded-lg transition-all"
                 >
-                  Close Preview
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className={`px-6 py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-all ${isActive
+                      ? "bg-primary hover:bg-primary/95 text-primary-foreground"
+                      : "bg-slate-800 hover:bg-slate-700 text-white"
+                    }`}
+                >
+                  {saving ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : isActive ? (
+                    <>
+                      <Play className="w-4 h-4 fill-primary-foreground" />
+                      Activate Automation
+                    </>
+                  ) : (
+                    <>
+                      <Pause className="w-4 h-4 fill-slate-300" />
+                      Save Draft Settings
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        {/* Right Column (Logs) */}
+        <div className="w-[400px] border-l border-gray-200 bg-gray-50/30 h-full overflow-y-auto [&::-webkit-scrollbar]:hidden px-6 py-6">
+
+          {/* Live workflow activity feed */}
+          <div className="overflow-hidden flex flex-col mb-4">
+            <div className="py-2 border-b border-border flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Activity className={`w-4 h-4 ${autoRefresh ? "text-primary" : "text-gray-500"}`} />
+                <h3 className="font-semibold text-sm text-gray-900">Live Activity</h3>
+                {autoRefresh && (
+                  <span className="flex items-center gap-1 text-[10px] text-primary">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                    live
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-gray-500">
+                  {lastSynced ? `Synced ${lastSynced.toLocaleTimeString()}` : "Not synced"}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setAutoRefresh((v) => !v)}
+                  className={`text-[10px] px-2 py-1 rounded-lg border transition-all ${autoRefresh
+                      ? "bg-primary/10 text-primary border-primary/20"
+                      : "bg-gray-100 text-gray-500 border-border"
+                    }`}
+                  title="Toggle 10s auto-refresh"
+                >
+                  {autoRefresh ? "Auto" : "Paused"}
                 </button>
               </div>
             </div>
+            <div className="max-h-[220px] overflow-y-auto scrollbar-thin p-3 space-y-1.5 font-mono text-[10px] bg-gray-100/10">
+              {activity.length === 0 ? (
+                <p className="text-gray-500/60 text-center py-6">
+                  Waiting for workflow events… Activate automation and add a row to your sheet.
+                </p>
+              ) : (
+                activity.map((entry, i) => {
+                  const color =
+                    entry.kind === "success"
+                      ? "text-primary"
+                      : entry.kind === "error"
+                        ? "text-destructive"
+                        : entry.kind === "sync"
+                          ? "text-gray-500"
+                          : "text-blue-500";
+                  return (
+                    <div key={i} className="flex items-start gap-2 leading-relaxed">
+                      <span className="text-gray-500/50 shrink-0">{entry.ts}</span>
+                      <span className={`${color} break-all`}>{entry.message}</span>
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </div>
-        )}
+
+          <div className="overflow-hidden flex flex-col h-full min-h-[400px]">
+            <div className="py-3 border-b border-border flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileSpreadsheet className="w-4 h-4 text-primary" />
+                <h3 className="font-semibold text-sm text-gray-900">Captured Lead Logs</h3>
+              </div>
+              <button
+                onClick={() => fetchSettingsAndLeads(true)}
+                disabled={refreshing}
+                className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-500 transition-all"
+                title="Refresh logs"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} />
+              </button>
+            </div>
+
+            <div className="py-2 flex-1 max-h-[600px] overflow-y-auto space-y-3 pr-2 scrollbar-thin">
+              {capturedLeads.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                  <FileSpreadsheet className="w-10 h-10 text-gray-500/30 mb-3" />
+                  <p className="text-sm font-medium text-gray-500">No leads captured yet</p>
+                  <p className="text-xs text-gray-500/50 mt-1 max-w-sm">
+                    Active automation will poll the Google Sheet every 30 seconds and list processed rows here.
+                  </p>
+                </div>
+              ) : (
+                capturedLeads.map((lead) => (
+                  <div
+                    key={lead.id}
+                    className="bg-white rounded-xl border border-border p-4 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in slide-in-from-bottom-2 duration-200"
+                  >
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div className="rounded-lg p-2 bg-primary/5 text-primary shrink-0 border border-primary/10">
+                        <FileSpreadsheet className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className="font-bold text-xs text-gray-900 flex flex-wrap items-center gap-1.5 leading-snug">
+                          <span>{lead.name || "Unknown Lead"}</span>
+                          {lead.status === "failed" ? (
+                            <span className="px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider bg-red-50 text-red-600 border border-red-200">Failed</span>
+                          ) : lead.status === "sent" ? (
+                            <span className="px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-200">Success</span>
+                          ) : lead.status === "processing" ? (
+                            <span className="px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider bg-blue-50 text-blue-600 border border-blue-200 animate-pulse">Running</span>
+                          ) : (
+                            <span className="px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider bg-gray-100 text-gray-500 border border-border">In Queue</span>
+                          )}
+                        </h4>
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-gray-500 mt-1 font-semibold">
+                          <span className="font-mono">{lead.phone}</span>
+                          {lead.email && <span>• {lead.email}</span>}
+                          <span>• Synced {formatDate(lead.created_at)}</span>
+                        </div>
+
+                        {/* Deliveries outcome breakdown */}
+                        {renderChannelBreakdown(lead)}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        onClick={() => {
+                          playTestSound();
+                          setPreviewLead(lead);
+                          setPreviewTab("whatsapp");
+                        }}
+                        className="inline-flex items-center justify-center rounded-lg text-xs font-bold border border-border bg-white hover:bg-gray-100 text-gray-500 h-8 px-3 gap-1.5 transition-all shadow-xs"
+                        title="Preview Outreach Campaign Mockup"
+                      >
+                        <Eye className="h-3.5 w-3.5 text-primary" /> Test / Preview
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* Campaign Outreach Mockup Preview Modal */}
+      {previewLead && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 backdrop-blur-xs">
+          <div className="bg-white w-[540px] rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 border flex flex-col max-h-[85vh]">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
+              <div>
+                <h3 className="text-sm font-bold uppercase tracking-wider text-gray-900">Lead Campaign Preview</h3>
+                <p className="text-[10px] text-gray-500 mt-0.5 font-semibold">
+                  Simulating live variables substitution for {previewLead.name || "John Doe"}
+                </p>
+              </div>
+              <button
+                onClick={() => setPreviewLead(null)}
+                className="p-1.5 hover:bg-gray-100 rounded-full text-gray-500 transition-all"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Lead detail & variables overview panel */}
+            <div className="bg-gray-100/30 px-5 py-4 border-b border-border shrink-0 text-xs">
+              <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                <div>
+                  <span className="block text-[9px] uppercase font-bold text-gray-500 tracking-wider">Full Name</span>
+                  <span className="font-semibold text-gray-900">{previewLead.name || "—"}</span>
+                </div>
+                <div>
+                  <span className="block text-[9px] uppercase font-bold text-gray-500 tracking-wider">Phone</span>
+                  <span className="font-semibold text-gray-900 font-mono">{previewLead.phone}</span>
+                </div>
+                {previewLead.email && (
+                  <div className="col-span-2">
+                    <span className="block text-[9px] uppercase font-bold text-gray-500 tracking-wider">Email Address</span>
+                    <span className="font-semibold text-gray-900">{previewLead.email}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Custom sheet variables */}
+              {previewLead.channel_status?.custom_fields && Object.keys(previewLead.channel_status.custom_fields).length > 0 && (
+                <div className="mt-3 border-t border-border/40 pt-2.5">
+                  <span className="block text-[9px] uppercase font-bold text-gray-500 tracking-widest mb-1.5">
+                    Spreadsheet Variables (Parsed)
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {Object.entries(previewLead.channel_status.custom_fields).map(([key, val]) => (
+                      <span
+                        key={key}
+                        className="inline-flex items-center gap-1 bg-white border border-border/60 rounded px-1.5 py-0.5 text-[9px] text-gray-900 font-mono shadow-2xs"
+                      >
+                        <span className="text-primary font-bold">{key}:</span>
+                        <span className="font-semibold">{String(val)}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Channel Tabs */}
+            <div className="flex border-b text-xs bg-gray-100/10 shrink-0">
+              {[
+                { id: "whatsapp", label: "WhatsApp Message", icon: MessageSquare },
+                { id: "email", label: "Email Template", icon: Mail },
+                { id: "voice", label: "Voice Agent Prompt", icon: Mic },
+              ].map(t => (
+                <button
+                  key={t.id}
+                  onClick={() => setPreviewTab(t.id as any)}
+                  className={cn(
+                    "flex-1 flex items-center justify-center gap-1.5 py-2.5 font-bold transition-all border-b-2 outline-none",
+                    previewTab === t.id
+                      ? "border-primary text-primary bg-white shadow-2xs"
+                      : "border-transparent text-gray-500 hover:text-gray-900"
+                  )}
+                >
+                  <t.icon className="h-3.5 w-3.5" />
+                  {t.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Preview Body */}
+            <div className="p-5 overflow-y-auto flex-1 bg-gray-100/5 min-h-[220px]">
+              {/* ── WhatsApp Bubble View ────────────────── */}
+              {previewTab === "whatsapp" && (
+                <div className="bg-[#e5ddd5] rounded-xl p-4 border relative min-h-[160px] flex flex-col justify-between shadow-inner">
+                  <div className="space-y-2">
+                    <div className="bg-white rounded-lg p-3 max-w-[85%] text-xs shadow-xs text-gray-900 leading-relaxed relative">
+                      <div className="font-bold text-primary mb-1 flex items-center gap-1">
+                        <span>📢 Meta WhatsApp Template</span>
+                        <span className="px-1 py-0.5 rounded text-[8px] bg-primary/10 uppercase tracking-widest">
+                          {watch("template_language") || "en"}
+                        </span>
+                      </div>
+                      <p className="font-semibold mb-1 text-gray-500 text-[10px]">
+                        Template Name: <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded">{watch("template_name") || "hello_world"}</span>
+                      </p>
+                      <p className="text-gray-900 leading-relaxed mt-2 bg-gray-100/20 p-2 rounded-lg italic">
+                        "Meta templates are rendered dynamically on the recipient's phone with variables mapping names and numbers."
+                      </p>
+                      <span className="block text-[8px] text-gray-500/60 text-right mt-1.5">
+                        {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-[10px] text-gray-500/60 text-center font-semibold mt-4">
+                    Simulated WhatsApp Cloud API delivery block.
+                  </div>
+                </div>
+              )}
+
+              {/* ── Email Letterbox View ────────────────── */}
+              {previewTab === "email" && (
+                <div className="bg-white border rounded-xl shadow-md p-5 text-xs space-y-4">
+                  <div className="space-y-1.5 pb-3 border-b border-border/60">
+                    <p className="text-gray-500 font-semibold">
+                      Subject: <span className="text-gray-900 font-bold">{clientInterpolate(watch("email_subject") || "Outreach Campaign", previewLead)}</span>
+                    </p>
+                    <p className="text-gray-500 font-semibold">
+                      From: <span className="text-gray-900">{watch("email_from_name") || "Outreach"} &lt;{watch("email_from") || "noreply@company.com"}&gt;</span>
+                    </p>
+                  </div>
+
+                  <div className="bg-gray-100/10 p-4 border border-border/40 rounded-lg space-y-3 font-sans max-w-full overflow-hidden leading-relaxed">
+                    {watch("email_logo_url") && (
+                      <div className="text-center">
+                        <img src={watch("email_logo_url") || ""} alt="Logo" className="max-h-8 mx-auto" />
+                      </div>
+                    )}
+                    <h4 className="text-center font-bold text-sm text-gray-900">
+                      {clientInterpolate(watch("email_title") || "Welcome", previewLead)}
+                    </h4>
+                    <p className="whitespace-pre-line text-gray-500">
+                      {clientInterpolate(watch("email_body") || "", previewLead)}
+                    </p>
+                    {watch("email_button_text") && (
+                      <div className="text-center py-2">
+                        <a
+                          href={watch("email_button_url") || "#"}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-block bg-primary text-primary-foreground font-bold px-4 py-2 rounded-lg shadow-sm text-[10px] uppercase tracking-wider"
+                        >
+                          {watch("email_button_text")}
+                        </a>
+                      </div>
+                    )}
+                    <p className="text-center text-[10px] text-gray-500/50 border-t pt-2 mt-3 leading-snug">
+                      {clientInterpolate(watch("email_footer") || "", previewLead)}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Voice Waveform View ────────────────── */}
+              {previewTab === "voice" && (
+                <div className="bg-slate-950 text-slate-100 rounded-xl p-5 border relative min-h-[160px] flex flex-col justify-between shadow-lg">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                      <div className="flex items-center gap-1.5">
+                        <Mic className="h-4 w-4 text-primary animate-pulse" />
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">LiveKit AI Voice Agent</span>
+                      </div>
+                      <span className="px-2 py-0.5 rounded text-[8px] bg-primary/20 text-primary font-bold uppercase tracking-widest">
+                        Voice ID: {watch("voice_id") || "anushka"} ({watch("voice_agent_type") || "livekit"})
+                      </span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <span className="block text-[9px] uppercase font-bold text-slate-400 tracking-wider">Synthesized Agent Prompt</span>
+                      <p className="text-[11px] text-slate-200 bg-white/5 p-3 rounded-lg border border-white/5 whitespace-pre-line leading-relaxed italic">
+                        "{clientInterpolate(watch("voice_prompt") || "", previewLead)}"
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Interactive waveform simulation */}
+                  <div className="mt-4 flex items-center justify-between gap-4 pt-2 border-t border-white/10 shrink-0">
+                    <div className="flex items-end gap-0.5 h-6">
+                      {[4, 10, 16, 22, 14, 8, 16, 24, 20, 12, 18, 6].map((h, idx) => (
+                        <div
+                          key={idx}
+                          className="w-1 bg-primary rounded-full transition-all duration-300 animate-pulse"
+                          style={{
+                            height: `${h}px`,
+                            animationDelay: `${idx * 75}ms`,
+                            animationDuration: '900ms'
+                          }}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-[9px] text-slate-400 font-medium">Bouncing audio waveforms simulate voice dialog.</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-border shrink-0 flex justify-end bg-gray-100/10">
+              <button
+                type="button"
+                onClick={() => setPreviewLead(null)}
+                className="px-4 py-2 bg-foreground text-background font-bold text-xs rounded-xl shadow transition-all hover:bg-foreground/90"
+              >
+                Close Preview
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

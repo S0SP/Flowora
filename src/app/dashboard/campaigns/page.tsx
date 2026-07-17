@@ -32,7 +32,7 @@ type Campaign = {
 type Template = { name: string; language: string; display_name: string; category: string }
 
 const STATUS_CONFIG: Record<CampaignStatus, { label: string; dot: string; badge: string; icon: React.ElementType }> = {
-  draft:     { label: "Draft",      dot: "bg-gray-400",  badge: "bg-gray-100 text-gray-600",    icon: MessageSquare },
+  draft:     { label: "Draft",      dot: "bg-gray-400",  badge: "bg-gray-100 text-gray-500",    icon: MessageSquare },
   scheduled: { label: "Scheduled",  dot: "bg-blue-400",  badge: "bg-blue-100 text-blue-700",    icon: Calendar      },
   running:   { label: "Running",    dot: "bg-amber-400 animate-pulse", badge: "bg-amber-100 text-amber-700", icon: Play },
   completed: { label: "Completed",  dot: "bg-green-500", badge: "bg-green-100 text-green-700",  icon: CheckCircle2  },
@@ -96,17 +96,17 @@ function CreateCampaignModal({ onClose, onCreated }: { onClose: () => void; onCr
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-border sticky top-0 bg-white z-10">
           <div>
-            <h2 className="text-[18px] font-bold text-foreground">New Campaign</h2>
-            <p className="text-[13px] text-muted-foreground">Step {step} of 3</p>
+            <h2 className="text-[18px] font-bold text-gray-900">New Campaign</h2>
+            <p className="text-[13px] text-gray-500">Step {step} of 3</p>
           </div>
-          <button onClick={onClose}><X className="h-5 w-5 text-muted-foreground" /></button>
+          <button onClick={onClose}><X className="h-5 w-5 text-gray-500" /></button>
         </div>
 
         {/* Step progress */}
         <div className="px-6 pt-4 flex items-center gap-2">
           {[1, 2, 3].map(s => (
             <div key={s} className={cn("flex-1 h-1.5 rounded-full transition-colors",
-              s <= step ? "bg-primary" : "bg-muted")} />
+              s <= step ? "bg-primary" : "bg-gray-100")} />
           ))}
         </div>
 
@@ -115,8 +115,8 @@ function CreateCampaignModal({ onClose, onCreated }: { onClose: () => void; onCr
           {step === 1 && (
             <>
               <div>
-                <h3 className="text-[15px] font-semibold text-foreground mb-1">Campaign Name</h3>
-                <p className="text-[13px] text-muted-foreground mb-3">Give your campaign a descriptive name</p>
+                <h3 className="text-[15px] font-semibold text-gray-900 mb-1">Campaign Name</h3>
+                <p className="text-[13px] text-gray-500 mb-3">Give your campaign a descriptive name</p>
                 <input
                   type="text" value={name} onChange={e => setName(e.target.value)}
                   placeholder="e.g. Webinar Invite Jan 2026"
@@ -124,8 +124,8 @@ function CreateCampaignModal({ onClose, onCreated }: { onClose: () => void; onCr
                 />
               </div>
               <div>
-                <h3 className="text-[15px] font-semibold text-foreground mb-1">Recipients</h3>
-                <p className="text-[13px] text-muted-foreground mb-3">Select who receives this campaign</p>
+                <h3 className="text-[15px] font-semibold text-gray-900 mb-1">Recipients</h3>
+                <p className="text-[13px] text-gray-500 mb-3">Select who receives this campaign</p>
                 <div className="grid grid-cols-2 gap-3">
                   {[
                     { value: "all", label: "All Contacts", desc: "Send to entire contact list" },
@@ -140,8 +140,8 @@ function CreateCampaignModal({ onClose, onCreated }: { onClose: () => void; onCr
                         recipientFilter === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/30"
                       )}
                     >
-                      <p className="text-[13px] font-medium text-foreground">{opt.label}</p>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">{opt.desc}</p>
+                      <p className="text-[13px] font-medium text-gray-900">{opt.label}</p>
+                      <p className="text-[11px] text-gray-500 mt-0.5">{opt.desc}</p>
                     </button>
                   ))}
                 </div>
@@ -153,20 +153,20 @@ function CreateCampaignModal({ onClose, onCreated }: { onClose: () => void; onCr
           {step === 2 && (
             <>
               <div>
-                <h3 className="text-[15px] font-semibold text-foreground mb-1">Select WhatsApp Template</h3>
-                <p className="text-[13px] text-muted-foreground mb-3">
+                <h3 className="text-[15px] font-semibold text-gray-900 mb-1">Select WhatsApp Template</h3>
+                <p className="text-[13px] text-gray-500 mb-3">
                   Only approved Meta templates can be used for broadcasts
                 </p>
                 {loadingTemplates ? (
-                  <div className="flex items-center justify-center py-8 gap-2 text-muted-foreground">
+                  <div className="flex items-center justify-center py-8 gap-2 text-gray-500">
                     <Loader2 className="h-4 w-4 animate-spin" />
                     <span className="text-[13px]">Loading templates from Meta…</span>
                   </div>
                 ) : templates.length === 0 ? (
                   <div className="text-center py-8 border-2 border-dashed border-border rounded-xl">
-                    <MessageSquare className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
-                    <p className="text-[13px] text-muted-foreground">No approved templates found</p>
-                    <p className="text-[12px] text-muted-foreground/70 mt-1">
+                    <MessageSquare className="h-8 w-8 text-gray-500/40 mx-auto mb-2" />
+                    <p className="text-[13px] text-gray-500">No approved templates found</p>
+                    <p className="text-[12px] text-gray-500/70 mt-1">
                       Create and get templates approved in Meta Business Manager
                     </p>
                   </div>
@@ -184,14 +184,14 @@ function CreateCampaignModal({ onClose, onCreated }: { onClose: () => void; onCr
                         )}
                       >
                         <div className="flex items-center justify-between">
-                          <p className="text-[14px] font-semibold text-foreground">{t.display_name}</p>
+                          <p className="text-[14px] font-semibold text-gray-900">{t.display_name}</p>
                           <div className="flex items-center gap-2">
                             <span className="text-[11px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">Approved</span>
-                            <span className="text-[11px] text-muted-foreground">{t.language}</span>
+                            <span className="text-[11px] text-gray-500">{t.language}</span>
                           </div>
                         </div>
-                        <p className="text-[12px] text-muted-foreground mt-0.5 capitalize">{t.category?.toLowerCase()}</p>
-                        <p className="text-[11px] text-muted-foreground/70 font-mono mt-1">{t.name}</p>
+                        <p className="text-[12px] text-gray-500 mt-0.5 capitalize">{t.category?.toLowerCase()}</p>
+                        <p className="text-[11px] text-gray-500/70 font-mono mt-1">{t.name}</p>
                       </button>
                     ))}
                   </div>
@@ -204,8 +204,8 @@ function CreateCampaignModal({ onClose, onCreated }: { onClose: () => void; onCr
           {step === 3 && (
             <div className="space-y-5">
               <div>
-                <h3 className="text-[15px] font-semibold text-foreground mb-1">Schedule Campaign</h3>
-                <p className="text-[13px] text-muted-foreground mb-3">Send now or schedule for later</p>
+                <h3 className="text-[15px] font-semibold text-gray-900 mb-1">Schedule Campaign</h3>
+                <p className="text-[13px] text-gray-500 mb-3">Send now or schedule for later</p>
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   <button
                     onClick={() => setScheduledAt("")}
@@ -214,8 +214,8 @@ function CreateCampaignModal({ onClose, onCreated }: { onClose: () => void; onCr
                     )}
                   >
                     <Zap className="h-5 w-5 text-primary mb-2" />
-                    <p className="text-[14px] font-semibold text-foreground">Send Now</p>
-                    <p className="text-[12px] text-muted-foreground mt-0.5">Launch immediately</p>
+                    <p className="text-[14px] font-semibold text-gray-900">Send Now</p>
+                    <p className="text-[12px] text-gray-500 mt-0.5">Launch immediately</p>
                   </button>
                   <button
                     onClick={() => !scheduledAt && setScheduledAt(new Date(Date.now() + 3600000).toISOString().slice(0, 16))}
@@ -224,8 +224,8 @@ function CreateCampaignModal({ onClose, onCreated }: { onClose: () => void; onCr
                     )}
                   >
                     <Calendar className="h-5 w-5 text-blue-600 mb-2" />
-                    <p className="text-[14px] font-semibold text-foreground">Schedule Later</p>
-                    <p className="text-[12px] text-muted-foreground mt-0.5">Pick a date & time</p>
+                    <p className="text-[14px] font-semibold text-gray-900">Schedule Later</p>
+                    <p className="text-[12px] text-gray-500 mt-0.5">Pick a date & time</p>
                   </button>
                 </div>
 
@@ -249,8 +249,8 @@ function CreateCampaignModal({ onClose, onCreated }: { onClose: () => void; onCr
               </div>
 
               {/* Summary */}
-              <div className="bg-muted/50 rounded-xl p-4 space-y-2">
-                <h4 className="text-[13px] font-semibold text-foreground mb-2">Campaign Summary</h4>
+              <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+                <h4 className="text-[13px] font-semibold text-gray-900 mb-2">Campaign Summary</h4>
                 {[
                   ["Name", name],
                   ["Template", selectedTemplate?.display_name ?? "—"],
@@ -259,8 +259,8 @@ function CreateCampaignModal({ onClose, onCreated }: { onClose: () => void; onCr
                   ["Launch", scheduledAt ? format(new Date(scheduledAt), "dd MMM yyyy, HH:mm") : "Immediately"],
                 ].map(([k, v]) => (
                   <div key={k} className="flex items-center justify-between text-[13px]">
-                    <span className="text-muted-foreground">{k}</span>
-                    <span className="font-medium text-foreground capitalize">{v}</span>
+                    <span className="text-gray-500">{k}</span>
+                    <span className="font-medium text-gray-900 capitalize">{v}</span>
                   </div>
                 ))}
               </div>
@@ -272,7 +272,7 @@ function CreateCampaignModal({ onClose, onCreated }: { onClose: () => void; onCr
         <div className="p-6 pt-0 flex gap-3">
           {step > 1 && (
             <button onClick={() => setStep(s => s - 1)}
-              className="flex-1 border border-border rounded-xl py-3 text-[14px] font-medium hover:bg-muted">
+              className="flex-1 border border-border rounded-xl py-3 text-[14px] font-medium hover:bg-gray-100">
               ← Back
             </button>
           )}
@@ -359,13 +359,13 @@ export default function CampaignsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Broadcast Campaigns</h1>
-          <p className="text-[14px] text-muted-foreground mt-0.5">
+          <h1 className="text-2xl font-bold text-gray-900">Broadcast Campaigns</h1>
+          <p className="text-[14px] text-gray-500 mt-0.5">
             Send WhatsApp template messages to your contacts at scale
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={fetchCampaigns} className="p-2 rounded-xl border border-border bg-white hover:bg-muted text-muted-foreground">
+          <button onClick={fetchCampaigns} className="p-2 rounded-xl border border-border bg-white hover:bg-gray-100 text-gray-500">
             <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
           </button>
           <button
@@ -386,8 +386,8 @@ export default function CampaignsPage() {
           { label: "Running", value: counts.running, color: "text-amber-600" },
         ].map((s, i) => (
           <div key={i} className="bg-white border border-border rounded-xl p-4 shadow-sm">
-            <p className="text-[12px] text-muted-foreground">{s.label}</p>
-            <p className={cn("text-[22px] font-bold mt-0.5", s.color ?? "text-foreground")}>{s.value}</p>
+            <p className="text-[12px] text-gray-500">{s.label}</p>
+            <p className={cn("text-[22px] font-bold mt-0.5", s.color ?? "text-gray-900")}>{s.value}</p>
           </div>
         ))}
       </div>
@@ -395,7 +395,7 @@ export default function CampaignsPage() {
       {/* Filters */}
       <div className="flex items-center gap-3 flex-wrap">
         <div className="relative flex-1 min-w-52">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
           <input
             type="text" value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Search campaigns…"
@@ -405,7 +405,7 @@ export default function CampaignsPage() {
         {(["all", "scheduled", "running", "completed", "failed", "draft"] as const).map(f => (
           <button key={f} onClick={() => setFilter(f)}
             className={cn("px-3 py-2 rounded-xl text-[13px] font-medium transition-all",
-              filter === f ? "bg-foreground text-background" : "bg-white border border-border text-muted-foreground hover:text-foreground"
+              filter === f ? "bg-foreground text-background" : "bg-white border border-border text-gray-500 hover:text-gray-900"
             )}>
             {f.charAt(0).toUpperCase() + f.slice(1)}
             {f !== "all" && counts[f] !== undefined && ` (${counts[f as keyof typeof counts] ?? 0})`}
@@ -415,17 +415,17 @@ export default function CampaignsPage() {
 
       {/* Table */}
       {loading ? (
-        <div className="bg-white border border-border rounded-2xl p-8 flex items-center justify-center gap-2 text-muted-foreground">
+        <div className="bg-white border border-border rounded-2xl p-8 flex items-center justify-center gap-2 text-gray-500">
           <Loader2 className="h-5 w-5 animate-spin" />
           <span className="text-[14px]">Loading campaigns…</span>
         </div>
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
-            <Megaphone className="h-8 w-8 text-muted-foreground/40" />
+          <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+            <Megaphone className="h-8 w-8 text-gray-500/40" />
           </div>
-          <p className="text-lg font-semibold text-foreground">No campaigns yet</p>
-          <p className="text-[14px] text-muted-foreground mt-1 mb-5">
+          <p className="text-lg font-semibold text-gray-900">No campaigns yet</p>
+          <p className="text-[14px] text-gray-500 mt-1 mb-5">
             Launch your first WhatsApp broadcast campaign
           </p>
           <button
@@ -441,7 +441,7 @@ export default function CampaignsPage() {
             <thead className="bg-[#FAFAF8] border-b border-border">
               <tr>
                 {["Campaign", "Template", "Status", "Scheduled", "Recipients", "Delivered", "Actions"].map(h => (
-                  <th key={h} className="text-left px-5 py-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  <th key={h} className="text-left px-5 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
                     {h}
                   </th>
                 ))}
@@ -453,18 +453,18 @@ export default function CampaignsPage() {
                 const StatusIcon = cfg.icon
                 const isLastRow = idx === filtered.length - 1
                 return (
-                  <tr key={c.id} className="hover:bg-muted/20 transition-colors">
+                  <tr key={c.id} className="hover:bg-gray-100/20 transition-colors">
                     <td className="px-5 py-4">
-                      <p className="text-[14px] font-semibold text-foreground">{c.name}</p>
-                      <p className="text-[12px] text-muted-foreground">
+                      <p className="text-[14px] font-semibold text-gray-900">{c.name}</p>
+                      <p className="text-[12px] text-gray-500">
                         {format(new Date(c.created_at), "dd MMM yyyy")}
                       </p>
                     </td>
                     <td className="px-5 py-4">
-                      <p className="text-[13px] text-foreground font-medium truncate max-w-[160px]">
+                      <p className="text-[13px] text-gray-900 font-medium truncate max-w-[160px]">
                         {c.template_name.replace(/_/g, " ")}
                       </p>
-                      <p className="text-[11px] text-muted-foreground">{c.template_language}</p>
+                      <p className="text-[11px] text-gray-500">{c.template_language}</p>
                     </td>
                     <td className="px-5 py-4">
                       <span className={cn("inline-flex items-center gap-1.5 text-[12px] font-medium px-2.5 py-1 rounded-full", cfg.badge)}>
@@ -472,12 +472,12 @@ export default function CampaignsPage() {
                         {cfg.label}
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-[13px] text-muted-foreground">
+                    <td className="px-5 py-4 text-[13px] text-gray-500">
                       {c.scheduled_at
                         ? format(new Date(c.scheduled_at), "dd MMM, HH:mm")
                         : "—"}
                     </td>
-                    <td className="px-5 py-4 text-[14px] text-foreground">{c.recipient_count.toLocaleString()}</td>
+                    <td className="px-5 py-4 text-[14px] text-gray-900">{c.recipient_count.toLocaleString()}</td>
                     <td className="px-5 py-4">
                       <span className="text-[14px] text-green-600 font-medium">{c.delivered_count.toLocaleString()}</span>
                       {c.failed_count > 0 && (
@@ -489,7 +489,7 @@ export default function CampaignsPage() {
                         <div className="relative">
                           <button
                             onClick={() => setMenuId(menuId === c.id ? null : c.id)}
-                            className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground"
+                            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500"
                           >
                             <MoreHorizontal className="h-4 w-4" />
                           </button>

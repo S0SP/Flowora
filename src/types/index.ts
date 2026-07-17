@@ -11,6 +11,7 @@ export interface Contact {
   email: string | null;
   status: ContactStatus;
   tags: string[];
+  custom_fields?: Record<string, any>;
   message_count: number;
   last_message_at: string | null;
   created_at: string;

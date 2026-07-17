@@ -50,9 +50,9 @@ export function TagsAndFieldsPanel() {
 
       if (error) throw error;
       setTags(data || []);
-    } catch (err) {
-      console.error("Failed to fetch tags:", err);
-      toast.error("Failed to load tags");
+    } catch (err: any) {
+      console.error("Failed to fetch tags:", err?.message || err);
+      toast.error(err?.message || "Failed to load tags");
     } finally {
       setTagsLoading(false);
     }
@@ -66,13 +66,13 @@ export function TagsAndFieldsPanel() {
         .from("custom_field_schemas")
         .select("*")
         .eq("workspace_id", wsId)
-        .order("field_name", { ascending: true });
+        .order("name", { ascending: true });
 
       if (error) throw error;
       setFields(data || []);
-    } catch (err) {
-      console.error("Failed to fetch fields:", err);
-      toast.error("Failed to load custom fields");
+    } catch (err: any) {
+      console.error("Failed to fetch fields:", err?.message || err);
+      toast.error(err?.message || "Failed to load custom fields");
     } finally {
       setFieldsLoading(false);
     }
@@ -114,7 +114,7 @@ export function TagsAndFieldsPanel() {
       await fetchTags(workspace.id);
     } catch (err) {
       console.error("Tag create error:", err);
-      toast.error("Failed to create tag");
+      toast.error(`Failed to create tag: ${(err as Error)?.message || JSON.stringify(err)}`);
     } finally {
       setTagSaving(false);
     }
@@ -147,7 +147,7 @@ export function TagsAndFieldsPanel() {
   const isDuplicateField = (name: string, exceptId?: string): boolean => {
     const lower = name.toLowerCase();
     return fields.some(
-      (f) => f.id !== exceptId && f.field_name.toLowerCase() === lower
+      (f) => f.id !== exceptId && f.name.toLowerCase() === lower
     );
   };
 
@@ -168,8 +168,8 @@ export function TagsAndFieldsPanel() {
       const { error } = await supabase.from("custom_field_schemas").insert({
         workspace_id: workspace.id,
         created_by: profile.id,
-        field_name: name,
-        field_type: "text",
+        name: name,
+        type: "text",
       });
 
       if (error) throw error;
@@ -187,7 +187,7 @@ export function TagsAndFieldsPanel() {
 
   const handleRenameField = async (field: any, nextName: string) => {
     const name = nextName.trim();
-    if (!name || name === field.field_name) return;
+    if (!name || name === field.name) return;
     if (isDuplicateField(name, field.id)) {
       toast.error(`A field named "${name}" already exists.`);
       return;
@@ -197,7 +197,7 @@ export function TagsAndFieldsPanel() {
       setBusyFieldId(field.id);
       const { error } = await supabase
         .from("custom_field_schemas")
-        .update({ field_name: name })
+        .update({ name: name })
         .eq("id", field.id);
 
       if (error) throw error;
@@ -212,7 +212,7 @@ export function TagsAndFieldsPanel() {
   };
 
   const handleDeleteField = async (field: any) => {
-    if (!window.confirm(`Delete field "${field.field_name}"? This removes its stored value on every contact and cannot be undone.`)) {
+    if (!window.confirm(`Delete field "${field.name}"? This removes its stored value on every contact and cannot be undone.`)) {
       return;
     }
 
@@ -224,7 +224,7 @@ export function TagsAndFieldsPanel() {
         .eq("id", field.id);
 
       if (error) throw error;
-      toast.success(`Deleted field "${field.field_name}"`);
+      toast.success(`Deleted field "${field.name}"`);
       await fetchFields(workspace.id);
     } catch (err) {
       console.error("Delete field error:", err);
@@ -237,8 +237,8 @@ export function TagsAndFieldsPanel() {
   return (
     <div className="max-w-[800px] animate-in fade-in-50 duration-200 space-y-6">
       <div>
-        <h1 className="text-[22px] font-bold text-foreground mb-1">Fields & Tags</h1>
-        <p className="text-[14px] text-muted-foreground">
+        <h1 className="text-[22px] font-bold text-gray-900 mb-1">Fields & Tags</h1>
+        <p className="text-[14px] text-gray-500">
           Organize your inbox contacts using color-coded tags and structured custom fields.
         </p>
       </div>
@@ -247,7 +247,7 @@ export function TagsAndFieldsPanel() {
       <div className="bg-white border border-border rounded-xl p-6 shadow-sm space-y-5">
         <div className="border-b border-border pb-3 flex items-center gap-2">
           <TagIcon className="size-4 text-primary" />
-          <h3 className="text-[15px] font-semibold text-foreground">Tags Configuration</h3>
+          <h3 className="text-[15px] font-semibold text-gray-900">Tags Configuration</h3>
         </div>
 
         {tagsLoading ? (
@@ -282,7 +282,7 @@ export function TagsAndFieldsPanel() {
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-muted-foreground">No tags defined yet.</p>
+              <p className="text-xs text-gray-500">No tags defined yet.</p>
             )}
 
             {canEditSettings && (
@@ -313,7 +313,7 @@ export function TagsAndFieldsPanel() {
                 <button
                   onClick={handleCreateTag}
                   disabled={tagSaving || !newTagName.trim()}
-                  className="flex items-center gap-1 px-4 py-2 border border-border bg-white hover:bg-muted text-[13px] font-semibold text-foreground rounded-lg shadow-sm disabled:opacity-50"
+                  className="flex items-center gap-1 px-4 py-2 border border-border bg-white hover:bg-gray-100 text-[13px] font-semibold text-gray-900 rounded-lg shadow-sm disabled:opacity-50"
                 >
                   {tagSaving ? <Loader2 className="size-3.5 animate-spin" /> : <Plus className="size-3.5" />}
                   Add Tag
@@ -328,7 +328,7 @@ export function TagsAndFieldsPanel() {
       <div className="bg-white border border-border rounded-xl p-6 shadow-sm space-y-5">
         <div className="border-b border-border pb-3 flex items-center gap-2">
           <SlidersHorizontal className="size-4 text-primary" />
-          <h3 className="text-[15px] font-semibold text-foreground">Custom Contact Fields</h3>
+          <h3 className="text-[15px] font-semibold text-gray-900">Custom Contact Fields</h3>
         </div>
 
         {fieldsLoading ? (
@@ -337,32 +337,32 @@ export function TagsAndFieldsPanel() {
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="border border-border rounded-lg overflow-hidden bg-muted/10">
+            <div className="border border-border rounded-lg overflow-hidden bg-gray-100/10">
               {fields.length === 0 ? (
-                <p className="p-6 text-center text-xs text-muted-foreground bg-white">No custom fields defined yet.</p>
+                <p className="p-6 text-center text-xs text-gray-500 bg-white">No custom fields defined yet.</p>
               ) : (
                 <ul className="divide-y divide-border bg-white">
                   {fields.map((field) => (
                     <li key={field.id} className="flex items-center justify-between gap-3 px-4 py-2.5">
                       <input
                         type="text"
-                        defaultValue={field.field_name}
+                        defaultValue={field.name}
                         disabled={busyFieldId === field.id || !canEditSettings}
                         onBlur={(e) => handleRenameField(field, e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
                         className="flex-1 bg-transparent text-[13px] border border-transparent hover:border-border focus:border-primary rounded px-2 py-1 outline-none transition-colors font-medium disabled:hover:border-transparent disabled:cursor-not-allowed"
                       />
-                      <span className="text-[11px] font-semibold uppercase px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border">
-                        {field.field_type}
+                      <span className="text-[11px] font-semibold uppercase px-2 py-0.5 rounded bg-gray-100 text-gray-500 border border-border">
+                        {field.type}
                       </span>
                       {canEditSettings && (
                         <button
                           onClick={() => handleDeleteField(field)}
                           disabled={busyFieldId === field.id}
-                          className="text-muted-foreground hover:text-red-600 transition-colors p-1"
+                          className="text-gray-500 hover:text-red-600 transition-colors p-1"
                         >
                           {busyFieldId === field.id ? (
-                            <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                            <Loader2 className="size-4 animate-spin text-gray-500" />
                           ) : (
                             <Trash2 className="size-4" />
                           )}
@@ -388,7 +388,7 @@ export function TagsAndFieldsPanel() {
                 <button
                   onClick={handleCreateField}
                   disabled={fieldCreating || !newFieldName.trim()}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary/95 text-foreground font-semibold text-[13px] rounded-lg shadow-sm disabled:opacity-50 shrink-0"
+                  className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary/95 text-gray-900 font-semibold text-[13px] rounded-lg shadow-sm disabled:opacity-50 shrink-0"
                 >
                   {fieldCreating ? <Loader2 className="size-3.5 animate-spin" /> : <Plus className="size-3.5" />}
                   Add Field
@@ -403,14 +403,14 @@ export function TagsAndFieldsPanel() {
       {tagToDelete && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setTagToDelete(null)}>
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-[16px] font-bold text-foreground mb-2">Delete Tag</h3>
-            <p className="text-[13px] text-muted-foreground mb-5">
+            <h3 className="text-[16px] font-bold text-gray-900 mb-2">Delete Tag</h3>
+            <p className="text-[13px] text-gray-500 mb-5">
               Are you sure you want to delete the tag <strong>&quot;{tagToDelete.name}&quot;</strong>? This will remove it from all contacts and cannot be undone.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setTagToDelete(null)}
-                className="flex-1 py-2 border border-border rounded-lg text-[13px] font-medium text-foreground hover:bg-muted"
+                className="flex-1 py-2 border border-border rounded-lg text-[13px] font-medium text-gray-900 hover:bg-gray-100"
               >
                 Cancel
               </button>

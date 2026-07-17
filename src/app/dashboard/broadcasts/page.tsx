@@ -154,17 +154,17 @@ export default function BroadcastsPage() {
   }
 
   return (
-    <div className="absolute inset-0 flex flex-col bg-muted/30 overflow-hidden">
+    <div className="absolute inset-0 flex flex-col bg-gray-100/30 overflow-hidden">
 
       {/* Header */}
       <div className="bg-white border-b border-border px-8 py-5 shrink-0">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-[22px] font-bold text-foreground flex items-center gap-2.5">
+            <h1 className="text-[22px] font-bold text-gray-900 flex items-center gap-2.5">
               <Megaphone className="h-6 w-6 text-primary" />
               Broadcasts
             </h1>
-            <p className="text-[13px] text-muted-foreground mt-0.5">Send WhatsApp message templates to multiple contacts at once</p>
+            <p className="text-[13px] text-gray-500 mt-0.5">Send WhatsApp message templates to multiple contacts at once</p>
           </div>
           <button
             onClick={openModal}
@@ -185,12 +185,12 @@ export default function BroadcastsPage() {
             { label: "Messages Sent", value: stats.totalSent.toLocaleString(), icon: Send, color: "text-blue-600" },
           ].map(s => (
             <div key={s.label} className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-muted/50 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center shrink-0">
                 <s.icon className={cn("h-5 w-5", s.color)} />
               </div>
               <div>
-                <div className="text-[20px] font-bold text-foreground leading-tight">{s.value}</div>
-                <div className="text-[11px] text-muted-foreground">{s.label}</div>
+                <div className="text-[20px] font-bold text-gray-900 leading-tight">{s.value}</div>
+                <div className="text-[11px] text-gray-500">{s.label}</div>
               </div>
             </div>
           ))}
@@ -201,15 +201,15 @@ export default function BroadcastsPage() {
       <div className="flex-1 overflow-y-auto p-8">
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
           </div>
         ) : broadcasts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-5">
               <Megaphone className="h-10 w-10 text-primary" />
             </div>
-            <h2 className="text-[20px] font-bold text-foreground mb-2">No broadcasts yet</h2>
-            <p className="text-[14px] text-muted-foreground max-w-[380px] mb-6">
+            <h2 className="text-[20px] font-bold text-gray-900 mb-2">No broadcasts yet</h2>
+            <p className="text-[14px] text-gray-500 max-w-[380px] mb-6">
               Send a WhatsApp message template to hundreds of contacts at once. Use broadcasts for promotions, reminders, or updates.
             </p>
             <button
@@ -231,13 +231,13 @@ export default function BroadcastsPage() {
                 {/* Main info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
-                    <span className="text-[15px] font-semibold text-foreground truncate">{b.name}</span>
+                    <span className="text-[15px] font-semibold text-gray-900 truncate">{b.name}</span>
                     <span className={cn("text-[11px] font-bold px-2 py-0.5 rounded-full shrink-0", STATUS_STYLE[b.status])}>
                       {b.status.toUpperCase()}
                     </span>
                   </div>
-                  <div className="flex items-center gap-3 text-[12px] text-muted-foreground">
-                    {b.template_name && <span>Template: <span className="font-medium text-foreground">{b.template_name}</span></span>}
+                  <div className="flex items-center gap-3 text-[12px] text-gray-500">
+                    {b.template_name && <span>Template: <span className="font-medium text-gray-900">{b.template_name}</span></span>}
                     <span>·</span>
                     <span>Created {format(new Date(b.created_at), "MMM d, yyyy")}</span>
                     {b.scheduled_at && (
@@ -258,8 +258,8 @@ export default function BroadcastsPage() {
                     { label: "Read", value: b.read_count ?? 0 },
                   ].map(s => (
                     <div key={s.label} className="text-center">
-                      <div className="text-[16px] font-bold text-foreground">{s.value.toLocaleString()}</div>
-                      <div className="text-[10px] text-muted-foreground uppercase tracking-wider">{s.label}</div>
+                      <div className="text-[16px] font-bold text-gray-900">{s.value.toLocaleString()}</div>
+                      <div className="text-[10px] text-gray-500 uppercase tracking-wider">{s.label}</div>
                     </div>
                   ))}
                 </div>
@@ -285,17 +285,17 @@ export default function BroadcastsPage() {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-7" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-[18px] font-bold text-foreground">New Broadcast</h3>
-                <p className="text-[13px] text-muted-foreground mt-0.5">Send a template message to your contacts</p>
+                <h3 className="text-[18px] font-bold text-gray-900">New Broadcast</h3>
+                <p className="text-[13px] text-gray-500 mt-0.5">Send a template message to your contacts</p>
               </div>
-              <button onClick={() => setShowModal(false)} className="p-1.5 hover:bg-muted rounded-lg">
-                <X className="h-5 w-5 text-muted-foreground" />
+              <button onClick={() => setShowModal(false)} className="p-1.5 hover:bg-gray-100 rounded-lg">
+                <X className="h-5 w-5 text-gray-500" />
               </button>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="text-[13px] font-semibold text-foreground mb-1.5 block">Broadcast Name</label>
+                <label className="text-[13px] font-semibold text-gray-900 mb-1.5 block">Broadcast Name</label>
                 <input
                   type="text"
                   value={name}
@@ -306,9 +306,9 @@ export default function BroadcastsPage() {
               </div>
 
               <div>
-                <label className="text-[13px] font-semibold text-foreground mb-1.5 block">Message Template</label>
+                <label className="text-[13px] font-semibold text-gray-900 mb-1.5 block">Message Template</label>
                 {loadingTemplates ? (
-                  <div className="flex items-center gap-2 text-muted-foreground text-[13px]">
+                  <div className="flex items-center gap-2 text-gray-500 text-[13px]">
                     <Loader2 className="h-4 w-4 animate-spin" /> Loading templates...
                   </div>
                 ) : (
@@ -325,14 +325,14 @@ export default function BroadcastsPage() {
                         <option key={t.name} value={t.name}>{t.display_name || t.name} ({t.language})</option>
                       ))}
                     </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 pointer-events-none" />
                   </div>
                 )}
               </div>
 
               <div>
-                <label className="text-[13px] font-semibold text-foreground mb-1.5 block">
-                  Schedule <span className="font-normal text-muted-foreground">(optional — leave blank to send now)</span>
+                <label className="text-[13px] font-semibold text-gray-900 mb-1.5 block">
+                  Schedule <span className="font-normal text-gray-500">(optional — leave blank to send now)</span>
                 </label>
                 <DatePicker
                   selected={scheduleAt ? new Date(scheduleAt) : null}
@@ -353,7 +353,7 @@ export default function BroadcastsPage() {
             </div>
 
             <div className="flex gap-3 mt-6">
-              <button onClick={() => setShowModal(false)} className="flex-1 py-2.5 border border-border rounded-lg text-[14px] font-medium text-foreground hover:bg-muted transition-colors">
+              <button onClick={() => setShowModal(false)} className="flex-1 py-2.5 border border-border rounded-lg text-[14px] font-medium text-gray-900 hover:bg-gray-100 transition-colors">
                 Cancel
               </button>
               <button

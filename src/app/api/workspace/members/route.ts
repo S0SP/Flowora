@@ -31,7 +31,6 @@ export async function GET() {
         user_id,
         role,
         status,
-        joined_at,
         created_at,
         profiles ( full_name, email, avatar_url, phone )
       `)

@@ -205,9 +205,9 @@ function VoiceAgentPageContent({ initialVoice }: { initialVoice: string }) {
           const data = await settingsRes.json();
           if (data?.settings) {
             const s = data.settings;
-            if (s.agent_type)       setAgentType(s.agent_type as AgentType);
-            if (s.voice_id)         setSelectedVoice(s.voice_id);
-            if (s.language_preset)  setSelectedLang(s.language_preset);
+            if (s.agent_type) setAgentType(s.agent_type as AgentType);
+            if (s.voice_id) setSelectedVoice(s.voice_id);
+            if (s.language_preset) setSelectedLang(s.language_preset);
             if (s.system_prompt?.trim()) setSystemPrompt(s.system_prompt.trim());
           }
         }
@@ -479,449 +479,449 @@ function VoiceAgentPageContent({ initialVoice }: { initialVoice: string }) {
     <div className="flex-1 overflow-y-auto p-6 lg:p-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
       <PageShell size="wide">
 
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-bold text-foreground flex items-center gap-2">
-            <Zap className="w-5 h-5 text-primary" />
-            Voice Agent
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">AI-powered outbound calls with multilingual support</p>
-        </div>
-        <div className="flex items-center gap-2">
-          {/* SIP channel inspector + kill button */}
-          {activeRooms !== null && activeRooms > 0 && (
-            <button
-              onClick={handleKillAll}
-              disabled={cleaning}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-destructive/10 text-destructive text-xs font-medium hover:bg-destructive/20 transition-colors disabled:opacity-50"
-            >
-              {cleaning
-                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                : <Trash2  className="w-3.5 h-3.5" />}
-              Kill {activeRooms} stuck room{activeRooms !== 1 ? "s" : ""}
-            </button>
-          )}
-          <button
-            onClick={handleCheckRooms}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-muted text-muted-foreground text-xs hover:bg-muted/80 transition-colors"
-            title="Check for stuck SIP channels"
-          >
-            <AlertTriangle className="w-3.5 h-3.5" />
-            Check channels
-          </button>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted px-3 py-1.5 rounded-full">
-            <span className={cn("w-2 h-2 rounded-full", statusColors[callStatus])} />
-            {statusLabel[callStatus]}
-            {callStatus === "active" && <span className="font-mono font-bold text-foreground ml-1">{callTimer}</span>}
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-lg font-bold text-foreground flex items-center gap-2">
+              <Zap className="w-5 h-5 text-primary" />
+              Voice Agent
+            </h1>
+            <p className="text-sm text-muted-foreground mt-0.5">AI-powered outbound calls with multilingual support</p>
           </div>
-        </div>
-      </div>
-
-      {/* Live Call Banner */}
-      {isInCall && (
-        <div className={cn(
-          "rounded-2xl border p-4 flex items-center justify-between transition-all",
-          callStatus === "active"
-            ? "border-emerald-500/40 bg-emerald-500/5"
-            : "border-primary/30 bg-primary/5"
-        )}>
-          <div className="flex items-center gap-4">
-            <div className={cn(
-              "w-10 h-10 rounded-full flex items-center justify-center",
-              callStatus === "active" ? "bg-emerald-500/20" : "bg-primary/20"
-            )}>
-              {callStatus === "active"
-                ? <Radio className="w-5 h-5 text-emerald-500" />
-                : <Loader2 className="w-5 h-5 text-primary animate-spin" />
-              }
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-foreground">
-                {callStatus === "active" ? "Call Active" : "Ringing…"}
-              </p>
-              <p className="text-xs text-muted-foreground font-mono">+91 {phoneNumber}</p>
-            </div>
-            {callStatus === "active" && <WaveformBars active />}
-          </div>
-          <div className="flex items-center gap-3">
-            {callStatus === "active" && (
-              <span className="text-xl font-mono font-bold text-emerald-500">{callTimer}</span>
-            )}
-            <button
-              onClick={handleHangup}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-destructive text-destructive-foreground text-sm font-semibold hover:bg-destructive/90 transition-all active:scale-95"
-            >
-              <PhoneOff className="w-4 h-4" />
-              Hang Up
-            </button>
-          </div>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-
-        {/* Left column */}
-        <div className="xl:col-span-1 space-y-4">
-
-          {/* Preset Selector & Manager */}
-          <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Presets</p>
-              <Bookmark className="w-3.5 h-3.5 text-muted-foreground" />
-            </div>
-
-            <div className="flex gap-2">
-              <select
-                disabled={isInCall}
-                value={selectedPresetId}
-                onChange={e => handleSelectPreset(e.target.value)}
-                className="flex-1 px-3 py-2 rounded-xl border border-border bg-background text-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary"
+          <div className="flex items-center gap-2">
+            {/* SIP channel inspector + kill button */}
+            {activeRooms !== null && activeRooms > 0 && (
+              <button
+                onClick={handleKillAll}
+                disabled={cleaning}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-destructive/10 text-destructive text-xs font-medium hover:bg-destructive/20 transition-colors disabled:opacity-50"
               >
-                <option value="">-- No Preset Selected --</option>
-                {presets.map(p => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
-
-              {selectedPresetId && (
-                <button
-                  onClick={handleDeletePreset}
-                  disabled={saving || isInCall}
-                  className="px-2.5 py-2 rounded-xl border border-destructive/20 text-destructive bg-destructive/5 hover:bg-destructive/10 transition-colors flex items-center justify-center"
-                  title="Delete Preset"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-
-            {selectedPresetId ? (
-              <div className="flex gap-2">
-                <button
-                  onClick={handleUpdatePreset}
-                  disabled={saving || isInCall}
-                  className="flex-1 py-1.5 rounded-xl text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/95 transition-all flex items-center justify-center gap-1 shadow-sm"
-                >
-                  {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-                  Save Preset Changes
-                </button>
-                <button
-                  onClick={() => { setSelectedPresetId(""); setShowPresetCreate(true); }}
-                  className="py-1.5 px-3 rounded-xl text-xs font-semibold bg-muted text-muted-foreground hover:bg-muted/80 transition-all"
-                >
-                  New
-                </button>
-              </div>
-            ) : (
-              <div>
-                {!showPresetCreate ? (
-                  <button
-                    onClick={() => setShowPresetCreate(true)}
-                    className="w-full py-1.5 rounded-xl text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/95 transition-all flex items-center justify-center gap-1 shadow-sm"
-                  >
-                    <Plus className="w-3 h-3" /> Save settings as preset
-                  </button>
-                ) : (
-                  <div className="space-y-2 mt-2">
-                    <input
-                      type="text"
-                      placeholder="Preset Name (e.g. Sales Bot)"
-                      value={presetNameInput}
-                      onChange={e => setPresetNameInput(e.target.value)}
-                      className="w-full px-3 py-1.5 rounded-lg border border-border bg-background text-xs font-medium focus:outline-none focus:ring-1 focus:ring-primary"
-                    />
-                    <div className="flex gap-2">
-                      <button
-                        onClick={handleSaveNewPreset}
-                        disabled={saving || !presetNameInput.trim()}
-                        className="flex-1 py-1.5 rounded-xl text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/95 transition-all flex items-center justify-center gap-1"
-                      >
-                        {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Save"}
-                      </button>
-                      <button
-                        onClick={() => { setShowPresetCreate(false); setPresetNameInput(""); }}
-                        className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-muted text-muted-foreground hover:bg-muted/80 transition-all"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
+                {cleaning
+                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  : <Trash2 className="w-3.5 h-3.5" />}
+                Kill {activeRooms} stuck room{activeRooms !== 1 ? "s" : ""}
+              </button>
             )}
-          </div>
-
-          {/* Agent Engine */}
-          <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Agent Engine</p>
-            <div className="grid grid-cols-2 gap-2">
-              {(["livekit", "gemini"] as const).map(type => (
-                <button
-                  key={type}
-                  onClick={() => { setAgentType(type); setSelectedVoice(type === "livekit" ? "anushka" : "Zephyr"); }}
-                  disabled={isInCall}
-                  className={cn(
-                    "flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all duration-200 disabled:opacity-50",
-                    agentType === type
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-border bg-background text-muted-foreground hover:border-primary/40"
-                  )}
-                >
-                  {type === "livekit" ? <Mic className="w-4 h-4" /> : <Brain className="w-4 h-4" />}
-                  <span className="text-xs font-semibold">
-                    {type === "livekit" ? "Sarvam + Groq" : "Gemini Live"}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Language Preset */}
-          <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Language</p>
-              <Globe className="w-3.5 h-3.5 text-muted-foreground" />
-            </div>
             <button
-              onClick={() => setShowLangPicker(o => !o)}
-              disabled={isInCall}
-              className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl border border-border bg-background hover:border-primary/40 transition-colors text-sm disabled:opacity-50"
+              onClick={handleCheckRooms}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-muted text-muted-foreground text-xs hover:bg-muted/80 transition-colors"
+              title="Check for stuck SIP channels"
             >
-              <span className="flex items-center gap-2">
-                <span className="text-base">{LANGUAGE_PRESETS.find(p => p.id === selectedLang)?.flag ?? "🇮🇳"}</span>
-                <span className="font-medium text-foreground">{LANGUAGE_PRESETS.find(p => p.id === selectedLang)?.label ?? "Hinglish"}</span>
-              </span>
-              {showLangPicker ? <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />}
+              <AlertTriangle className="w-3.5 h-3.5" />
+              Check channels
             </button>
-            {showLangPicker && (
-              <div className="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto">
-                {LANGUAGE_PRESETS.map(preset => (
-                  <button
-                    key={preset.id}
-                    onClick={() => { setSelectedLang(preset.id); setShowLangPicker(false); }}
-                    className={cn(
-                      "flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-medium transition-all text-left",
-                      selectedLang === preset.id
-                        ? "bg-primary/10 text-primary border border-primary/30"
-                        : "border border-border hover:border-primary/30 hover:bg-muted/40"
-                    )}
-                  >
-                    <span className="text-sm">{preset.flag}</span>
-                    <span className="truncate">{preset.label}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-            {selectedLang && (
-              <p className="text-[10px] text-muted-foreground/70 px-1">
-                STT: {LANGUAGE_PRESETS.find(p => p.id === selectedLang)?.deepgramLang ?? "hi"} · TTS: {LANGUAGE_PRESETS.find(p => p.id === selectedLang)?.sarvamLang ?? "hi-IN"}
-              </p>
-            )}
-          </div>
-
-          {/* Dialer */}
-          <div className="rounded-2xl border border-border bg-card p-4 space-y-4">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Phone Number</p>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium select-none">+91</span>
-              <input
-                type="tel"
-                value={phoneNumber}
-                onChange={e => setPhoneNumber(e.target.value.replace(/[^\d\s\-()]/g, ""))}
-                placeholder="98765 43210"
-                maxLength={15}
-                disabled={isInCall}
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-background border border-input text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50 text-lg font-mono tracking-wider"
-              />
+            <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted px-3 py-1.5 rounded-full">
+              <span className={cn("w-2 h-2 rounded-full", statusColors[callStatus])} />
+              {statusLabel[callStatus]}
+              {callStatus === "active" && <span className="font-mono font-bold text-foreground ml-1">{callTimer}</span>}
             </div>
-
-            {/* Selected voice pill */}
-            {selectedVoiceInfo && (
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/5 border border-primary/20">
-                <Volume2 className="w-3.5 h-3.5 text-primary shrink-0" />
-                <span className="text-xs text-primary font-semibold">{selectedVoiceInfo.name}</span>
-                {"style" in selectedVoiceInfo && (
-                  <span className="text-xs text-muted-foreground truncate">· {selectedVoiceInfo.style}</span>
-                )}
-              </div>
-            )}
-
-            {/* Call button */}
-            <button
-              onClick={callStatus === "idle" ? handleCall : (isInCall ? handleHangup : undefined)}
-              disabled={callStatus === "calling" || (callStatus === "idle" && !phoneNumber)}
-              className={cn(
-                "w-full py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed",
-                callStatus === "idle" && "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20",
-                callStatus === "calling" && "bg-primary/70 text-primary-foreground cursor-not-allowed",
-                (callStatus === "ringing" || callStatus === "active") && "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-                callStatus === "ended" && "bg-emerald-600 text-white cursor-default",
-              )}
-            >
-              {callStatus === "idle" && <><Phone className="w-4 h-4" /> Place Call</>}
-              {callStatus === "calling" && <><Loader2 className="w-4 h-4 animate-spin" /> Connecting…</>}
-              {callStatus === "ringing" && <><PhoneOff className="w-4 h-4" /> Hang Up</>}
-              {callStatus === "active" && <><PhoneOff className="w-4 h-4" /> Hang Up · {callTimer}</>}
-              {callStatus === "ended" && <><Check className="w-4 h-4" /> Call Ended</>}
-            </button>
-          </div>
-
-          {/* Quick links */}
-          <div className="rounded-2xl border border-border bg-card p-2 space-y-0.5">
-            <a href="/dashboard/voice-agent/calls" className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-muted transition-colors text-sm text-muted-foreground hover:text-foreground group">
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                Call History
-              </div>
-              <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-            </a>
-            <a href="/dashboard/voice-agent/voices" className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-muted transition-colors text-sm text-muted-foreground hover:text-foreground group">
-              <div className="flex items-center gap-2">
-                <Volume2 className="w-4 h-4" />
-                Browse Voices
-              </div>
-              <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-            </a>
           </div>
         </div>
 
-        {/* Right column */}
-        <div className="xl:col-span-2 space-y-4">
-
-          {/* System Prompt */}
-          <div className="rounded-2xl border border-border bg-card overflow-hidden">
-            <button
-              onClick={() => setPromptOpen(o => !o)}
-              className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-primary" />
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">System Prompt</span>
-                <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
-                  Sent with every call
-                </span>
+        {/* Live Call Banner */}
+        {isInCall && (
+          <div className={cn(
+            "rounded-2xl border p-4 flex items-center justify-between transition-all",
+            callStatus === "active"
+              ? "border-emerald-500/40 bg-emerald-500/5"
+              : "border-primary/30 bg-primary/5"
+          )}>
+            <div className="flex items-center gap-4">
+              <div className={cn(
+                "w-10 h-10 rounded-full flex items-center justify-center",
+                callStatus === "active" ? "bg-emerald-500/20" : "bg-primary/20"
+              )}>
+                {callStatus === "active"
+                  ? <Radio className="w-5 h-5 text-emerald-500" />
+                  : <Loader2 className="w-5 h-5 text-primary animate-spin" />
+                }
               </div>
-              {promptOpen ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
-            </button>
-
-            {promptOpen && (
-              <div className="px-4 pb-4 space-y-2 border-t border-border">
-                <div className="flex items-center gap-1.5 pt-3 text-xs text-muted-foreground">
-                  <Edit3 className="w-3.5 h-3.5" />
-                  This prompt is injected into the AI agent for every call. Override it per call here.
-                </div>
-                <textarea
-                  value={systemPrompt}
-                  onChange={e => setSystemPrompt(e.target.value)}
-                  rows={12}
-                  disabled={isInCall}
-                  className="w-full px-3 py-3 rounded-xl bg-background border border-input text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-y font-mono leading-relaxed disabled:opacity-50"
-                  placeholder="Enter your AI agent system prompt here…"
-                />
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{systemPrompt.length} characters</span>
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => setSystemPrompt(DEFAULT_PROMPT)}
-                      className="text-muted-foreground hover:text-foreground hover:underline transition-colors"
-                    >
-                      Reset to default
-                    </button>
-                    <button
-                      onClick={handleSaveSettings}
-                      disabled={saving || isInCall}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
-                    >
-                      {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
-                      {saving ? "Saving…" : "Save Settings"}
-                    </button>
-                  </div>
-                </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">
+                  {callStatus === "active" ? "Call Active" : "Ringing…"}
+                </p>
+                <p className="text-xs text-muted-foreground font-mono">+91 {phoneNumber}</p>
               </div>
-            )}
+              {callStatus === "active" && <WaveformBars active />}
+            </div>
+            <div className="flex items-center gap-3">
+              {callStatus === "active" && (
+                <span className="text-xl font-mono font-bold text-emerald-500">{callTimer}</span>
+              )}
+              <button
+                onClick={handleHangup}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-destructive text-destructive-foreground text-sm font-semibold hover:bg-destructive/90 transition-all active:scale-95"
+              >
+                <PhoneOff className="w-4 h-4" />
+                Hang Up
+              </button>
+            </div>
           </div>
+        )}
 
-          {/* Voice Picker */}
-          <div className="rounded-2xl border border-border bg-card p-4">
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                {agentType === "livekit" ? "Sarvam Voices" : "Gemini Voices"} · {voices.length} available
-              </p>
-              {agentType === "livekit" && (
-                <span className="text-xs text-muted-foreground bg-muted px-2.5 py-1 rounded-full">
-                  Hindi + English
-                </span>
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+          {/* Left column */}
+          <div className="xl:col-span-1 space-y-4">
+
+            {/* Preset Selector & Manager */}
+            <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Presets</p>
+                <Bookmark className="w-3.5 h-3.5 text-muted-foreground" />
+              </div>
+
+              <div className="flex gap-2">
+                <select
+                  disabled={isInCall}
+                  value={selectedPresetId}
+                  onChange={e => handleSelectPreset(e.target.value)}
+                  className="flex-1 px-3 py-2 rounded-xl border border-border bg-background text-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary"
+                >
+                  <option value="">-- No Preset Selected --</option>
+                  {presets.map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+
+                {selectedPresetId && (
+                  <button
+                    onClick={handleDeletePreset}
+                    disabled={saving || isInCall}
+                    className="px-2.5 py-2 rounded-xl border border-destructive/20 text-destructive bg-destructive/5 hover:bg-destructive/10 transition-colors flex items-center justify-center"
+                    title="Delete Preset"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+
+              {selectedPresetId ? (
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleUpdatePreset}
+                    disabled={saving || isInCall}
+                    className="flex-1 py-1.5 rounded-xl text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/95 transition-all flex items-center justify-center gap-1 shadow-sm"
+                  >
+                    {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                    Save Preset Changes
+                  </button>
+                  <button
+                    onClick={() => { setSelectedPresetId(""); setShowPresetCreate(true); }}
+                    className="py-1.5 px-3 rounded-xl text-xs font-semibold bg-muted text-muted-foreground hover:bg-muted/80 transition-all"
+                  >
+                    New
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  {!showPresetCreate ? (
+                    <button
+                      onClick={() => setShowPresetCreate(true)}
+                      className="w-full py-1.5 rounded-xl text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/95 transition-all flex items-center justify-center gap-1 shadow-sm"
+                    >
+                      <Plus className="w-3 h-3" /> Save settings as preset
+                    </button>
+                  ) : (
+                    <div className="space-y-2 mt-2">
+                      <input
+                        type="text"
+                        placeholder="Preset Name (e.g. Sales Bot)"
+                        value={presetNameInput}
+                        onChange={e => setPresetNameInput(e.target.value)}
+                        className="w-full px-3 py-1.5 rounded-lg border border-border bg-background text-xs font-medium focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={handleSaveNewPreset}
+                          disabled={saving || !presetNameInput.trim()}
+                          className="flex-1 py-1.5 rounded-xl text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/95 transition-all flex items-center justify-center gap-1"
+                        >
+                          {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Save"}
+                        </button>
+                        <button
+                          onClick={() => { setShowPresetCreate(false); setPresetNameInput(""); }}
+                          className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-muted text-muted-foreground hover:bg-muted/80 transition-all"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[440px] overflow-y-auto pr-1">
-              {voices.map(voice => {
-                const isSelected = selectedVoice === voice.id;
-                const isPlaying = playingVoice === voice.id;
-                return (
-                  <div
-                    key={voice.id}
-                    onClick={() => !isInCall && setSelectedVoice(voice.id)}
+            {/* Agent Engine */}
+            <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Agent Engine</p>
+              <div className="grid grid-cols-2 gap-2">
+                {(["livekit", "gemini"] as const).map(type => (
+                  <button
+                    key={type}
+                    onClick={() => { setAgentType(type); setSelectedVoice(type === "livekit" ? "anushka" : "Zephyr"); }}
+                    disabled={isInCall}
                     className={cn(
-                      "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-150 group",
-                      isSelected
-                        ? "border-primary bg-primary/10"
-                        : "border-border hover:border-primary/30 hover:bg-muted/40",
-                      isInCall && "cursor-default opacity-70"
+                      "flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all duration-200 disabled:opacity-50",
+                      agentType === type
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border bg-background text-muted-foreground hover:border-primary/40"
                     )}
                   >
-                    <div className={cn(
-                      "w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-colors",
-                      isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                    )}>
-                      {voice.name[0]}
-                    </div>
+                    {type === "livekit" ? <Mic className="w-4 h-4" /> : <Brain className="w-4 h-4" />}
+                    <span className="text-xs font-semibold">
+                      {type === "livekit" ? "Sarvam + Groq" : "Gemini Live"}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <span className={cn("text-sm font-semibold", isSelected ? "text-primary" : "text-foreground")}>
-                          {voice.name}
-                        </span>
-                        {"gender" in voice && (
-                          <span className={cn(
-                            "text-[10px] px-1.5 py-0.5 rounded-full font-medium",
-                            voice.gender === "Female" ? "bg-pink-500/15 text-pink-400" : "bg-blue-500/15 text-blue-400"
-                          )}>
-                            {voice.gender}
+            {/* Language Preset */}
+            <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Language</p>
+                <Globe className="w-3.5 h-3.5 text-muted-foreground" />
+              </div>
+              <button
+                onClick={() => setShowLangPicker(o => !o)}
+                disabled={isInCall}
+                className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl border border-border bg-background hover:border-primary/40 transition-colors text-sm disabled:opacity-50"
+              >
+                <span className="flex items-center gap-2">
+                  <span className="text-base">{LANGUAGE_PRESETS.find(p => p.id === selectedLang)?.flag ?? "🇮🇳"}</span>
+                  <span className="font-medium text-foreground">{LANGUAGE_PRESETS.find(p => p.id === selectedLang)?.label ?? "Hinglish"}</span>
+                </span>
+                {showLangPicker ? <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />}
+              </button>
+              {showLangPicker && (
+                <div className="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto">
+                  {LANGUAGE_PRESETS.map(preset => (
+                    <button
+                      key={preset.id}
+                      onClick={() => { setSelectedLang(preset.id); setShowLangPicker(false); }}
+                      className={cn(
+                        "flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-medium transition-all text-left",
+                        selectedLang === preset.id
+                          ? "bg-primary/10 text-primary border border-primary/30"
+                          : "border border-border hover:border-primary/30 hover:bg-muted/40"
+                      )}
+                    >
+                      <span className="text-sm">{preset.flag}</span>
+                      <span className="truncate">{preset.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {selectedLang && (
+                <p className="text-[10px] text-muted-foreground/70 px-1">
+                  STT: {LANGUAGE_PRESETS.find(p => p.id === selectedLang)?.deepgramLang ?? "hi"} · TTS: {LANGUAGE_PRESETS.find(p => p.id === selectedLang)?.sarvamLang ?? "hi-IN"}
+                </p>
+              )}
+            </div>
+
+            {/* Dialer */}
+            <div className="rounded-2xl border border-border bg-card p-4 space-y-4">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Phone Number</p>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium select-none">+91</span>
+                <input
+                  type="tel"
+                  value={phoneNumber}
+                  onChange={e => setPhoneNumber(e.target.value.replace(/[^\d\s\-()]/g, ""))}
+                  placeholder="98765 43210"
+                  maxLength={15}
+                  disabled={isInCall}
+                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-background border border-input text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50 text-lg font-mono tracking-wider"
+                />
+              </div>
+
+              {/* Selected voice pill */}
+              {selectedVoiceInfo && (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/5 border border-primary/20">
+                  <Volume2 className="w-3.5 h-3.5 text-primary shrink-0" />
+                  <span className="text-xs text-primary font-semibold">{selectedVoiceInfo.name}</span>
+                  {"style" in selectedVoiceInfo && (
+                    <span className="text-xs text-muted-foreground truncate">· {selectedVoiceInfo.style}</span>
+                  )}
+                </div>
+              )}
+
+              {/* Call button */}
+              <button
+                onClick={callStatus === "idle" ? handleCall : (isInCall ? handleHangup : undefined)}
+                disabled={callStatus === "calling" || (callStatus === "idle" && !phoneNumber)}
+                className={cn(
+                  "w-full py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed",
+                  callStatus === "idle" && "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20",
+                  callStatus === "calling" && "bg-primary/70 text-primary-foreground cursor-not-allowed",
+                  (callStatus === "ringing" || callStatus === "active") && "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+                  callStatus === "ended" && "bg-emerald-600 text-white cursor-default",
+                )}
+              >
+                {callStatus === "idle" && <><Phone className="w-4 h-4" /> Place Call</>}
+                {callStatus === "calling" && <><Loader2 className="w-4 h-4 animate-spin" /> Connecting…</>}
+                {callStatus === "ringing" && <><PhoneOff className="w-4 h-4" /> Hang Up</>}
+                {callStatus === "active" && <><PhoneOff className="w-4 h-4" /> Hang Up · {callTimer}</>}
+                {callStatus === "ended" && <><Check className="w-4 h-4" /> Call Ended</>}
+              </button>
+            </div>
+
+            {/* Quick links */}
+            <div className="rounded-2xl border border-border bg-card p-2 space-y-0.5">
+              <a href="/dashboard/voice-agent/calls" className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-muted transition-colors text-sm text-muted-foreground hover:text-foreground group">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  Call History
+                </div>
+                <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              </a>
+              <a href="/dashboard/voice-agent/voices" className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-muted transition-colors text-sm text-muted-foreground hover:text-foreground group">
+                <div className="flex items-center gap-2">
+                  <Volume2 className="w-4 h-4" />
+                  Browse Voices
+                </div>
+                <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              </a>
+            </div>
+          </div>
+
+          {/* Right column */}
+          <div className="xl:col-span-2 space-y-4">
+
+            {/* System Prompt */}
+            <div className="rounded-2xl border border-border bg-card overflow-hidden">
+              <button
+                onClick={() => setPromptOpen(o => !o)}
+                className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-muted/50 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-primary" />
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">System Prompt</span>
+                  <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
+                    Sent with every call
+                  </span>
+                </div>
+                {promptOpen ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+              </button>
+
+              {promptOpen && (
+                <div className="px-4 pb-4 space-y-2 border-t border-border">
+                  <div className="flex items-center gap-1.5 pt-3 text-xs text-muted-foreground">
+                    <Edit3 className="w-3.5 h-3.5" />
+                    This prompt is injected into the AI agent for every call. Override it per call here.
+                  </div>
+                  <textarea
+                    value={systemPrompt}
+                    onChange={e => setSystemPrompt(e.target.value)}
+                    rows={12}
+                    disabled={isInCall}
+                    className="w-full px-3 py-3 rounded-xl bg-background border border-input text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-y font-mono leading-relaxed disabled:opacity-50"
+                    placeholder="Enter your AI agent system prompt here…"
+                  />
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>{systemPrompt.length} characters</span>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => setSystemPrompt(DEFAULT_PROMPT)}
+                        className="text-muted-foreground hover:text-foreground hover:underline transition-colors"
+                      >
+                        Reset to default
+                      </button>
+                      <button
+                        onClick={handleSaveSettings}
+                        disabled={saving || isInCall}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                      >
+                        {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                        {saving ? "Saving…" : "Save Settings"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Voice Picker */}
+            <div className="rounded-2xl border border-border bg-card p-4">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  {agentType === "livekit" ? "Sarvam Voices" : "Gemini Voices"} · {voices.length} available
+                </p>
+                {agentType === "livekit" && (
+                  <span className="text-xs text-muted-foreground bg-muted px-2.5 py-1 rounded-full">
+                    Hindi + English
+                  </span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[440px] overflow-y-auto pr-1">
+                {voices.map(voice => {
+                  const isSelected = selectedVoice === voice.id;
+                  const isPlaying = playingVoice === voice.id;
+                  return (
+                    <div
+                      key={voice.id}
+                      onClick={() => !isInCall && setSelectedVoice(voice.id)}
+                      className={cn(
+                        "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-150 group",
+                        isSelected
+                          ? "border-primary bg-primary/10"
+                          : "border-border hover:border-primary/30 hover:bg-muted/40",
+                        isInCall && "cursor-default opacity-70"
+                      )}
+                    >
+                      <div className={cn(
+                        "w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-colors",
+                        isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                      )}>
+                        {voice.name[0]}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className={cn("text-sm font-semibold", isSelected ? "text-primary" : "text-foreground")}>
+                            {voice.name}
                           </span>
+                          {"gender" in voice && (
+                            <span className={cn(
+                              "text-[10px] px-1.5 py-0.5 rounded-full font-medium",
+                              voice.gender === "Female" ? "bg-pink-500/15 text-pink-400" : "bg-blue-500/15 text-blue-400"
+                            )}>
+                              {voice.gender}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground truncate">{voice.style}</p>
+                        {"model" in voice && (
+                          <p className="text-[10px] text-muted-foreground/50">{voice.model}</p>
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground truncate">{voice.style}</p>
-                      {"model" in voice && (
-                        <p className="text-[10px] text-muted-foreground/50">{voice.model}</p>
-                      )}
+
+                      <button
+                        onClick={e => { e.stopPropagation(); handlePlaySample(voice.id); }}
+                        className={cn(
+                          "w-8 h-8 rounded-full flex items-center justify-center transition-all shrink-0",
+                          isPlaying
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-muted-foreground hover:bg-primary/20 hover:text-primary opacity-0 group-hover:opacity-100"
+                        )}
+                        title="Play sample"
+                      >
+                        {isPlaying
+                          ? <span className="w-2 h-2 bg-current rounded-sm" />
+                          : <Play className="w-3 h-3 ml-0.5" />
+                        }
+                      </button>
+
+                      {isSelected && !isPlaying && <Check className="w-4 h-4 text-primary shrink-0" />}
                     </div>
-
-                    <button
-                      onClick={e => { e.stopPropagation(); handlePlaySample(voice.id); }}
-                      className={cn(
-                        "w-8 h-8 rounded-full flex items-center justify-center transition-all shrink-0",
-                        isPlaying
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted text-muted-foreground hover:bg-primary/20 hover:text-primary opacity-0 group-hover:opacity-100"
-                      )}
-                      title="Play sample"
-                    >
-                      {isPlaying
-                        ? <span className="w-2 h-2 bg-current rounded-sm" />
-                        : <Play className="w-3 h-3 ml-0.5" />
-                      }
-                    </button>
-
-                    {isSelected && !isPlaying && <Check className="w-4 h-4 text-primary shrink-0" />}
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
-      </div>
       </PageShell>
     </div>
   );

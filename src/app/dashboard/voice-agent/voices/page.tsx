@@ -96,7 +96,7 @@ export default function VoicesPage() {
           "relative rounded-2xl border p-4 cursor-pointer transition-all duration-200 group",
           isSelected
             ? "border-primary bg-primary/5 shadow-[0_0_0_2px] shadow-primary/30"
-            : "border-border bg-card hover:border-primary/40 hover:bg-muted/20"
+            : "border-border bg-card hover:border-primary/40 hover:bg-gray-100/20"
         )}
       >
         {/* Top */}
@@ -113,8 +113,8 @@ export default function VoicesPage() {
               {voice.name[0]}
             </div>
             <div className="min-w-0">
-              <p className="font-semibold text-[14px] text-foreground leading-tight">{voice.name}</p>
-              <p className="text-[12px] text-muted-foreground truncate max-w-[120px]">{voice.style}</p>
+              <p className="font-semibold text-[14px] text-gray-900 leading-tight">{voice.name}</p>
+              <p className="text-[12px] text-gray-500 truncate max-w-[120px]">{voice.style}</p>
             </div>
           </div>
           {isSelected && (
@@ -134,7 +134,7 @@ export default function VoicesPage() {
             </span>
           )}
           {voiceModel && (
-            <span className={cn("text-[10px] px-2 py-0.5 rounded-full font-medium", MODEL_COLORS[voiceModel] ?? "bg-muted text-muted-foreground")}>
+            <span className={cn("text-[10px] px-2 py-0.5 rounded-full font-medium", MODEL_COLORS[voiceModel] ?? "bg-gray-100 text-gray-500")}>
               {MODEL_LABELS[voiceModel] ?? voiceModel}
             </span>
           )}
@@ -144,7 +144,7 @@ export default function VoicesPage() {
             </span>
           )}
           {voiceLang && (
-            <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-muted text-muted-foreground">
+            <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-gray-100 text-gray-500">
               {voiceLang}
             </span>
           )}
@@ -157,7 +157,7 @@ export default function VoicesPage() {
             "w-full flex items-center justify-center gap-2 py-2 rounded-xl text-[12px] font-medium transition-all",
             isPlaying
               ? "bg-primary text-primary-foreground"
-              : "bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary"
+              : "bg-gray-100 text-gray-500 hover:bg-primary/10 hover:text-primary"
           )}
         >
           {isPlaying ? <><Pause className="w-3 h-3" /> Stop</> : <><Play className="w-3 h-3" /> Preview</>}
@@ -183,25 +183,26 @@ export default function VoicesPage() {
   });
 
   return (
-    <PageShell size="wide">
+    <div className="flex-1 overflow-y-auto p-6 lg:p-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <PageShell size="wide">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-foreground">Voice Library</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
+          <h1 className="text-xl font-bold text-gray-900">Voice Library</h1>
+          <p className="text-sm text-gray-500 mt-0.5">
             {ALL_VOICES.length} AI voices — {SARVAM_VOICES.length} Sarvam · {GEMINI_VOICES.length} Gemini
           </p>
         </div>
         <div className="flex items-center gap-2">
           {/* Sample language */}
-          <div className="flex items-center gap-1 bg-muted rounded-xl p-1">
-            <button onClick={() => setSampleLang("hi-IN")} className={cn("px-2.5 py-1 rounded-lg text-xs font-medium transition-all", sampleLang === "hi-IN" ? "bg-white shadow text-foreground" : "text-muted-foreground")}>🇮🇳 Hindi</button>
-            <button onClick={() => setSampleLang("en-IN")} className={cn("px-2.5 py-1 rounded-lg text-xs font-medium transition-all", sampleLang === "en-IN" ? "bg-white shadow text-foreground" : "text-muted-foreground")}>🇬🇧 English</button>
+          <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
+            <button onClick={() => setSampleLang("hi-IN")} className={cn("px-2.5 py-1 rounded-lg text-xs font-medium transition-all", sampleLang === "hi-IN" ? "bg-white shadow text-gray-900" : "text-gray-500")}>🇮🇳 Hindi</button>
+            <button onClick={() => setSampleLang("en-IN")} className={cn("px-2.5 py-1 rounded-lg text-xs font-medium transition-all", sampleLang === "en-IN" ? "bg-white shadow text-gray-900" : "text-gray-500")}>🇬🇧 English</button>
           </div>
           {/* View mode */}
-          <div className="flex items-center gap-1 bg-muted rounded-xl p-1">
-            <button onClick={() => setViewMode("grouped")} className={cn("px-2.5 py-1 rounded-lg text-xs font-medium transition-all", viewMode === "grouped" ? "bg-white shadow text-foreground" : "text-muted-foreground")}>Grouped</button>
-            <button onClick={() => setViewMode("grid")} className={cn("px-2.5 py-1 rounded-lg text-xs font-medium transition-all", viewMode === "grid" ? "bg-white shadow text-foreground" : "text-muted-foreground")}>Grid</button>
+          <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
+            <button onClick={() => setViewMode("grouped")} className={cn("px-2.5 py-1 rounded-lg text-xs font-medium transition-all", viewMode === "grouped" ? "bg-white shadow text-gray-900" : "text-gray-500")}>Grouped</button>
+            <button onClick={() => setViewMode("grid")} className={cn("px-2.5 py-1 rounded-lg text-xs font-medium transition-all", viewMode === "grid" ? "bg-white shadow text-gray-900" : "text-gray-500")}>Grid</button>
           </div>
         </div>
       </div>
@@ -210,7 +211,7 @@ export default function VoicesPage() {
       <div className="flex flex-wrap gap-2">
         {/* Search */}
         <div className="relative flex-1 min-w-56">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
           <input type="text" placeholder="Search by name or style…" value={search} onChange={e => setSearch(e.target.value)}
             className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-card border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
           />
@@ -220,7 +221,7 @@ export default function VoicesPage() {
         <div className="flex items-center gap-1">
           {(["All", "Sarvam", "Gemini"] as ProviderFilter[]).map(f => (
             <button key={f} onClick={() => setProvider(f)} className={cn("px-3 py-2 rounded-xl text-sm font-medium transition-all",
-              provider === f ? "bg-primary text-primary-foreground" : "bg-card border border-border text-muted-foreground hover:text-foreground"
+              provider === f ? "bg-primary text-primary-foreground" : "bg-card border border-border text-gray-500 hover:text-gray-900"
             )}>{f}</button>
           ))}
         </div>
@@ -229,7 +230,7 @@ export default function VoicesPage() {
         <div className="flex items-center gap-1">
           {(["All", "Female", "Male"] as GenderFilter[]).map(f => (
             <button key={f} onClick={() => setGender(f)} className={cn("px-3 py-2 rounded-xl text-sm font-medium transition-all",
-              gender === f ? "bg-primary text-primary-foreground" : "bg-card border border-border text-muted-foreground hover:text-foreground"
+              gender === f ? "bg-primary text-primary-foreground" : "bg-card border border-border text-gray-500 hover:text-gray-900"
             )}>{f}</button>
           ))}
         </div>
@@ -238,23 +239,23 @@ export default function VoicesPage() {
         <div className="flex items-center gap-1">
           {(["All", "Hindi/English", "English"] as LangFilter[]).map(f => (
             <button key={f} onClick={() => setLangFilter(f)} className={cn("px-3 py-2 rounded-xl text-sm font-medium transition-all",
-              langFilter === f ? "bg-primary text-primary-foreground" : "bg-card border border-border text-muted-foreground hover:text-foreground"
+              langFilter === f ? "bg-primary text-primary-foreground" : "bg-card border border-border text-gray-500 hover:text-gray-900"
             )}>{f}</button>
           ))}
         </div>
 
         {/* Style */}
         <div className="flex items-center gap-1 flex-wrap">
-          <SlidersHorizontal className="w-4 h-4 text-muted-foreground" />
+          <SlidersHorizontal className="w-4 h-4 text-gray-500" />
           {(["All", "Customer Care", "Content", "International", "Professional"] as StyleFilter[]).map(f => (
             <button key={f} onClick={() => setStyleFilter(f)} className={cn("px-3 py-2 rounded-xl text-sm font-medium transition-all",
-              styleFilter === f ? "bg-foreground text-background" : "bg-card border border-border text-muted-foreground hover:text-foreground"
+              styleFilter === f ? "bg-foreground text-background" : "bg-card border border-border text-gray-500 hover:text-gray-900"
             )}>{f}</button>
           ))}
         </div>
       </div>
 
-      <p className="text-xs text-muted-foreground">{filtered.length} voices shown</p>
+      <p className="text-xs text-gray-500">{filtered.length} voices shown</p>
 
       {/* Voice display */}
       {viewMode === "grid" ? (
@@ -269,11 +270,11 @@ export default function VoicesPage() {
             return (
               <div key={category}>
                 <div className="flex items-center gap-2 mb-3">
-                  <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center", groupMeta?.color ?? "text-muted-foreground bg-muted")}>
+                  <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center", groupMeta?.color ?? "text-gray-500 bg-gray-100")}>
                     <Icon className="w-4 h-4" />
                   </div>
-                  <h3 className="text-[15px] font-semibold text-foreground">{category}</h3>
-                  <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{voices.length}</span>
+                  <h3 className="text-[15px] font-semibold text-gray-900">{category}</h3>
+                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">{voices.length}</span>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                   {voices.map(v => <VoiceCard key={v.id} voice={v} />)}
@@ -282,7 +283,7 @@ export default function VoicesPage() {
             );
           })}
           {filtered.length === 0 && (
-            <div className="text-center py-16 text-muted-foreground">
+            <div className="text-center py-16 text-gray-500">
               <p className="text-lg font-medium">No voices match your filters</p>
               <p className="text-sm mt-1">Try adjusting your search or filters</p>
             </div>
@@ -295,7 +296,7 @@ export default function VoicesPage() {
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-auto">
           <div className="flex items-center gap-3 bg-card border border-primary/30 shadow-xl rounded-2xl px-4 py-3">
             <Check className="w-4 h-4 text-primary shrink-0" />
-            <span className="text-sm font-medium text-foreground">
+            <span className="text-sm font-medium text-gray-900">
               <span className="text-primary font-bold">{ALL_VOICES.find(v => v.id === selectedVoice)?.name}</span> selected
             </span>
             <a href={`/dashboard/voice-agent?voice=${selectedVoice}`}
@@ -304,7 +305,7 @@ export default function VoicesPage() {
               Use This Voice →
             </a>
             <a href="/dashboard/workflows/builder"
-              className="px-3 py-1.5 rounded-lg bg-muted text-muted-foreground text-xs font-medium hover:bg-muted/80 transition-colors"
+              className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-500 text-xs font-medium hover:bg-gray-100/80 transition-colors"
             >
               Add to Workflow
             </a>
@@ -312,5 +313,6 @@ export default function VoicesPage() {
         </div>
       )}
     </PageShell>
+    </div>
   );
 }

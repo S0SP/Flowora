@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Ticket as TicketIcon, Loader2, Circle, ChevronRight, Plus, X } from "lucide-react";
 import { formatRelativeTime } from "@/lib/utils";
+import { CustomSelect } from "@/components/ui";
 import type { TicketSeverity, TicketStatus } from "@/services/tickets";
 
 type TicketRow = {
@@ -20,20 +22,20 @@ type TicketRow = {
   assignee?: { full_name: string | null; email: string } | null;
 };
 
-const STATUS_COLOR: Record<TicketStatus, string> = {
-  open: "bg-amber-100 text-amber-700",
-  assigned: "bg-blue-100 text-blue-700",
-  in_progress: "bg-blue-100 text-blue-700",
-  escalated: "bg-red-100 text-red-700",
-  resolved: "bg-green-100 text-green-700",
-  closed: "bg-gray-100 text-gray-500",
+const STATUS_STYLE: Record<TicketStatus, { type: "neutral" | "active" }> = {
+  open: { type: "active" },
+  assigned: { type: "active" },
+  in_progress: { type: "active" },
+  escalated: { type: "active" },
+  resolved: { type: "neutral" },
+  closed: { type: "neutral" },
 };
 
-const SEVERITY_COLOR: Record<TicketSeverity, string> = {
-  low: "bg-gray-100 text-gray-500",
-  medium: "bg-blue-100 text-blue-600",
-  high: "bg-amber-100 text-amber-700",
-  critical: "bg-red-100 text-red-700",
+const SEVERITY_STYLE: Record<TicketSeverity, { type: "neutral" | "active" }> = {
+  low: { type: "neutral" },
+  medium: { type: "neutral" },
+  high: { type: "active" },
+  critical: { type: "active" },
 };
 
 const FILTERS = [
@@ -134,16 +136,19 @@ export default function TicketsPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
+    <div className="w-full px-8 pt-8 space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <TicketIcon className="w-6 h-6" /> Support Tickets
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Conversations escalated from the AI chatbot or opened manually.
-          </p>
+      <div className="flex items-start justify-between">
+        <div className="flex items-start gap-3">
+          <TicketIcon className="w-6 h-6 text-gray-900 shrink-0 mt-0.5" />
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 leading-none">
+              Support Tickets
+            </h1>
+            <p className="text-sm text-gray-500 mt-2">
+              Conversations escalated from the AI chatbot or opened manually.
+            </p>
+          </div>
         </div>
         <button
           onClick={() => {
@@ -155,7 +160,7 @@ export default function TicketsPage() {
             setTicketDescription("");
             setTicketSeverity("medium");
           }}
-          className="flex items-center gap-1.5 px-3 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#10B981] text-white rounded-lg text-sm font-medium hover:bg-[#10B981]/90 transition-colors"
         >
           <Plus className="w-4 h-4" /> New ticket
         </button>
@@ -167,10 +172,10 @@ export default function TicketsPage() {
           <button
             key={f.key}
             onClick={() => setFilter(f.key)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
               filter === f.key
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground"
+                ? "bg-[#10B981]/10 text-[#10B981]"
+                : "bg-gray-100/40 text-gray-500 hover:bg-gray-100 hover:text-gray-900"
             }`}
           >
             {f.label}
@@ -181,22 +186,22 @@ export default function TicketsPage() {
       {/* Ticket list */}
       {loading ? (
         <div className="flex items-center justify-center py-24">
-          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          <Loader2 className="w-6 h-6 animate-spin text-gray-500" />
         </div>
       ) : tickets.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-muted/50 flex items-center justify-center mb-4">
-            <TicketIcon className="w-6 h-6 text-muted-foreground" />
+          <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mb-4">
+            <TicketIcon className="w-6 h-6 text-gray-500" />
           </div>
-          <p className="text-sm font-medium text-foreground">No tickets here</p>
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-sm font-medium text-gray-900">No tickets here</p>
+          <p className="text-xs text-gray-500 mt-1">
             Tickets appear when the AI escalates a chat or you create one manually.
           </p>
         </div>
       ) : (
-        <div className="bg-card border border-border rounded-2xl divide-y divide-border/60">
+        <div className="w-full">
           {/* Table header */}
-          <div className="hidden md:grid grid-cols-[5rem_1fr_8rem_6rem_6rem_8rem_1.5rem] gap-4 px-5 py-2.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <div className="hidden md:grid grid-cols-[5rem_1fr_8rem_6rem_6rem_8rem_1.5rem] gap-4 px-2 py-2 text-[11px] font-semibold uppercase tracking-wider text-gray-500 border-b border-border/60">
             <span>Ref</span>
             <span>Subject</span>
             <span>Contact</span>
@@ -206,57 +211,73 @@ export default function TicketsPage() {
             <span />
           </div>
 
-          {tickets.map((t) => (
-            <Link
-              key={t.id}
-              href={`/dashboard/tickets/${t.id}`}
-              className="flex md:grid md:grid-cols-[5rem_1fr_8rem_6rem_6rem_8rem_1.5rem] items-center gap-4 px-5 py-3.5 hover:bg-muted/20 transition-colors group"
-            >
-              <div className="shrink-0 text-xs font-mono text-muted-foreground">
-                TKT-{t.id.split("-")[0].toUpperCase()}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">{t.subject}</p>
-                <p className="text-xs text-muted-foreground truncate mt-0.5">
-                  {formatRelativeTime(t.created_at)}
-                  {(t.flags ?? []).slice(0, 2).map((f) => (
-                    <span key={f} className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                      {f.replace(/_/g, " ")}
+          <div className="flex flex-col divide-y divide-border/40">
+            {tickets.map((t) => (
+              <Link
+                key={t.id}
+                href={`/dashboard/tickets/${t.id}`}
+                className="flex md:grid md:grid-cols-[5rem_1fr_8rem_6rem_6rem_8rem_1.5rem] items-center gap-4 px-2 py-2.5 hover:bg-gray-100/20 transition-colors group"
+              >
+                <div className="shrink-0 text-xs font-mono text-gray-500">
+                  TKT-{t.id.split("-")[0].toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-900 truncate">{t.subject}</p>
+                  <p className="text-xs text-gray-500 truncate mt-0.5">
+                    {formatRelativeTime(t.created_at)}
+                    {(t.flags ?? []).slice(0, 2).map((f) => (
+                      <span key={f} className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded border border-border text-gray-500">
+                        {f.replace(/_/g, " ")}
+                      </span>
+                    ))}
+                  </p>
+                </div>
+                <div className="hidden md:block text-xs text-gray-500 truncate">
+                  {t.contact?.full_name ?? t.contact?.phone ?? "—"}
+                </div>
+                <div className="hidden md:block">
+                  {SEVERITY_STYLE[t.severity].type === "active" ? (
+                    <div className="flex items-center gap-1.5 text-[11px] font-medium text-gray-900 capitalize">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
+                      {t.severity}
+                    </div>
+                  ) : (
+                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-full border border-border text-gray-500 capitalize">
+                      {t.severity}
                     </span>
-                  ))}
-                </p>
-              </div>
-              <div className="hidden md:block text-xs text-muted-foreground truncate">
-                {t.contact?.full_name ?? t.contact?.phone ?? "—"}
-              </div>
-              <div className="hidden md:block">
-                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${SEVERITY_COLOR[t.severity]}`}>
-                  {t.severity}
-                </span>
-              </div>
-              <div className="hidden md:block">
-                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${STATUS_COLOR[t.status]}`}>
-                  {t.status.replace(/_/g, " ")}
-                </span>
-              </div>
-              <div className="hidden md:block text-xs text-muted-foreground truncate">
-                {t.assignee ? (t.assignee.full_name ?? t.assignee.email) : "Unassigned"}
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-foreground shrink-0" />
-            </Link>
-          ))}
+                  )}
+                </div>
+                <div className="hidden md:block">
+                  {STATUS_STYLE[t.status].type === "active" ? (
+                    <div className="flex items-center gap-1.5 text-[11px] font-medium text-gray-900 capitalize">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
+                      {t.status.replace(/_/g, " ")}
+                    </div>
+                  ) : (
+                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-full border border-border text-gray-500 capitalize">
+                      {t.status.replace(/_/g, " ")}
+                    </span>
+                  )}
+                </div>
+                <div className="hidden md:block text-[11px] text-gray-500 truncate">
+                  {t.assignee ? (t.assignee.full_name ?? t.assignee.email) : "Unassigned"}
+                </div>
+                <ChevronRight className="w-4 h-4 text-gray-500/30 group-hover:text-gray-900 shrink-0" />
+              </Link>
+            ))}
+          </div>
         </div>
       )}
 
       {/* New Ticket Modal */}
-      {isNewTicketModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-card border border-border w-[460px] rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 p-6 flex flex-col gap-4">
+      {isNewTicketModalOpen && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-card border border-border w-[460px] rounded-[12px] shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 p-6 flex flex-col gap-4">
             <div className="flex items-center justify-between border-b border-border pb-3">
-              <h2 className="text-base font-bold text-foreground">Create Support Ticket</h2>
+              <h2 className="text-base font-bold text-gray-900">Create Support Ticket</h2>
               <button 
                 onClick={() => setIsNewTicketModalOpen(false)} 
-                className="p-1 hover:bg-muted rounded-full text-muted-foreground transition-colors"
+                className="p-1 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -265,7 +286,7 @@ export default function TicketsPage() {
             <form onSubmit={handleCreateTicketSubmit} className="space-y-4 text-sm">
               {/* Contact Search Field */}
               <div>
-                <label className="block text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
                   Contact (WhatsApp User) *
                 </label>
                 <div className="relative">
@@ -278,14 +299,14 @@ export default function TicketsPage() {
                       setContactSearchQuery(e.target.value);
                       if (!e.target.value.trim()) setSelectedContactId("");
                     }}
-                    className="w-full px-3 py-2 border border-input rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-[6px] text-xs focus:outline-none focus:ring-1 focus:ring-[#10B981] bg-white text-gray-900"
                   />
                   {loadingContacts && (
-                    <Loader2 className="absolute right-3 top-2.5 w-4 h-4 animate-spin text-muted-foreground" />
+                    <Loader2 className="absolute right-3 top-2.5 w-4 h-4 animate-spin text-gray-500" />
                   )}
                   {/* Dropdown list */}
                   {contactsList.length > 0 && (
-                    <div className="absolute left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-card border border-border rounded-xl shadow-lg z-50 p-1 divide-y divide-border/40">
+                    <div className="absolute left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white border border-gray-200 rounded-[6px] shadow-lg z-50 p-1 divide-y divide-border/40">
                       {contactsList.map((c) => (
                         <button
                           key={c.id}
@@ -295,18 +316,18 @@ export default function TicketsPage() {
                             setContactSearchQuery(c.full_name || c.phone);
                             setContactsList([]);
                           }}
-                          className={`w-full text-left px-3 py-2 rounded-lg text-xs hover:bg-muted transition-colors flex justify-between items-center ${
-                            selectedContactId === c.id ? "bg-muted font-semibold" : ""
+                          className={`w-full text-left px-3 py-2 rounded-sm text-xs hover:bg-gray-50 transition-colors flex justify-between items-center ${
+                            selectedContactId === c.id ? "bg-gray-50 font-semibold" : ""
                           }`}
                         >
                           <div>
-                            <p className="font-semibold text-foreground truncate max-w-[200px]">
+                            <p className="font-semibold text-gray-900 truncate max-w-[200px]">
                               {c.full_name || "Unknown Name"}
                             </p>
-                            <p className="text-[10px] text-muted-foreground">{c.phone}</p>
+                            <p className="text-[10px] text-gray-500">{c.phone}</p>
                           </div>
                           {c.email && (
-                            <span className="text-[10px] text-muted-foreground/80 truncate max-w-[120px]">
+                            <span className="text-[10px] text-gray-500/80 truncate max-w-[120px]">
                               {c.email}
                             </span>
                           )}
@@ -322,7 +343,7 @@ export default function TicketsPage() {
 
               {/* Subject */}
               <div>
-                <label className="block text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
                   Subject *
                 </label>
                 <input
@@ -331,13 +352,13 @@ export default function TicketsPage() {
                   placeholder="e.g. Issue with payment verification"
                   value={ticketSubject}
                   onChange={(e) => setTicketSubject(e.target.value)}
-                  className="w-full px-3 py-2 border border-input rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-[6px] text-xs focus:outline-none focus:ring-1 focus:ring-[#10B981] bg-white text-gray-900"
                 />
               </div>
 
               {/* Description */}
               <div>
-                <label className="block text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
                   Description
                 </label>
                 <textarea
@@ -345,39 +366,39 @@ export default function TicketsPage() {
                   value={ticketDescription}
                   onChange={(e) => setTicketDescription(e.target.value)}
                   rows={3}
-                  className="w-full px-3 py-2 border border-input rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground resize-none"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-[6px] text-xs focus:outline-none focus:ring-1 focus:ring-[#10B981] bg-white text-gray-900 resize-none"
                 />
               </div>
 
               {/* Severity */}
               <div>
-                <label className="block text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
                   Severity
                 </label>
-                <select
+                <CustomSelect
                   value={ticketSeverity}
-                  onChange={(e) => setTicketSeverity(e.target.value as TicketSeverity)}
-                  className="w-full px-3 py-2 border border-input rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground cursor-pointer"
-                >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="critical">Critical</option>
-                </select>
+                  onValueChange={(val) => setTicketSeverity(val as TicketSeverity)}
+                  options={[
+                    { label: "Low", value: "low" },
+                    { label: "Medium", value: "medium" },
+                    { label: "High", value: "high" },
+                    { label: "Critical", value: "critical" },
+                  ]}
+                />
               </div>
 
               <div className="pt-3 border-t border-border flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setIsNewTicketModalOpen(false)}
-                  className="px-4 py-2 border border-border rounded-xl text-xs font-semibold hover:bg-muted text-muted-foreground bg-card"
+                  className="px-4 py-2 border border-gray-200 rounded-[6px] text-xs font-semibold hover:bg-gray-50 text-gray-500 bg-white"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-xs font-semibold hover:bg-primary/90 transition-all shadow-sm flex items-center gap-1.5"
+                  className="px-4 py-2 bg-[#10B981] text-white rounded-[6px] text-xs font-semibold hover:bg-[#10B981]/90 transition-all shadow-sm flex items-center gap-1.5"
                 >
                   {submitting && <Loader2 className="w-3 h-3 animate-spin" />}
                   Create Ticket
@@ -385,7 +406,8 @@ export default function TicketsPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

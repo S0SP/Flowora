@@ -10,6 +10,7 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import Papa from "papaparse"
+import { ChevronDown } from "lucide-react"
 
 export interface Lead {
   id: string
@@ -19,6 +20,44 @@ export interface Lead {
   status: "new" | "contacted" | "qualified" | "proposal" | "won" | "lost"
   created_at: string
 }
+
+function CustomSelect({ value, onChange, options }: { value: string, onChange: (v: string) => void, options: {value: string, label: string}[] }) {
+  const [open, setOpen] = useState(false)
+  const selected = options.find(o => o.value === value) || options[0]
+  
+  return (
+    <div className="relative">
+      <button 
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="w-full text-left border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white flex justify-between items-center h-[38px]"
+      >
+        {selected.label}
+        <ChevronDown className="h-4 w-4 text-gray-400" />
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 shadow-md z-50 rounded-md overflow-hidden">
+            {options.map((opt) => (
+              <div
+                key={opt.value}
+                className="px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 text-gray-500 transition-colors"
+                onClick={() => {
+                  onChange(opt.value);
+                  setOpen(false);
+                }}
+              >
+                {opt.label}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 
 export default function LeadsKanbanPage() {
   const router = useRouter()
@@ -242,22 +281,22 @@ export default function LeadsKanbanPage() {
   })
 
   return (
-    <div className="h-full flex-1 flex flex-col bg-muted/30 overflow-hidden relative">
+    <div className="h-full flex-1 flex flex-col bg-gray-100/30 overflow-hidden relative">
       {/* Header Area */}
-      <div className="flex-shrink-0 p-6 border-b bg-background">
+      <div className="flex-shrink-0 p-6 border-b bg-white">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
           <div className="flex flex-wrap items-center gap-6">
-            <h1 className="text-2xl font-bold text-foreground">Leads CRM</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Leads CRM</h1>
             
             {/* View Switchers */}
-            <div className="flex items-center bg-muted/60 p-1 rounded-lg border border-border/80">
+            <div className="flex items-center bg-gray-100/60 p-1 rounded-lg border border-border/80">
               <button 
                 onClick={() => setView("kanban")}
                 className={cn(
                   "flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-md transition-all duration-200",
                   view === "kanban" 
-                    ? "bg-white text-foreground shadow-sm" 
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-white text-gray-900 shadow-sm" 
+                    : "text-gray-500 hover:text-gray-900"
                 )}
               >
                 <Kanban className="h-3.5 w-3.5" /> Kanban
@@ -267,8 +306,8 @@ export default function LeadsKanbanPage() {
                 className={cn(
                   "flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-md transition-all duration-200",
                   view === "table" 
-                    ? "bg-white text-foreground shadow-sm" 
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-white text-gray-900 shadow-sm" 
+                    : "text-gray-500 hover:text-gray-900"
                 )}
               >
                 <Table2 className="h-3.5 w-3.5" /> Table
@@ -278,8 +317,8 @@ export default function LeadsKanbanPage() {
                 className={cn(
                   "flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-md transition-all duration-200",
                   view === "analytics" 
-                    ? "bg-white text-foreground shadow-sm" 
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-white text-gray-900 shadow-sm" 
+                    : "text-gray-500 hover:text-gray-900"
                 )}
               >
                 <BarChart3 className="h-3.5 w-3.5" /> Analytics
@@ -290,19 +329,19 @@ export default function LeadsKanbanPage() {
           <div className="flex items-center gap-3">
             {/* Search Input */}
             <div className="relative w-48 md:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
               <input
                 type="text"
                 placeholder="Search leads..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-1.5 bg-muted/50 border border-border rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-primary outline-none"
+                className="w-full pl-9 pr-4 py-1.5 bg-gray-50 border border-border rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-primary outline-none"
               />
             </div>
 
             <button 
               onClick={() => setIsImportModalOpen(true)}
-              className="inline-flex items-center justify-center rounded-lg text-xs font-semibold transition-all border border-border bg-white hover:bg-muted h-9 px-4 gap-2 text-muted-foreground shadow-sm"
+              className="inline-flex items-center justify-center rounded-lg text-xs font-semibold transition-all border border-border bg-white hover:bg-gray-100 h-9 px-4 gap-2 text-gray-500 shadow-sm"
             >
               <Upload className="h-4 w-4" /> Import Leads
             </button>
@@ -318,31 +357,31 @@ export default function LeadsKanbanPage() {
         {/* Dynamic Analytics Strip */}
         <div className="bg-white border border-border/80 rounded-xl p-4 shadow-sm flex items-center justify-between overflow-x-auto hide-scrollbar gap-4">
           <div className="flex flex-col px-4 min-w-[120px]">
-            <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-1">Total Leads</span>
-            <span className="text-lg font-bold text-foreground">{leads.length}</span>
+            <span className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider mb-1">Total Leads</span>
+            <span className="text-lg font-bold text-gray-900">{leads.length}</span>
           </div>
           <div className="w-px h-8 bg-border" />
           <div className="flex flex-col px-4 min-w-[120px]">
-            <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-1">This Week</span>
+            <span className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider mb-1">This Week</span>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-lg font-bold text-foreground">+{leadsThisWeek}</span>
+              <span className="text-lg font-bold text-gray-900">+{leadsThisWeek}</span>
               <span className="text-[9px] px-1 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-100 font-bold">New</span>
             </div>
           </div>
           <div className="w-px h-8 bg-border" />
           <div className="flex flex-col px-4 min-w-[120px]">
-            <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-1">Conversion Rate</span>
-            <span className="text-lg font-bold text-foreground">{conversionRate}</span>
+            <span className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider mb-1">Conversion Rate</span>
+            <span className="text-lg font-bold text-gray-900">{conversionRate}</span>
           </div>
           <div className="w-px h-8 bg-border" />
           <div className="flex flex-col px-4 min-w-[120px]">
-            <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-1">Avg Deal Value</span>
-            <span className="text-lg font-bold text-foreground">${avgDealValue.toLocaleString()}</span>
+            <span className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider mb-1">Avg Deal Value</span>
+            <span className="text-lg font-bold text-gray-900">${avgDealValue.toLocaleString()}</span>
           </div>
           <div className="w-px h-8 bg-border" />
           <div className="flex flex-col px-4 min-w-[120px]">
-            <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-1">Pipeline Value</span>
-            <span className="text-lg font-bold text-foreground">${pipelineValue.toLocaleString()}</span>
+            <span className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider mb-1">Pipeline Value</span>
+            <span className="text-lg font-bold text-gray-900">${pipelineValue.toLocaleString()}</span>
           </div>
         </div>
       </div>
@@ -355,54 +394,54 @@ export default function LeadsKanbanPage() {
 
         {view === "table" && (
           <div className="p-6">
-            <div className="bg-white border border-border rounded-xl shadow-sm overflow-hidden">
+            <div className="bg-transparent overflow-hidden">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-muted/30 border-b border-border">
-                    <th className="px-6 py-3.5 text-xs font-bold text-muted-foreground uppercase tracking-wider">Lead Name</th>
-                    <th className="px-6 py-3.5 text-xs font-bold text-muted-foreground uppercase tracking-wider">Company</th>
-                    <th className="px-6 py-3.5 text-xs font-bold text-muted-foreground uppercase tracking-wider">Deal Value</th>
-                    <th className="px-6 py-3.5 text-xs font-bold text-muted-foreground uppercase tracking-wider">Pipeline Stage</th>
-                    <th className="px-6 py-3.5 text-xs font-bold text-muted-foreground uppercase tracking-wider">Created At</th>
-                    <th className="px-6 py-3.5 text-xs font-bold text-muted-foreground uppercase tracking-wider text-right">Actions</th>
+                  <tr className="bg-gray-100/30 border-b border-border">
+                    <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Lead Name</th>
+                    <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Company</th>
+                    <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Deal Value</th>
+                    <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Pipeline Stage</th>
+                    <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Created At</th>
+                    <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E8E8E4]">
+                <tbody className="divide-y divide-[#E5E7EB]">
                   {filteredTableLeads.map((lead) => (
-                    <tr key={lead.id} className="hover:bg-muted/10 transition-colors">
+                    <tr key={lead.id} className="hover:bg-gray-100/10 transition-colors bg-white">
                       <td className="px-6 py-4">
-                        <span className="text-[14px] font-semibold text-foreground">{lead.name}</span>
+                        <span className="text-[14px] font-semibold text-gray-900">{lead.name}</span>
                       </td>
-                      <td className="px-6 py-4 text-[13px] text-muted-foreground">{lead.company || "—"}</td>
-                      <td className="px-6 py-4 text-[13px] font-bold text-foreground">
+                      <td className="px-6 py-4 text-[13px] text-gray-500">{lead.company || "—"}</td>
+                      <td className="px-6 py-4 text-[13px] font-bold text-gray-900">
                         {lead.value ? `$${Number(lead.value).toLocaleString()}` : "—"}
                       </td>
                       <td className="px-6 py-4">
                         <span className={cn(
-                          "px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider",
-                          lead.status === "new" && "bg-chart-2/10 text-[#0f766e]",
+                          "px-2.5 py-1 rounded-[4px] text-[10px] font-bold uppercase tracking-wider",
+                          lead.status === "new" && "bg-[#0f766e]/10 text-[#0f766e]",
                           lead.status === "contacted" && "bg-primary/10 text-primary",
-                          lead.status === "qualified" && "bg-chart-4/10 text-[#c2410c]",
-                          lead.status === "proposal" && "bg-lavender/20 text-[#6366f1]",
-                          lead.status === "won" && "bg-chart-5/10 text-[#15803d]",
-                          lead.status === "lost" && "bg-chart-3/10 text-[#b91c1c]"
+                          lead.status === "qualified" && "bg-[#c2410c]/10 text-[#c2410c]",
+                          lead.status === "proposal" && "bg-[#6366f1]/10 text-[#6366f1]",
+                          lead.status === "won" && "bg-[#15803d]/10 text-[#15803d]",
+                          lead.status === "lost" && "bg-[#b91c1c]/10 text-[#b91c1c]"
                         )}>
                           {lead.status === "new" ? "New Lead" : lead.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-[12px] text-muted-foreground">
+                      <td className="px-6 py-4 text-[12px] text-gray-500">
                         {new Date(lead.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                       </td>
                       <td className="px-6 py-4 text-right space-x-1">
                         <button 
                           onClick={() => handleOpenEdit(lead.id)}
-                          className="p-1.5 hover:bg-muted rounded-md text-muted-foreground hover:text-foreground transition-colors"
+                          className="p-1.5 hover:bg-gray-100 rounded-md text-gray-500 hover:text-gray-900 transition-colors"
                         >
                           <Edit className="h-4 w-4" />
                         </button>
                         <button 
                           onClick={() => handleDeleteLead(lead.id)}
-                          className="p-1.5 hover:bg-red-50 rounded-md text-muted-foreground hover:text-red-600 transition-colors"
+                          className="p-1.5 hover:bg-red-50 rounded-md text-gray-500 hover:text-red-600 transition-colors"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -411,7 +450,7 @@ export default function LeadsKanbanPage() {
                   ))}
                   {filteredTableLeads.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="text-center py-8 text-muted-foreground text-sm">
+                      <td colSpan={6} className="text-center py-8 text-gray-500 text-sm">
                         No leads found matching your search.
                       </td>
                     </tr>
@@ -423,63 +462,65 @@ export default function LeadsKanbanPage() {
         )}
 
         {view === "analytics" && (
-          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Stage Distribution */}
-            <div className="bg-white border border-border rounded-xl p-6 shadow-sm">
-              <h3 className="text-[15px] font-bold text-foreground mb-4">Pipeline Stage Distribution</h3>
-              <div className="space-y-4">
-                {[
-                  { key: "new", label: "New Lead", color: "bg-[#0f766e]" },
-                  { key: "contacted", label: "Contacted", color: "bg-primary" },
-                  { key: "qualified", label: "Qualified", color: "bg-[#c2410c]" },
-                  { key: "proposal", label: "Proposal Sent", color: "bg-[#6366f1]" },
-                  { key: "won", label: "Won", color: "bg-[#15803d]" },
-                  { key: "lost", label: "Lost", color: "bg-[#b91c1c]" }
-                ].map(stage => {
-                  const count = leads.filter(l => l.status === stage.key).length
-                  const percentage = leads.length ? (count / leads.length) * 100 : 0
-                  return (
-                    <div key={stage.key} className="space-y-1">
-                      <div className="flex items-center justify-between text-xs font-semibold">
-                        <span className="text-foreground">{stage.label}</span>
-                        <span className="text-muted-foreground">{count} ({percentage.toFixed(0)}%)</span>
-                      </div>
-                      <div className="w-full bg-gray-100 rounded-full h-2">
-                        <div className={cn("h-2 rounded-full", stage.color)} style={{ width: `${percentage}%` }} />
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* Financial Value Summary */}
-            <div className="bg-white border border-border rounded-xl p-6 shadow-sm flex flex-col justify-between">
-              <div>
-                <h3 className="text-[15px] font-bold text-foreground mb-4">Deal Value Breakdown</h3>
+          <div className="p-6">
+            <div className="bg-white border border-border rounded-xl shadow-sm flex flex-col md:flex-row">
+              {/* Stage Distribution */}
+              <div className="p-6 flex-1 border-b md:border-b-0 md:border-r border-[#E5E7EB]">
+                <h3 className="text-[15px] font-bold text-gray-900 mb-4">Pipeline Stage Distribution</h3>
                 <div className="space-y-4">
                   {[
-                    { label: "Pipeline Value (Active)", value: leads.filter(l => l.status !== "won" && l.status !== "lost").reduce((sum, l) => sum + (Number(l.value) || 0), 0) },
-                    { label: "Won Deals Value", value: leads.filter(l => l.status === "won").reduce((sum, l) => sum + (Number(l.value) || 0), 0) },
-                    { label: "Lost Deals Value", value: leads.filter(l => l.status === "lost").reduce((sum, l) => sum + (Number(l.value) || 0), 0) }
-                  ].map((stat, i) => (
-                    <div key={i} className="flex justify-between py-2.5 border-b border-border last:border-0">
-                      <span className="text-sm text-muted-foreground font-medium">{stat.label}</span>
-                      <span className="text-sm font-bold text-foreground">${stat.value.toLocaleString()}</span>
-                    </div>
-                  ))}
+                    { key: "new", label: "New Lead", color: "bg-[#0f766e]" },
+                    { key: "contacted", label: "Contacted", color: "bg-primary" },
+                    { key: "qualified", label: "Qualified", color: "bg-[#c2410c]" },
+                    { key: "proposal", label: "Proposal Sent", color: "bg-[#6366f1]" },
+                    { key: "won", label: "Won", color: "bg-[#15803d]" },
+                    { key: "lost", label: "Lost", color: "bg-[#b91c1c]" }
+                  ].map(stage => {
+                    const count = leads.filter(l => l.status === stage.key).length
+                    const percentage = leads.length ? (count / leads.length) * 100 : 0
+                    return (
+                      <div key={stage.key} className="space-y-1">
+                        <div className="flex items-center justify-between text-xs font-semibold">
+                          <span className="text-gray-900">{stage.label}</span>
+                          <span className="text-gray-500">{count} ({percentage.toFixed(0)}%)</span>
+                        </div>
+                        <div className="w-full bg-gray-100 rounded-sm h-1.5">
+                          <div className={cn("h-1.5 rounded-sm", stage.color)} style={{ width: `${percentage}%` }} />
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
 
-              <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 mt-6">
-                <p className="text-xs text-muted-foreground font-medium mb-1">Win/Loss Ratio</p>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-extrabold text-foreground">
-                    {leads.filter(l => l.status === "won" || l.status === "lost").length 
-                      ? ((wonLeads / leads.filter(l => l.status === "won" || l.status === "lost").length) * 100).toFixed(0) + "%" 
-                      : "0%"}
-                  </span>
-                  <span className="text-xs text-muted-foreground">win rate for closed deals</span>
+              {/* Financial Value Summary */}
+              <div className="p-6 flex-1 flex flex-col justify-between">
+                <div>
+                  <h3 className="text-[15px] font-bold text-gray-900 mb-4">Deal Value Breakdown</h3>
+                  <div className="space-y-4">
+                    {[
+                      { label: "Pipeline Value (Active)", value: leads.filter(l => l.status !== "won" && l.status !== "lost").reduce((sum, l) => sum + (Number(l.value) || 0), 0) },
+                      { label: "Won Deals Value", value: leads.filter(l => l.status === "won").reduce((sum, l) => sum + (Number(l.value) || 0), 0) },
+                      { label: "Lost Deals Value", value: leads.filter(l => l.status === "lost").reduce((sum, l) => sum + (Number(l.value) || 0), 0) }
+                    ].map((stat, i) => (
+                      <div key={i} className="flex justify-between py-2.5 border-b border-[#E5E7EB] last:border-0">
+                        <span className="text-sm text-gray-500 font-medium">{stat.label}</span>
+                        <span className="text-sm font-bold text-gray-900">${stat.value.toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 mt-6">
+                  <p className="text-xs text-gray-500 font-medium mb-1">Win/Loss Ratio</p>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-extrabold text-[#10B981]">
+                      {leads.filter(l => l.status === "won" || l.status === "lost").length 
+                        ? ((wonLeads / leads.filter(l => l.status === "won" || l.status === "lost").length) * 100).toFixed(0) + "%" 
+                        : "0%"}
+                    </span>
+                    <span className="text-xs text-gray-500">win rate for closed deals</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -495,7 +536,7 @@ export default function LeadsKanbanPage() {
               <h2 className="text-lg font-bold">Add New Lead</h2>
               <button onClick={() => setIsAddModalOpen(false)} className="p-1 hover:bg-gray-100 rounded-full"><X className="h-5 w-5 text-gray-500" /></button>
             </div>
-            <form onSubmit={handleSaveAdd} className="p-4 space-y-4 max-h-[80vh] overflow-y-auto hide-scrollbar">
+            <form onSubmit={handleSaveAdd} className="p-4 space-y-4 max-h-[80vh] overflow-y-auto">
               <div>
                 <label className="block text-sm font-medium mb-1">Name</label>
                 <input required type="text" value={formData.name || ""} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" placeholder="John Doe" />
@@ -514,21 +555,25 @@ export default function LeadsKanbanPage() {
                 <label className="block text-sm font-medium mb-1">Company</label>
                 <input type="text" value={formData.company || ""} onChange={e => setFormData({ ...formData, company: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" placeholder="Acme Corp" />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold mb-1">Estimated Value</label>
-                  <input type="text" value={formData.value || ""} onChange={e => setFormData({ ...formData, value: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" placeholder="$5,000" />
+                  <input type="text" value={formData.value || ""} onChange={e => setFormData({ ...formData, value: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 h-[38px]" placeholder="$5,000" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold mb-1">Status</label>
-                  <select value={formData.status || "new"} onChange={e => setFormData({ ...formData, status: e.target.value as any })} className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white">
-                    <option value="new">New Lead</option>
-                    <option value="contacted">Contacted</option>
-                    <option value="qualified">Qualified</option>
-                    <option value="proposal">Proposal</option>
-                    <option value="won">Won</option>
-                    <option value="lost">Lost</option>
-                  </select>
+                  <CustomSelect 
+                    value={formData.status || "new"}
+                    onChange={(val) => setFormData({ ...formData, status: val })}
+                    options={[
+                      { value: "new", label: "New Lead" },
+                      { value: "contacted", label: "Contacted" },
+                      { value: "qualified", label: "Qualified" },
+                      { value: "proposal", label: "Proposal" },
+                      { value: "won", label: "Won" },
+                      { value: "lost", label: "Lost" }
+                    ]}
+                  />
                 </div>
               </div>
               
@@ -574,7 +619,7 @@ export default function LeadsKanbanPage() {
               <h2 className="text-lg font-bold">Edit Lead</h2>
               <button onClick={() => setIsEditModalOpen(false)} className="p-1 hover:bg-gray-100 rounded-full"><X className="h-5 w-5 text-gray-500" /></button>
             </div>
-            <form onSubmit={handleSaveEdit} className="p-4 space-y-4 max-h-[80vh] overflow-y-auto hide-scrollbar">
+            <form onSubmit={handleSaveEdit} className="p-4 space-y-4 max-h-[80vh] overflow-y-auto">
               <div>
                 <label className="block text-sm font-medium mb-1">Name</label>
                 <input required type="text" value={formData.name || ""} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
@@ -593,21 +638,25 @@ export default function LeadsKanbanPage() {
                 <label className="block text-sm font-medium mb-1">Company</label>
                 <input type="text" value={formData.company || ""} onChange={e => setFormData({ ...formData, company: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold mb-1">Estimated Value</label>
-                  <input type="text" value={formData.value || ""} onChange={e => setFormData({ ...formData, value: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                  <input type="text" value={formData.value || ""} onChange={e => setFormData({ ...formData, value: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 h-[38px]" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold mb-1">Status</label>
-                  <select value={formData.status || "new"} onChange={e => setFormData({ ...formData, status: e.target.value as Lead["status"] })} className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white">
-                    <option value="new">New Lead</option>
-                    <option value="contacted">Contacted</option>
-                    <option value="qualified">Qualified</option>
-                    <option value="proposal">Proposal</option>
-                    <option value="won">Won</option>
-                    <option value="lost">Lost</option>
-                  </select>
+                  <CustomSelect 
+                    value={formData.status || "new"}
+                    onChange={(val) => setFormData({ ...formData, status: val })}
+                    options={[
+                      { value: "new", label: "New Lead" },
+                      { value: "contacted", label: "Contacted" },
+                      { value: "qualified", label: "Qualified" },
+                      { value: "proposal", label: "Proposal" },
+                      { value: "won", label: "Won" },
+                      { value: "lost", label: "Lost" }
+                    ]}
+                  />
                 </div>
               </div>
 
@@ -654,29 +703,29 @@ export default function LeadsKanbanPage() {
               <button onClick={() => setIsImportModalOpen(false)} className="p-1 hover:bg-gray-100 rounded-full"><X className="h-5 w-5 text-gray-500" /></button>
             </div>
             <div className="p-4 space-y-4">
-              <p className="text-xs text-muted-foreground">
-                Import leads by uploading a CSV file or copying-and-pasting raw CSV data. Make sure your CSV contains a <code className="bg-muted px-1.5 py-0.5 rounded font-mono">name</code> column. <code className="bg-muted px-1.5 py-0.5 rounded font-mono">company</code>, <code className="bg-muted px-1.5 py-0.5 rounded font-mono">value</code>, and <code className="bg-muted px-1.5 py-0.5 rounded font-mono">status</code> are optional.
+              <p className="text-xs text-gray-500">
+                Import leads by uploading a CSV file or copying-and-pasting raw CSV data. Make sure your CSV contains a <code className="bg-gray-100 px-1.5 py-0.5 rounded font-mono">name</code> column. <code className="bg-gray-100 px-1.5 py-0.5 rounded font-mono">company</code>, <code className="bg-gray-100 px-1.5 py-0.5 rounded font-mono">value</code>, and <code className="bg-gray-100 px-1.5 py-0.5 rounded font-mono">status</code> are optional.
               </p>
               
               {/* File Uploader */}
               <div className="space-y-1">
                 <label className="block text-sm font-semibold">Option 1: Upload CSV file</label>
-                <div className="border-2 border-dashed rounded-lg p-6 text-center hover:bg-muted/30 transition-colors cursor-pointer relative">
+                <div className="border-2 border-dashed rounded-lg p-6 text-center hover:bg-gray-100/30 transition-colors cursor-pointer relative">
                   <input 
                     type="file" 
                     accept=".csv"
                     onChange={handleFileUpload}
                     className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                   />
-                  <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                  <span className="text-xs font-medium text-foreground block">Click to upload or drag CSV here</span>
-                  <span className="text-[10px] text-muted-foreground mt-1 block">Only .csv files supported</span>
+                  <Upload className="h-8 w-8 mx-auto text-gray-500 mb-2" />
+                  <span className="text-xs font-medium text-gray-900 block">Click to upload or drag CSV here</span>
+                  <span className="text-[10px] text-gray-500 mt-1 block">Only .csv files supported</span>
                 </div>
               </div>
 
               <div className="relative flex items-center py-2">
                 <div className="flex-grow border-t border-border"></div>
-                <span className="flex-shrink mx-4 text-muted-foreground text-xs uppercase font-bold tracking-widest">Or</span>
+                <span className="flex-shrink mx-4 text-gray-500 text-xs uppercase font-bold tracking-widest">Or</span>
                 <div className="flex-grow border-t border-border"></div>
               </div>
 
@@ -688,7 +737,7 @@ export default function LeadsKanbanPage() {
                   value={pasteData}
                   onChange={e => setPasteData(e.target.value)}
                   placeholder="name,company,value,status&#10;John Doe,Acme Corp,5000,new&#10;Jane Smith,Beta LLC,2500,contacted"
-                  className="w-full border rounded-lg p-2.5 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 bg-muted/20"
+                  className="w-full border rounded-lg p-2.5 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 bg-gray-100/20"
                 />
               </div>
 

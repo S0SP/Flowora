@@ -6,6 +6,7 @@ import { Contact, Message } from "@/types";
 import { formatRelativeTime, getInitials, cn } from "@/lib/utils";
 import { Send, Search, Loader2, MessageSquareOff, Phone, Video } from "lucide-react";
 import { toast } from "sonner";
+import { ContactSidebar } from "@/components/contacts/contact-sidebar";
 
 
 interface InboxClientProps {
@@ -130,6 +131,13 @@ export function InboxClient({ initialContacts }: InboxClientProps) {
     }
   };
 
+
+  const handleContactUpdated = (updatedContact: Contact) => {
+    setSelectedContact(updatedContact);
+    setContacts((prev) =>
+      prev.map((c) => (c.id === updatedContact.id ? updatedContact : c))
+    );
+  };
 
   return (
     <>
@@ -288,6 +296,16 @@ export function InboxClient({ initialContacts }: InboxClientProps) {
             </>
           )}
         </div>
+
+        {/* Right Pane: Contact Sidebar */}
+        {selectedContact && (
+          <div className="w-[300px] shrink-0 border-l border-border bg-card">
+            <ContactSidebar 
+              contact={selectedContact} 
+              onContactUpdated={handleContactUpdated} 
+            />
+          </div>
+        )}
       </div>
       
 

@@ -59,7 +59,7 @@ const nodeLibrary = [
 // Reusable form primitives 
 function Label({ children, required }: { children: React.ReactNode; required?: boolean }) {
  return (
- <label className="block text-[12px] font-semibold text-foreground mb-1.5 tracking-wide uppercase">
+ <label className="block text-[12px] font-semibold text-gray-900 mb-1.5 tracking-wide uppercase">
  {children}{required && <span className="text-rose-500 ml-0.5">*</span>}
  </label>
  )
@@ -155,7 +155,7 @@ function VarPicker({ onInsert, availableVars = COMMON_VARS }: { onInsert: (v: st
             {availableVars.map(v => (
               <button key={v} type="button"
                 onClick={() => { onInsert(v); setOpen(false) }}
-                className="w-full text-left px-3 py-1.5 text-[12px] font-mono text-foreground hover:bg-muted rounded-lg transition-colors">
+                className="w-full text-left px-3 py-1.5 text-[12px] font-mono text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
                 {v}
               </button>
             ))}
@@ -297,7 +297,7 @@ function GoogleSheetPanel({ data, onSave }: { data: any; onSave: (d: any) => voi
         {detectedHeaders.length > 0 && (
           <div className="space-y-1.5">
             <Label>Detected Column Variables</Label>
-            <div className="flex flex-wrap gap-1.5 bg-muted/40 border border-border rounded-lg p-2.5 max-h-32 overflow-y-auto">
+            <div className="flex flex-wrap gap-1.5 bg-gray-100/40 border border-border rounded-lg p-2.5 max-h-32 overflow-y-auto">
               {detectedHeaders.map(h => (
                 <span key={h} className="text-[10px] font-semibold font-mono bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded">
                   {`{{${h}}}`}
@@ -360,7 +360,7 @@ function GoogleSheetPanel({ data, onSave }: { data: any; onSave: (d: any) => voi
           </FieldWrap>
         </div>
       </div>
-      <div className="p-4 border-t border-border bg-muted/20">
+      <div className="p-4 border-t border-border bg-gray-100/20">
         <button onClick={handleSaveClick} className="w-full py-2.5 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-colors text-[13px] shadow-sm">
           Save Trigger Config
         </button>
@@ -472,7 +472,7 @@ function WhatsAppPanel({ data, onSave, availableVars }: { data: any; onSave: (d:
           {(["template", "custom"] as const).map(m => (
             <button key={m} type="button" onClick={() => setMode(m)}
               className={cn("flex-1 py-2 text-[12px] font-bold transition-all capitalize",
-                mode === m ? "bg-green-500 text-white" : "bg-white text-muted-foreground hover:bg-muted"
+                mode === m ? "bg-green-500 text-white" : "bg-white text-gray-500 hover:bg-gray-100"
               )}>
               {m === "template" ? " Meta Template" : " Custom Message"}
             </button>
@@ -484,7 +484,7 @@ function WhatsAppPanel({ data, onSave, availableVars }: { data: any; onSave: (d:
             <FieldWrap hint="Only approved templates appear here.">
               <Label required>Select Template</Label>
               {loadingTpls ? (
-                <div className="flex items-center gap-2 p-3 bg-muted rounded-lg text-[12px] text-muted-foreground">
+                <div className="flex items-center gap-2 p-3 bg-gray-100 rounded-lg text-[12px] text-gray-500">
                   <Loader2 className="h-3 w-3 animate-spin" /> Loading templates…
                 </div>
               ) : (
@@ -510,7 +510,7 @@ function WhatsAppPanel({ data, onSave, availableVars }: { data: any; onSave: (d:
 
             {templatePlaceholders.length > 0 && (
               <div className="space-y-3 pt-2">
-                <h4 className="text-[12px] font-bold text-foreground">Map Template Variables</h4>
+                <h4 className="text-[12px] font-bold text-gray-900">Map Template Variables</h4>
                 {templatePlaceholders.map(num => (
                   <FieldWrap key={num}>
                     <div className="flex items-center justify-between mb-1">
@@ -570,7 +570,7 @@ function WhatsAppPanel({ data, onSave, availableVars }: { data: any; onSave: (d:
                   b.type === "button" ? "bg-blue-50 border-blue-200" :
                     b.type === "fallback" ? "bg-gray-50 border-gray-200" : "bg-purple-50 border-purple-200"
                 )}>
-                  <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground w-14 shrink-0">
+                  <span className="text-[10px] font-bold uppercase tracking-wide text-gray-500 w-14 shrink-0">
                     {b.type === "button" ? "BTN" : b.type === "fallback" ? "ELSE" : "CUSTOM"}
                   </span>
                   <input
@@ -580,7 +580,7 @@ function WhatsAppPanel({ data, onSave, availableVars }: { data: any; onSave: (d:
                     disabled={b.type === "fallback"}
                   />
                   {b.type !== "true" && b.type !== "false" && b.type !== "fallback" && (
-                    <button type="button" onClick={() => removeBranch(b.id)} className="text-muted-foreground hover:text-red-500 transition-colors">
+                    <button type="button" onClick={() => removeBranch(b.id)} className="text-gray-500 hover:text-red-500 transition-colors">
                       <Trash2 className="h-3 w-3" />
                     </button>
                   )}
@@ -596,7 +596,7 @@ function WhatsAppPanel({ data, onSave, availableVars }: { data: any; onSave: (d:
             <div className="grid grid-cols-2 gap-2">
               {[["ai", " Route to AI"], ["message", " Custom Reply"]].map(([v, l]) => (
                 <label key={v} className={cn("flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all text-[11px] font-semibold",
-                  fallbackMode === v ? "border-green-500 bg-green-50 text-green-700" : "border-border text-muted-foreground hover:border-green-200"
+                  fallbackMode === v ? "border-green-500 bg-green-50 text-green-700" : "border-border text-gray-500 hover:border-green-200"
                 )}>
                   <input type="radio" name="fallback" value={v} checked={fallbackMode === v} onChange={() => setFallbackMode(v as any)} className="hidden" />
                   {l}
@@ -609,7 +609,7 @@ function WhatsAppPanel({ data, onSave, availableVars }: { data: any; onSave: (d:
           </div>
         )}
       </div>
-      <div className="p-4 border-t border-border bg-muted/20">
+      <div className="p-4 border-t border-border bg-gray-100/20">
         <button onClick={handleSaveClick}
           className="w-full py-2.5 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600 transition-colors text-[13px] shadow-sm">
           Save WhatsApp Node
@@ -659,7 +659,7 @@ function EmailPanel({ data, onSave, availableVars }: { data: any; onSave: (d: an
  <textarea className={cn(inputCls, "min-h-[140px] font-mono text-[12px] resize-y")} value={form.html} onChange={f("html")} />
  </FieldWrap>
  </div>
- <div className="p-4 border-t border-border bg-muted/20">
+ <div className="p-4 border-t border-border bg-gray-100/20">
  <button onClick={() => onSave(form)} className="w-full py-2.5 bg-blue-500 text-white font-bold rounded-xl hover:bg-blue-600 transition-colors text-[13px] shadow-sm">
  Save Email Node
  </button>
@@ -795,7 +795,7 @@ function VoicePanel({ data, onSave, availableVars }: { data: any; onSave: (d: an
  <p className="text-[11px] text-amber-700 leading-relaxed">~15 credits/min · Avg 3 min call = ~45 credits per contact</p>
  </div>
  </div>
- <div className="p-4 border-t border-border bg-muted/20">
+ <div className="p-4 border-t border-border bg-gray-100/20">
  <button onClick={() => onSave(form)} className="w-full py-2.5 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 transition-colors text-[13px] shadow-sm">
  Save Voice Node
  </button>
@@ -839,7 +839,7 @@ function DelayPanel({ data, onSave }: { data: any; onSave: (d: any) => void }) {
  <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed">Delays over 1 minute are handled by QStash for reliable delivery across server restarts.</p>
  </div>
  </div>
- <div className="p-4 border-t border-border bg-muted/20">
+ <div className="p-4 border-t border-border bg-gray-100/20">
  <button onClick={() => onSave({ delayDays: days, delayHours: hours, delayMinutes: mins, label: `Wait ${humanize()}` })}
  className="w-full py-2.5 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition-colors text-[13px] shadow-sm">
  Save Delay
@@ -942,7 +942,7 @@ function ConditionPanel({ data, onSave }: { data: any; onSave: (d: any) => void 
  disabled={["true", "false", "fallback"].includes(b.type)}
  />
  {b.type === "custom" && (
- <button type="button" onClick={() => removeBranch(b.id)} className="text-muted-foreground hover:text-red-500">
+ <button type="button" onClick={() => removeBranch(b.id)} className="text-gray-500 hover:text-red-500">
  <Trash2 className="h-3 w-3" />
  </button>
  )}
@@ -951,7 +951,7 @@ function ConditionPanel({ data, onSave }: { data: any; onSave: (d: any) => void 
  </div>
  </div>
  </div>
- <div className="p-4 border-t border-border bg-muted/20">
+ <div className="p-4 border-t border-border bg-gray-100/20">
  <button onClick={() => onSave({ field, operator, value, branches })}
  className="w-full py-2.5 bg-rose-500 text-white font-bold rounded-xl hover:bg-rose-600 transition-colors text-[13px] shadow-sm">
  Save Condition
@@ -1001,7 +1001,7 @@ function CRMPanel({ data, onSave }: { data: any; onSave: (d: any) => void }) {
  <input className={inputCls} value={tags} onChange={e => setTags(e.target.value)} placeholder="webinar, facebook-ad, hot-lead" />
  </FieldWrap>
  </div>
- <div className="p-4 border-t border-border bg-muted/20">
+ <div className="p-4 border-t border-border bg-gray-100/20">
  <button onClick={() => onSave({ stage, dealValue, tags })}
  className="w-full py-2.5 bg-teal-600 text-white font-bold rounded-xl hover:bg-teal-700 transition-colors text-[13px] shadow-sm">
  Save CRM Update
@@ -1064,8 +1064,8 @@ function WebhookPanel({ data, onSave, workflowId }: { data: any; onSave: (d: any
       <div className="flex-1 overflow-y-auto p-4 space-y-4 animate-fadeIn">
         <FieldWrap hint={workflowId ? "Copy this URL and configure your webhook source." : "Save the workflow first to generate the webhook trigger URL."}>
           <Label>Your Webhook URL</Label>
-          <div className="bg-muted rounded-xl p-3 flex items-center gap-2">
-            <code className="text-[11px] flex-1 truncate text-foreground font-mono">{url}</code>
+          <div className="bg-gray-100 rounded-xl p-3 flex items-center gap-2">
+            <code className="text-[11px] flex-1 truncate text-gray-900 font-mono">{url}</code>
             <button type="button" onClick={copy} className="shrink-0 p-1.5 bg-white border border-border rounded-lg hover:bg-sky-50 transition-colors">
               <Copy className="h-3.5 w-3.5 text-sky-600" />
             </button>
@@ -1098,7 +1098,7 @@ function WebhookPanel({ data, onSave, workflowId }: { data: any; onSave: (d: any
         {detectedFields.length > 0 && (
           <div className="space-y-1.5">
             <Label>Extracted Payload Variables</Label>
-            <div className="flex flex-wrap gap-1.5 bg-muted/40 border border-border rounded-lg p-2.5 max-h-32 overflow-y-auto">
+            <div className="flex flex-wrap gap-1.5 bg-gray-100/40 border border-border rounded-lg p-2.5 max-h-32 overflow-y-auto">
               {detectedFields.map(f => (
                 <span key={f} className="text-[10px] font-semibold font-mono bg-sky-50 text-sky-700 border border-sky-200 px-2 py-0.5 rounded">
                   {`{{${f}}}`}
@@ -1108,7 +1108,7 @@ function WebhookPanel({ data, onSave, workflowId }: { data: any; onSave: (d: any
           </div>
         )}
       </div>
-      <div className="p-4 border-t border-border bg-muted/20">
+      <div className="p-4 border-t border-border bg-gray-100/20">
         <button onClick={handleSaveClick} className="w-full py-2.5 bg-sky-600 text-white font-bold rounded-xl hover:bg-sky-700 transition-colors text-[13px] shadow-sm">
           Save Webhook
         </button>
@@ -1165,13 +1165,13 @@ function ReminderPanel({ data, onSave }: { data: any; onSave: (d: any) => void }
  <option value="">— Template —</option>
  {templates.map((t: any) => <option key={t.name} value={t.name}>{t.display_name ?? t.name}</option>)}
  </select>
- {reminders.length > 1 && <button type="button" onClick={() => removeR(i)} className="text-muted-foreground hover:text-red-500"><Trash2 className="h-3 w-3" /></button>}
+ {reminders.length > 1 && <button type="button" onClick={() => removeR(i)} className="text-gray-500 hover:text-red-500"><Trash2 className="h-3 w-3" /></button>}
  </div>
  ))}
  </div>
  </div>
  </div>
- <div className="p-4 border-t border-border bg-muted/20">
+ <div className="p-4 border-t border-border bg-gray-100/20">
  <button onClick={() => onSave({ eventDate, reminders })}
  className="w-full py-2.5 bg-yellow-500 text-white font-bold rounded-xl hover:bg-yellow-600 transition-colors text-[13px] shadow-sm">
  Save Reminder
@@ -1201,7 +1201,7 @@ function NodeConfigPanel({ node, onSave, onClose, workflowId, availableVars }: {
       case "reminder": return <ReminderPanel data={data} onSave={onSave} />
       default:
         return (
-          <div className="flex-1 flex flex-col items-center justify-center gap-3 text-muted-foreground p-6 text-center">
+          <div className="flex-1 flex flex-col items-center justify-center gap-3 text-gray-500 p-6 text-center">
             <Settings2 className="h-10 w-10 opacity-20" />
             <p className="text-[14px] font-semibold">Config panel for <b>{typeKey}</b> coming soon</p>
           </div>
@@ -1476,7 +1476,7 @@ export default function WorkflowBuilderPage() {
  className={cn("flex items-center gap-1.5 px-4 py-1.5 text-[12px] font-bold rounded-lg shadow-sm transition-all disabled:opacity-50",
  workflowStatus === "active"
  ? "bg-red-500 text-white hover:bg-red-600"
- : "bg-primary text-foreground hover:bg-primary/90 shadow-primary/20"
+ : "bg-primary text-gray-900 hover:bg-primary/90 shadow-primary/20"
  )}>
  <Zap className="h-3.5 w-3.5" />
  {activating ? "Working…" : workflowStatus === "active" ? "Deactivate" : "Activate"}
@@ -1493,7 +1493,7 @@ export default function WorkflowBuilderPage() {
  {(["templates", "nodes"] as const).map(tab => (
  <button key={tab} onClick={() => setLeftTab(tab)}
  className={cn("flex-1 py-2.5 text-[12px] font-semibold flex items-center justify-center gap-1.5 transition-colors border-b-2 uppercase tracking-wide",
- leftTab === tab ? "border-primary text-[var(--text-primary)]" : "border-transparent text-muted-foreground hover:text-[var(--text-primary)]"
+ leftTab === tab ? "border-primary text-[var(--text-primary)]" : "border-transparent text-gray-500 hover:text-[var(--text-primary)]"
  )}>
  {tab === "templates" ? <><LayoutTemplate className="h-3.5 w-3.5" />Templates</> : <><CircuitBoard className="h-3.5 w-3.5" />Nodes</>}
  </button>
@@ -1502,7 +1502,7 @@ export default function WorkflowBuilderPage() {
 
  {leftTab === "templates" && (
  <div className="flex-1 overflow-y-auto p-3 space-y-2">
- <p className="text-[10px] text-muted-foreground px-1 pb-0.5 uppercase tracking-wide font-semibold">Pre-built starting points</p>
+ <p className="text-[10px] text-gray-500 px-1 pb-0.5 uppercase tracking-wide font-semibold">Pre-built starting points</p>
  {[...customTemplates, ...WORKFLOW_TEMPLATES].map(tpl => {
  const TplIcon = templateIconMap[tpl.id] ?? Zap
  return (
@@ -1515,7 +1515,7 @@ export default function WorkflowBuilderPage() {
  <span className="text-[12px] font-bold text-[var(--text-primary)] leading-tight">{tpl.name}</span>
  {selectedTemplate?.id === tpl.id && <CheckCircle className="h-3 w-3 text-primary ml-auto shrink-0" />}
  </div>
- <p className="text-[10px] text-muted-foreground line-clamp-2 leading-relaxed">{tpl.description}</p>
+ <p className="text-[10px] text-gray-500 line-clamp-2 leading-relaxed">{tpl.description}</p>
  <div className="flex gap-1 mt-1.5 flex-wrap">
  {tpl.tags.slice(0, 3).map(tag => (
  <span key={tag} className={cn("text-[9px] px-1.5 py-0.5 rounded font-semibold tracking-wide uppercase", tpl.bgColor, tpl.color)}>{tag}</span>
@@ -1528,7 +1528,7 @@ export default function WorkflowBuilderPage() {
  <button onClick={() => {
  setNodes(injectClick(initialNodes)); setEdges(initialEdges)
  setSelectedTemplate(null); setWorkflowName("New Workflow")
- }} className="w-full text-[11px] text-muted-foreground hover:text-[var(--text-primary)] py-2 hover:bg-[var(--canvas-bg)] rounded-lg transition-colors font-medium">
+ }} className="w-full text-[11px] text-gray-500 hover:text-[var(--text-primary)] py-2 hover:bg-[var(--canvas-bg)] rounded-lg transition-colors font-medium">
  + Start from scratch
  </button>
  </div>
@@ -1539,7 +1539,7 @@ export default function WorkflowBuilderPage() {
  <>
  <div className="p-3 border-b border-[var(--node-border)] shrink-0">
  <div className="relative">
- <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+ <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-gray-500" />
  <input type="text" placeholder="Search nodes…" value={nodeSearch} onChange={e => setNodeSearch(e.target.value)}
  className="w-full bg-[var(--canvas-bg)] rounded-lg h-[34px] pl-8 pr-3 text-[12px] focus:outline-none focus:ring-1 focus:ring-primary text-[var(--text-primary)]" />
  </div>
@@ -1547,7 +1547,7 @@ export default function WorkflowBuilderPage() {
  <div className="flex-1 overflow-y-auto p-3 space-y-4">
  {filteredLibrary.map(cat => (
  <div key={cat.category}>
- <h4 className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold mb-2 px-1">{cat.category}</h4>
+ <h4 className="text-[9px] text-gray-500 uppercase tracking-widest font-bold mb-2 px-1">{cat.category}</h4>
  <div className="space-y-1">
  {cat.nodes.filter(n => !nodeSearch || n.label.toLowerCase().includes(nodeSearch.toLowerCase())).map((node, i) => (
  <div key={i} draggable
@@ -1621,27 +1621,27 @@ export default function WorkflowBuilderPage() {
  <div className="px-8 py-5 border-b border-border bg-white flex items-center justify-between">
  <div>
  <h2 className="text-[18px] font-bold flex items-center gap-2"><Activity className="h-5 w-5 text-primary" /> Execution Logs</h2>
- <p className="text-[13px] text-muted-foreground mt-0.5">{workflowId ? `Runs for: ${workflowName}` : "Save workflow first to see logs."}</p>
+ <p className="text-[13px] text-gray-500 mt-0.5">{workflowId ? `Runs for: ${workflowName}` : "Save workflow first to see logs."}</p>
  </div>
  {workflowId && (
  <button onClick={() => { setRunsLoaded(false); fetchRuns() }} disabled={runsLoading}
- className="flex items-center gap-1.5 px-3 py-2 text-[13px] border border-border rounded-lg hover:bg-muted transition-colors disabled:opacity-50">
+ className="flex items-center gap-1.5 px-3 py-2 text-[13px] border border-border rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50">
  <RefreshCw className={cn("h-3.5 w-3.5", runsLoading && "animate-spin")} /> Refresh
  </button>
  )}
  </div>
  <div className="flex-1 overflow-y-auto p-8">
  {!workflowId ? (
- <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground text-center">
+ <div className="flex flex-col items-center justify-center h-full gap-3 text-gray-500 text-center">
  <Save className="h-10 w-10 opacity-20" />
  <p className="font-semibold">Save the workflow to view logs</p>
  </div>
  ) : runsLoading ? (
- <div className="flex items-center justify-center h-full gap-2 text-muted-foreground">
+ <div className="flex items-center justify-center h-full gap-2 text-gray-500">
  <Loader2 className="h-5 w-5 animate-spin" /><span>Loading…</span>
  </div>
  ) : workflowRuns.length === 0 ? (
- <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground text-center">
+ <div className="flex flex-col items-center justify-center h-full gap-3 text-gray-500 text-center">
  <Activity className="h-10 w-10 opacity-20" />
  <p className="font-semibold">No runs yet</p>
  <p className="text-[13px]">Use Test Run or activate to see executions here.</p>
@@ -1661,19 +1661,19 @@ export default function WorkflowBuilderPage() {
  run.status === "failed" ? "bg-red-100 text-red-700" :
  run.status === "running" ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"
  )}>{run.status.toUpperCase()}</span>
- <span className="text-[11px] font-mono text-muted-foreground">#{run.id?.slice(0, 8)}</span>
+ <span className="text-[11px] font-mono text-gray-500">#{run.id?.slice(0, 8)}</span>
  </div>
- <span className="text-[11px] text-muted-foreground">{run.created_at ? format(new Date(run.created_at), "dd MMM HH:mm:ss") : "—"}</span>
+ <span className="text-[11px] text-gray-500">{run.created_at ? format(new Date(run.created_at), "dd MMM HH:mm:ss") : "—"}</span>
  </div>
- <div className="flex gap-4 text-[12px] text-muted-foreground">
- <span>Trigger: <b className="text-foreground">{run.trigger_type ?? "manual"}</b></span>
- <span>Steps: <b className="text-foreground">{run.steps_completed ?? 0}/{run.steps_total ?? 0}</b></span>
+ <div className="flex gap-4 text-[12px] text-gray-500">
+ <span>Trigger: <b className="text-gray-900">{run.trigger_type ?? "manual"}</b></span>
+ <span>Steps: <b className="text-gray-900">{run.steps_completed ?? 0}/{run.steps_total ?? 0}</b></span>
  {run.error_message && <span className="text-red-600 font-medium"> {run.error_message}</span>}
  </div>
  {run.trigger_data && Object.keys(run.trigger_data).length > 0 && (
  <details className="mt-2">
- <summary className="text-[11px] text-muted-foreground cursor-pointer hover:text-foreground font-medium">Trigger data </summary>
- <pre className="mt-1 text-[10px] font-mono bg-muted/50 p-2 rounded-lg text-foreground overflow-x-auto">{JSON.stringify(run.trigger_data, null, 2)}</pre>
+ <summary className="text-[11px] text-gray-500 cursor-pointer hover:text-gray-900 font-medium">Trigger data </summary>
+ <pre className="mt-1 text-[10px] font-mono bg-gray-50 p-2 rounded-lg text-gray-900 overflow-x-auto">{JSON.stringify(run.trigger_data, null, 2)}</pre>
  </details>
  )}
  </div>
@@ -1695,11 +1695,11 @@ export default function WorkflowBuilderPage() {
  <div className="px-8 py-5 border-b border-border bg-white flex items-center justify-between">
  <div>
  <h2 className="text-[18px] font-bold flex items-center gap-2"><BarChart3 className="h-5 w-5 text-primary" /> Analytics</h2>
- <p className="text-[13px] text-muted-foreground mt-0.5">Execution performance overview</p>
+ <p className="text-[13px] text-gray-500 mt-0.5">Execution performance overview</p>
  </div>
  {workflowId && (
  <button onClick={() => { setRunsLoaded(false); fetchRuns() }} disabled={runsLoading}
- className="flex items-center gap-1.5 px-3 py-2 text-[13px] border border-border rounded-lg hover:bg-muted disabled:opacity-50">
+ className="flex items-center gap-1.5 px-3 py-2 text-[13px] border border-border rounded-lg hover:bg-gray-100 disabled:opacity-50">
  <RefreshCw className={cn("h-3.5 w-3.5", runsLoading && "animate-spin")} /> Refresh
  </button>
  )}
@@ -1716,19 +1716,19 @@ export default function WorkflowBuilderPage() {
  <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center mb-3", bg)}>
  <Icon className={cn("h-5 w-5", color)} />
  </div>
- <p className="text-[28px] font-bold text-foreground leading-none mb-1">{value}</p>
- <p className="text-[12px] text-muted-foreground font-medium">{label}</p>
+ <p className="text-[28px] font-bold text-gray-900 leading-none mb-1">{value}</p>
+ <p className="text-[12px] text-gray-500 font-medium">{label}</p>
  </div>
  ))}
  </div>
  <div className="border border-border rounded-xl p-6 bg-white shadow-sm">
- <h3 className="text-[14px] font-bold mb-4 flex items-center gap-2"><CircuitBoard className="h-4 w-4 text-muted-foreground" /> Workflow Nodes ({nodes.length})</h3>
+ <h3 className="text-[14px] font-bold mb-4 flex items-center gap-2"><CircuitBoard className="h-4 w-4 text-gray-500" /> Workflow Nodes ({nodes.length})</h3>
  <div className="space-y-2">
  {nodes.map(n => (
  <div key={n.id} className="flex items-center gap-3 py-1.5 border-b border-border last:border-0">
  <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
- <span className="text-[13px] font-semibold text-foreground flex-1">{n.data?.label ?? n.id}</span>
- <span className="text-[11px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{n.data?.subtype ?? n.data?.type ?? n.type}</span>
+ <span className="text-[13px] font-semibold text-gray-900 flex-1">{n.data?.label ?? n.id}</span>
+ <span className="text-[11px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">{n.data?.subtype ?? n.data?.type ?? n.type}</span>
  </div>
  ))}
  </div>
@@ -1740,11 +1740,11 @@ export default function WorkflowBuilderPage() {
 
  {/* Save Template Modal */}
  {showSaveTemplateModal && (
- <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+ <div className="fixed inset-0 z-50 bg-white/80 backdrop-blur-sm flex items-center justify-center p-4">
  <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-border overflow-hidden">
- <div className="px-5 py-4 border-b border-border flex justify-between items-center bg-muted/30">
+ <div className="px-5 py-4 border-b border-border flex justify-between items-center bg-gray-100/30">
  <h3 className="font-bold text-[15px] flex items-center gap-2"><BookmarkPlus className="h-4 w-4 text-primary" /> Save as Template</h3>
- <button onClick={() => setShowSaveTemplateModal(false)} className="text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
+ <button onClick={() => setShowSaveTemplateModal(false)} className="text-gray-500 hover:text-gray-900"><X className="h-4 w-4" /></button>
  </div>
  <form onSubmit={handleSaveTemplate} className="p-5 space-y-4">
  <div><Label required>Template Name</Label><input type="text" value={templateName} onChange={e => setTemplateName(e.target.value)} className={inputCls} placeholder="My Drip Workflow" required /></div>
@@ -1758,8 +1758,8 @@ export default function WorkflowBuilderPage() {
  </select>
  </div>
  <div className="flex justify-end gap-2 pt-2">
- <button type="button" onClick={() => setShowSaveTemplateModal(false)} className="px-4 py-2 text-[13px] font-medium hover:bg-muted rounded-lg">Cancel</button>
- <button type="submit" className="px-4 py-2 text-[13px] font-bold bg-primary text-foreground rounded-lg hover:bg-primary/90 shadow-sm">Save Template</button>
+ <button type="button" onClick={() => setShowSaveTemplateModal(false)} className="px-4 py-2 text-[13px] font-medium hover:bg-gray-100 rounded-lg">Cancel</button>
+ <button type="submit" className="px-4 py-2 text-[13px] font-bold bg-primary text-gray-900 rounded-lg hover:bg-primary/90 shadow-sm">Save Template</button>
  </div>
  </form>
  </div>
@@ -1768,22 +1768,22 @@ export default function WorkflowBuilderPage() {
 
  {/* Test Run Modal */}
  {showTestModal && (
- <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+ <div className="fixed inset-0 z-50 bg-white/80 backdrop-blur-sm flex items-center justify-center p-4">
  <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-border overflow-hidden">
- <div className="px-5 py-4 border-b border-border flex justify-between items-center bg-muted/30">
+ <div className="px-5 py-4 border-b border-border flex justify-between items-center bg-gray-100/30">
  <h3 className="font-bold text-[15px] flex items-center gap-2"><Play className="h-4 w-4 text-primary" /> Test Workflow</h3>
- <button onClick={() => setShowTestModal(false)} className="text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
+ <button onClick={() => setShowTestModal(false)} className="text-gray-500 hover:text-gray-900"><X className="h-4 w-4" /></button>
  </div>
  <div className="p-5">
  {!testRunResult ? (
  <form onSubmit={handleTestRunSubmit} className="space-y-4">
- <p className="text-[13px] text-muted-foreground">Provide dummy contact data to simulate a live execution.</p>
+ <p className="text-[13px] text-gray-500">Provide dummy contact data to simulate a live execution.</p>
  <div><Label required>Contact Name</Label><input type="text" value={testName} onChange={e => setTestName(e.target.value)} className={inputCls} required /></div>
  <div><Label required>Phone (with country code)</Label><input type="text" value={testPhone} onChange={e => setTestPhone(e.target.value)} className={inputCls} required /></div>
  <div><Label required>Email</Label><input type="email" value={testEmail} onChange={e => setTestEmail(e.target.value)} className={inputCls} required /></div>
  <div className="flex justify-end gap-2 pt-2">
- <button type="button" onClick={() => setShowTestModal(false)} className="px-4 py-2 text-[13px] font-medium hover:bg-muted rounded-lg" disabled={testing}>Cancel</button>
- <button type="submit" disabled={testing} className="flex items-center gap-2 px-4 py-2 text-[13px] font-bold bg-primary text-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 shadow-sm">
+ <button type="button" onClick={() => setShowTestModal(false)} className="px-4 py-2 text-[13px] font-medium hover:bg-gray-100 rounded-lg" disabled={testing}>Cancel</button>
+ <button type="submit" disabled={testing} className="flex items-center gap-2 px-4 py-2 text-[13px] font-bold bg-primary text-gray-900 rounded-lg hover:bg-primary/90 disabled:opacity-50 shadow-sm">
  {testing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
  {testing ? "Running…" : "Start Test"}
  </button>
@@ -1794,16 +1794,16 @@ export default function WorkflowBuilderPage() {
  {(testRunResult.status === "saving" || testRunResult.status === "triggering") && (
  <div className="flex flex-col items-center gap-3">
  <Loader2 className="h-8 w-8 animate-spin text-primary" />
- <p className="text-[13px] font-medium text-foreground">{testRunResult.message}</p>
+ <p className="text-[13px] font-medium text-gray-900">{testRunResult.message}</p>
  </div>
  )}
  {testRunResult.status === "success" && (
  <div className="flex flex-col items-center gap-3">
  <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center"><CheckCircle2 className="h-7 w-7 text-green-600" /></div>
  <p className="text-[14px] font-bold text-green-700">Test Executed Successfully</p>
- <p className="text-[12px] text-muted-foreground font-mono">Run ID: {testRunResult.runId}</p>
+ <p className="text-[12px] text-gray-500 font-mono">Run ID: {testRunResult.runId}</p>
  <button onClick={() => { setShowTestModal(false); setTestRunResult(null); setActiveTab("Logs"); setRunsLoaded(false) }}
- className="w-full px-4 py-2 text-[13px] font-bold bg-primary text-foreground rounded-xl hover:bg-primary/90">View Logs →</button>
+ className="w-full px-4 py-2 text-[13px] font-bold bg-primary text-gray-900 rounded-xl hover:bg-primary/90">View Logs →</button>
  </div>
  )}
  {testRunResult.status === "failed" && (
@@ -1811,7 +1811,7 @@ export default function WorkflowBuilderPage() {
  <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center"><XCircle className="h-7 w-7 text-red-600" /></div>
  <p className="text-[14px] font-bold text-red-700">Test Failed</p>
  <p className="text-[11px] bg-red-50 text-red-600 p-3 rounded-xl w-full text-left font-mono break-all">{testRunResult.message}</p>
- <button onClick={() => setTestRunResult(null)} className="w-full px-4 py-2 text-[13px] font-bold bg-muted hover:bg-muted/80 rounded-xl">Try Again</button>
+ <button onClick={() => setTestRunResult(null)} className="w-full px-4 py-2 text-[13px] font-bold bg-gray-100 hover:bg-gray-100/80 rounded-xl">Try Again</button>
  </div>
  )}
  </div>

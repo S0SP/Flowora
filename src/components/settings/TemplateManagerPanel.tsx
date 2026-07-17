@@ -37,7 +37,7 @@ const categoryColors: Record<string, string> = {
 };
 
 const statusConfigs: Record<string, { label: string; classes: string }> = {
-  DRAFT: { label: "Draft", classes: "bg-gray-100 text-gray-700 border-gray-200" },
+  DRAFT: { label: "Draft", classes: "bg-gray-100 text-gray-500 border-gray-200" },
   PENDING: { label: "Pending Review", classes: "bg-amber-100 text-amber-700 border-amber-200 animate-pulse" },
   APPROVED: { label: "Approved", classes: "bg-green-100 text-green-700 border-green-200" },
   REJECTED: { label: "Rejected", classes: "bg-red-100 text-red-700 border-red-200" },
@@ -418,8 +418,8 @@ export function TemplateManagerPanel() {
     <div className="max-w-[1200px] animate-in fade-in-50 duration-200 space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-[22px] font-bold text-foreground mb-1">Message Templates</h1>
-          <p className="text-[14px] text-muted-foreground">
+          <h1 className="text-[22px] font-bold text-gray-900 mb-1">Message Templates</h1>
+          <p className="text-[14px] text-gray-500">
             Create WhatsApp message templates for outbound broadcasts and notifications.
           </p>
         </div>
@@ -427,14 +427,14 @@ export function TemplateManagerPanel() {
           <button
             onClick={handleSyncFromMeta}
             disabled={syncing}
-            className="flex items-center gap-1.5 px-4 py-2 border border-border bg-white hover:bg-muted text-[13px] font-semibold text-foreground rounded-lg shadow-sm disabled:opacity-50"
+            className="flex items-center gap-1.5 px-4 py-2 border border-border bg-white hover:bg-gray-100 text-[13px] font-semibold text-gray-900 rounded-lg shadow-sm disabled:opacity-50"
           >
             <RefreshCw className={`size-4 ${syncing ? "animate-spin" : ""}`} />
             {syncing ? "Syncing..." : "Sync from Meta"}
           </button>
           <button
             onClick={openCreate}
-            className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary/95 text-foreground font-semibold text-[13px] rounded-lg shadow-sm"
+            className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary/95 text-gray-900 font-semibold text-[13px] rounded-lg shadow-sm"
           >
             <Plus className="size-4" />
             New Template
@@ -444,8 +444,8 @@ export function TemplateManagerPanel() {
 
       {templates.length === 0 ? (
         <div className="bg-white border border-border rounded-xl p-12 text-center shadow-sm">
-          <p className="text-muted-foreground text-sm">No templates found in this workspace.</p>
-          <p className="text-muted-foreground text-xs mt-1">
+          <p className="text-gray-500 text-sm">No templates found in this workspace.</p>
+          <p className="text-gray-500 text-xs mt-1">
             Create your first message template or click Sync from Meta to pull approved ones.
           </p>
         </div>
@@ -453,12 +453,12 @@ export function TemplateManagerPanel() {
         <div className="grid gap-4 md:grid-cols-2">
           {templates.map((t) => {
             const statusKey = t.status || "DRAFT";
-            const status = statusConfigs[statusKey] || { label: statusKey, classes: "bg-gray-100 text-gray-700" };
+            const status = statusConfigs[statusKey] || { label: statusKey, classes: "bg-gray-100 text-gray-500" };
             return (
               <div key={t.id} className="bg-white border border-border rounded-xl p-5 shadow-sm space-y-3 flex flex-col justify-between">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-bold text-foreground text-[14px]">{t.name}</h3>
+                    <h3 className="font-bold text-gray-900 text-[14px]">{t.name}</h3>
                     <span className={`text-[10px] px-2 py-0.5 border rounded-full font-bold uppercase ${categoryColors[t.category] || "bg-gray-50"}`}>
                       {t.category}
                     </span>
@@ -466,7 +466,7 @@ export function TemplateManagerPanel() {
                       {status.label}
                     </span>
                     {t.language && (
-                      <span className="text-[10px] font-bold text-muted-foreground uppercase bg-muted px-1.5 py-0.5 rounded">
+                      <span className="text-[10px] font-bold text-gray-500 uppercase bg-gray-100 px-1.5 py-0.5 rounded">
                         {t.language}
                       </span>
                     )}
@@ -484,11 +484,11 @@ export function TemplateManagerPanel() {
                       </span>
                     )}
                   </div>
-                  <p className="text-[13px] text-muted-foreground line-clamp-2 leading-relaxed">
+                  <p className="text-[13px] text-gray-500 line-clamp-2 leading-relaxed">
                     {t.body_text}
                   </p>
                   {t.footer_text && (
-                    <p className="text-[11px] text-muted-foreground/80 italic">
+                    <p className="text-[11px] text-gray-500/80 italic">
                       {t.footer_text}
                     </p>
                   )}
@@ -504,7 +504,7 @@ export function TemplateManagerPanel() {
                   {statusKey === "APPROVED" && (
                     <button
                       onClick={() => openEdit(t)}
-                      className="flex items-center gap-1 text-[12px] font-bold text-muted-foreground hover:text-foreground hover:bg-muted/80 px-2.5 py-1.5 rounded-lg border border-border transition-all"
+                      className="flex items-center gap-1 text-[12px] font-bold text-gray-500 hover:text-gray-900 hover:bg-gray-100/80 px-2.5 py-1.5 rounded-lg border border-border transition-all"
                     >
                       <Pencil className="size-3" />
                       Edit
@@ -513,7 +513,7 @@ export function TemplateManagerPanel() {
                   {(statusKey === "REJECTED" || statusKey === "PAUSED") && (
                     <button
                       onClick={() => openEdit(t)}
-                      className="flex items-center gap-1 text-[12px] font-bold text-muted-foreground hover:text-foreground hover:bg-muted/80 px-2.5 py-1.5 rounded-lg border border-border transition-all"
+                      className="flex items-center gap-1 text-[12px] font-bold text-gray-500 hover:text-gray-900 hover:bg-gray-100/80 px-2.5 py-1.5 rounded-lg border border-border transition-all"
                     >
                       <RotateCcw className="size-3" />
                       Resubmit
@@ -543,11 +543,11 @@ export function TemplateManagerPanel() {
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setDialogOpen(false)}>
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-border pb-3 mb-5">
-              <h3 className="text-[16px] font-bold text-foreground">
+              <h3 className="text-[16px] font-bold text-gray-900">
                 {editingId ? "Edit Message Template" : "New Message Template"}
               </h3>
               <button onClick={() => setDialogOpen(false)}>
-                <X className="h-5 w-5 text-muted-foreground hover:text-foreground" />
+                <X className="h-5 w-5 text-gray-500 hover:text-gray-900" />
               </button>
             </div>
 
@@ -562,16 +562,16 @@ export function TemplateManagerPanel() {
               )}
 
               <div className="space-y-1.5">
-                <label className="text-[13px] font-semibold text-foreground">Template Name</label>
+                <label className="text-[13px] font-semibold text-gray-900">Template Name</label>
                 <input
                   type="text"
                   placeholder="e.g. order_confirmation"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   disabled={editingId !== null}
-                  className="w-full border border-border rounded-lg px-3.5 py-2 text-[14px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-60 disabled:cursor-not-allowed bg-white"
+                  className="w-full border border-border rounded-lg px-3.5 py-2 text-[14px] text-gray-900 focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-60 disabled:cursor-not-allowed bg-white"
                 />
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-[11px] text-gray-500">
                   {editingId
                     ? "Name cannot be edited once saved on Meta."
                     : "Lowercase letters, digits, and underscores only."}
@@ -580,7 +580,7 @@ export function TemplateManagerPanel() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[13px] font-semibold text-foreground">Category</label>
+                  <label className="text-[13px] font-semibold text-gray-900">Category</label>
                   <select
                     value={form.category}
                     onChange={(e) => setForm({ ...form, category: e.target.value as any })}
@@ -595,7 +595,7 @@ export function TemplateManagerPanel() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[13px] font-semibold text-foreground">Language</label>
+                  <label className="text-[13px] font-semibold text-gray-900">Language</label>
                   <input
                     placeholder="en_US"
                     list="tpl-langs"
@@ -613,7 +613,7 @@ export function TemplateManagerPanel() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[13px] font-semibold text-foreground">Header Format</label>
+                <label className="text-[13px] font-semibold text-gray-900">Header Format</label>
                 <select
                   value={form.header_format}
                   onChange={(e) => setForm({ ...form, header_format: e.target.value as HeaderFormat })}
@@ -659,7 +659,7 @@ export function TemplateManagerPanel() {
                         onClick={triggerLogoUpload}
                         disabled={uploadingHeader}
                         type="button"
-                        className="flex items-center gap-1 px-3 py-2 border border-border rounded-lg hover:bg-muted text-xs font-semibold shrink-0"
+                        className="flex items-center gap-1 px-3 py-2 border border-border rounded-lg hover:bg-gray-100 text-xs font-semibold shrink-0"
                       >
                         {uploadingHeader ? <Loader2 className="size-3 animate-spin" /> : <Upload className="size-3" />}
                         Upload
@@ -688,21 +688,21 @@ export function TemplateManagerPanel() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[13px] font-semibold text-foreground">Body Text</label>
+                <label className="text-[13px] font-semibold text-gray-900">Body Text</label>
                 <textarea
                   placeholder="E.g. Hello {{1}}, your order {{2}} has been shipped!"
                   value={form.body_text}
                   onChange={(e) => setForm({ ...form, body_text: e.target.value })}
                   rows={4}
-                  className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary bg-white"
+                  className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-gray-900 focus:outline-none focus:ring-1 focus:ring-primary bg-white"
                 />
 
                 {bodyVarCount > 0 && (
-                  <div className="space-y-2 mt-3 bg-muted/20 p-3.5 rounded-lg border border-border/60">
-                    <span className="text-xs font-bold text-foreground">Sample values for review:</span>
+                  <div className="space-y-2 mt-3 bg-gray-100/20 p-3.5 rounded-lg border border-border/60">
+                    <span className="text-xs font-bold text-gray-900">Sample values for review:</span>
                     {Array.from({ length: bodyVarCount }).map((_, i) => (
                       <div key={i} className="flex items-center gap-2">
-                        <span className="text-xs font-mono font-bold w-10 text-muted-foreground shrink-0">{`{{${i + 1}}}`}</span>
+                        <span className="text-xs font-mono font-bold w-10 text-gray-500 shrink-0">{`{{${i + 1}}}`}</span>
                         <input
                           placeholder={`Sample value for variable ${i + 1}`}
                           value={form.body_samples[i] || ""}
@@ -720,20 +720,20 @@ export function TemplateManagerPanel() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[13px] font-semibold text-foreground">Footer Text (optional)</label>
+                <label className="text-[13px] font-semibold text-gray-900">Footer Text (optional)</label>
                 <input
                   placeholder="E.g. Reply STOP to opt out"
                   value={form.footer_text}
                   onChange={(e) => setForm({ ...form, footer_text: e.target.value })}
                   maxLength={TEMPLATE_LIMITS.footerMaxLength}
-                  className="w-full border border-border rounded-lg px-3.5 py-2 text-[14px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary bg-white"
+                  className="w-full border border-border rounded-lg px-3.5 py-2 text-[14px] text-gray-900 focus:outline-none focus:ring-1 focus:ring-primary bg-white"
                 />
               </div>
 
               {/* Buttons */}
               <div className="space-y-2 border-t border-border pt-4">
                 <div className="flex items-center justify-between">
-                  <label className="text-[13px] font-bold text-foreground">Buttons</label>
+                  <label className="text-[13px] font-bold text-gray-900">Buttons</label>
                   {form.buttons.length < TEMPLATE_LIMITS.maxButtonsTotal && (
                     <button
                       onClick={addButton}
@@ -746,14 +746,14 @@ export function TemplateManagerPanel() {
                 </div>
 
                 {form.buttons.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">No buttons defined for this template.</p>
+                  <p className="text-xs text-gray-500">No buttons defined for this template.</p>
                 ) : (
                   <div className="space-y-3">
                     {form.buttons.map((btn, index) => (
-                      <div key={index} className="flex gap-3 items-start border border-border bg-muted/10 p-3 rounded-lg relative">
+                      <div key={index} className="flex gap-3 items-start border border-border bg-gray-100/10 p-3 rounded-lg relative">
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 w-full">
                           <div className="space-y-1">
-                            <span className="text-[11px] font-bold text-muted-foreground">Type</span>
+                            <span className="text-[11px] font-bold text-gray-500">Type</span>
                             <select
                               value={btn.type}
                               onChange={(e) => changeButtonType(index, e.target.value as any)}
@@ -767,7 +767,7 @@ export function TemplateManagerPanel() {
                           </div>
 
                           <div className="space-y-1">
-                            <span className="text-[11px] font-bold text-muted-foreground">Text</span>
+                            <span className="text-[11px] font-bold text-gray-500">Text</span>
                             <input
                               placeholder="Button Label"
                               value={btn.text}
@@ -780,7 +780,7 @@ export function TemplateManagerPanel() {
                           {btn.type === "URL" && (
                             <>
                               <div className="space-y-1">
-                                <span className="text-[11px] font-bold text-muted-foreground">URL Suffix</span>
+                                <span className="text-[11px] font-bold text-gray-500">URL Suffix</span>
                                 <input
                                   placeholder="https://example.com/{{1}}"
                                   value={btn.url}
@@ -790,7 +790,7 @@ export function TemplateManagerPanel() {
                               </div>
                               {btn.url.includes("{{1}}") && (
                                 <div className="col-span-full space-y-1">
-                                  <span className="text-[11px] font-bold text-muted-foreground">URL Sample Value</span>
+                                  <span className="text-[11px] font-bold text-gray-500">URL Sample Value</span>
                                   <input
                                     placeholder="Sample variable (e.g. promo20)"
                                     value={btn.example || ""}
@@ -804,7 +804,7 @@ export function TemplateManagerPanel() {
 
                           {btn.type === "PHONE_NUMBER" && (
                             <div className="space-y-1">
-                              <span className="text-[11px] font-bold text-muted-foreground">Phone</span>
+                              <span className="text-[11px] font-bold text-gray-500">Phone</span>
                               <input
                                 placeholder="+15551234567"
                                 value={btn.phone_number}
@@ -816,7 +816,7 @@ export function TemplateManagerPanel() {
 
                           {btn.type === "COPY_CODE" && (
                             <div className="space-y-1">
-                              <span className="text-[11px] font-bold text-muted-foreground">Code Example</span>
+                              <span className="text-[11px] font-bold text-gray-500">Code Example</span>
                               <input
                                 placeholder="E.g. SALE20"
                                 value={btn.example}
@@ -846,14 +846,14 @@ export function TemplateManagerPanel() {
               <button
                 type="button"
                 onClick={() => setDialogOpen(false)}
-                className="flex-1 py-2 border border-border rounded-lg text-[14px] font-medium text-foreground hover:bg-muted"
+                className="flex-1 py-2 border border-border rounded-lg text-[14px] font-medium text-gray-900 hover:bg-gray-100"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSubmit}
                 disabled={submitting || form.category === "Authentication"}
-                className="flex-1 py-2 bg-primary text-foreground rounded-lg text-[14px] font-semibold hover:bg-primary/95 disabled:opacity-50 transition-all flex items-center justify-center gap-1.5"
+                className="flex-1 py-2 bg-primary text-gray-900 rounded-lg text-[14px] font-semibold hover:bg-primary/95 disabled:opacity-50 transition-all flex items-center justify-center gap-1.5"
               >
                 {submitting ? (
                   <>
@@ -872,9 +872,9 @@ export function TemplateManagerPanel() {
       {templateToDelete && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setTemplateToDelete(null)}>
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-[16px] font-bold text-foreground mb-2">Delete Message Template</h3>
-            <p className="text-[13px] text-muted-foreground mb-5 leading-relaxed">
-              Are you sure you want to delete <strong className="text-foreground">#{templateToDelete.name}</strong>?
+            <h3 className="text-[16px] font-bold text-gray-900 mb-2">Delete Message Template</h3>
+            <p className="text-[13px] text-gray-500 mb-5 leading-relaxed">
+              Are you sure you want to delete <strong className="text-gray-900">#{templateToDelete.name}</strong>?
               {templateToDelete.meta_template_id && (
                 <span className="block mt-2 text-red-600 font-semibold">
                   This will delete the template on Meta as well as locally. This cannot be undone.
@@ -885,7 +885,7 @@ export function TemplateManagerPanel() {
             <div className="flex gap-3">
               <button
                 onClick={() => setTemplateToDelete(null)}
-                className="flex-1 py-2 border border-border rounded-lg text-[14px] font-medium text-foreground hover:bg-muted"
+                className="flex-1 py-2 border border-border rounded-lg text-[14px] font-medium text-gray-900 hover:bg-gray-100"
               >
                 Cancel
               </button>
