@@ -1443,7 +1443,7 @@ export default function InboxPage() {
 
             {/* ── Smart Cards Panel ─────────────────────────────────────── */}
             {!isSmartCardsCollapsed && (
-              <div className="w-[272px] shrink-0 border-l border-border bg-card flex flex-col overflow-y-auto">
+              <div className="w-[272px] shrink-0 border-l border-border bg-card flex flex-col overflow-y-auto pb-20">
 
                 {/* Panel header */}
                 <div className="px-4 py-3 border-b border-border shrink-0">
@@ -1507,18 +1507,24 @@ export default function InboxPage() {
                     </div>
                     {/* Toggle */}
                     <button
-                      onClick={() => handleAssign(null, selectedThread.ai_active ? "disable_ai" : "enable_ai")}
+                      onClick={() => {
+                        const newActive = !selectedThread.ai_active;
+                        // Optimistic update
+                        setSelectedThread(prev => prev ? { ...prev, ai_active: newActive } : null);
+                        setThreads(prev => prev.map(t => t.id === selectedThread.id ? { ...t, ai_active: newActive } : t));
+                        handleAssign(null, newActive ? "enable_ai" : "disable_ai");
+                      }}
                       className={cn(
-                        "relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none",
-                        selectedThread.ai_active ? "bg-primary" : "bg-muted-foreground/30"
+                        "relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-300 focus:outline-none shadow-inner",
+                        selectedThread.ai_active ? "bg-green-500" : "bg-gray-200 dark:bg-gray-700"
                       )}>
                       <span className={cn(
-                        "inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform",
-                        selectedThread.ai_active ? "translate-x-4" : "translate-x-0.5"
+                        "inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-all duration-300 ease-in-out",
+                        selectedThread.ai_active ? "translate-x-5" : "translate-x-0.5"
                       )} />
                     </button>
                   </div>
-                  <p className="text-[10px] text-muted-foreground mt-1 ml-6">
+                  <p className="text-[10px] text-muted-foreground mt-2 ml-6">
                     {selectedThread.ai_active ? "AI is handling replies." : "Human agent in control."}
                   </p>
                 </div>
@@ -1570,7 +1576,7 @@ export default function InboxPage() {
                   </div>
                   <div className="flex flex-wrap gap-1 mb-2">
                     {(selectedThread.tags ?? []).map((tag, i) => (
-                      <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary rounded-full text-[10px] font-semibold">
+                      <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-foreground dark:text-primary rounded-full text-[10px] font-semibold">
                         {tag}
                         {editingTags && (
                           <button onClick={() => {

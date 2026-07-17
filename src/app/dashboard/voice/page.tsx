@@ -61,7 +61,7 @@ export default function VoiceAgentPage() {
   })
 
   return (
-    <form onSubmit={handleSubmit(onSave)} className="flex flex-col h-full flex-1 overflow-y-auto  bg-[#FAFAFA] p-8">
+    <form onSubmit={handleSubmit(onSave)} className="flex flex-col min-h-0 flex-1 overflow-y-auto  bg-[#FAFAFA] p-8">
       
       <div className="max-w-6xl mx-auto w-full space-y-8">
         
