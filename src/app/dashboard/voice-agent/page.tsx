@@ -476,7 +476,8 @@ function VoiceAgentPageContent({ initialVoice }: { initialVoice: string }) {
   };
 
   return (
-    <PageShell size="wide">
+    <div className="flex-1 overflow-y-auto p-6 lg:p-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <PageShell size="wide">
 
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -921,6 +922,7 @@ function VoiceAgentPageContent({ initialVoice }: { initialVoice: string }) {
           </div>
         </div>
       </div>
-    </PageShell>
+      </PageShell>
+    </div>
   );
 }

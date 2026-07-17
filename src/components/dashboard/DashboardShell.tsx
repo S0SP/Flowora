@@ -29,11 +29,11 @@ export function DashboardShell({ workspaceData, children }: Props) {
       } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
         setDark(true)
       }
-    } catch {}
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    } catch { }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const isViewportPage = 
+  const isViewportPage =
     pathname === "/dashboard/inbox" ||
     pathname === "/dashboard/leads" ||
     pathname === "/dashboard/contacts" ||
@@ -43,7 +43,7 @@ export function DashboardShell({ workspaceData, children }: Props) {
     pathname === "/dashboard/team" ||
     pathname === "/dashboard/tickets" ||
     pathname?.startsWith("/dashboard/chatbot") ||
-    pathname?.startsWith("/dashboard/voice") ||
+    pathname?.startsWith("/dashboard/voice-agent") ||
     pathname?.startsWith("/dashboard/analytics");
 
   return (
