@@ -6,10 +6,11 @@ import { motion, AnimatePresence } from "framer-motion"
 import {
   Building2, Smartphone, Users, Workflow, Rocket,
   ArrowRight, ArrowLeft, Check, Upload, Plus, ChevronDown,
-  MessageSquare, Mail, Globe, FileSpreadsheet
+  MessageSquare, Mail, Globe, FileSpreadsheet, Zap
 } from "lucide-react"
 import { toast } from "sonner"
 import { createClient } from "@/lib/supabase/client"
+import { cn } from "@/lib/utils"
 
 const STEPS = [
   { id: 1, label: "Workspace", icon: Building2, description: "Tell us about your company" },
@@ -31,7 +32,7 @@ const WORKFLOW_TEMPLATES = [
     name: "Lead Qualification",
     description: "Automatically qualify inbound WhatsApp leads with AI",
     icon: MessageSquare,
-    color: "#22C55E",
+    color: "#10B981", // Emerald
     tags: ["WhatsApp", "AI", "Popular"],
   },
   {
@@ -39,7 +40,7 @@ const WORKFLOW_TEMPLATES = [
     name: "Demo Booking",
     description: "Let AI schedule demos via WhatsApp — no agent needed",
     icon: Workflow,
-    color: "#C4B1F9",
+    color: "#6366F1", // Indigo
     tags: ["Automation", "WhatsApp"],
   },
   {
@@ -47,7 +48,7 @@ const WORKFLOW_TEMPLATES = [
     name: "Follow-up Sequence",
     description: "5-day nurture sequence for warm leads via WhatsApp + Email",
     icon: Mail,
-    color: "#B1D8FC",
+    color: "#3B82F6", // Blue
     tags: ["Email", "WhatsApp", "Nurture"],
   },
   {
@@ -55,7 +56,7 @@ const WORKFLOW_TEMPLATES = [
     name: "Google Sheet → WhatsApp",
     description: "Auto-message new rows added to your Google Sheet",
     icon: FileSpreadsheet,
-    color: "#FFE27C",
+    color: "#059669", // Emerald darker
     tags: ["Sheets", "WhatsApp"],
   },
 ]
@@ -66,7 +67,6 @@ export default function OnboardingPage() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
-    // Clear workspace cookie if present
     document.cookie = "fw_ws=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
     router.push("/auth/login")
   }
@@ -93,10 +93,6 @@ export default function OnboardingPage() {
 
   const [saving, setSaving] = useState(false)
 
-  // -------------------------------------------------------------------------
-  // Step handlers
-  // -------------------------------------------------------------------------
-
   const handleCreateWorkspace = async () => {
     if (!companyName.trim()) { toast.error("Company name is required"); return }
     setSaving(true)
@@ -109,7 +105,6 @@ export default function OnboardingPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? "Failed to create workspace")
       setWorkspaceId(data.workspaceId)
-      // Set workspace cookie via reload — middleware will pick it up
       document.cookie = `fw_ws=${data.workspaceId}; path=/; samesite=lax`
       setStep(2)
     } catch (err: any) {
@@ -161,29 +156,23 @@ export default function OnboardingPage() {
     }
   }
 
-  // -------------------------------------------------------------------------
-  // Render
-  // -------------------------------------------------------------------------
-
   const progress = ((step - 1) / (STEPS.length - 1)) * 100
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8] flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col font-sans">
       {/* Header */}
-      <header className="h-14 bg-white border-b border-[#E8E8E4] flex items-center px-6">
+      <header className="h-14 bg-card border-b border-border flex items-center px-6">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 bg-[#FFE27C] rounded-lg flex items-center justify-center">
-            <svg viewBox="0 0 32 32" className="w-4 h-4" fill="#1B1B1B">
-              <path d="M16 2L6 8v12l10 6 10-6V8L16 2zm0 3.2L23.5 10l-7.5 4.5L8.5 10 16 5.2zM8 11.5l7 4.2v8.5L8 20V11.5zm9 12.7v-8.5l7-4.2V20l-7 4.2z"/>
-            </svg>
+          <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
+            <Zap className="w-4 h-4 text-primary-foreground" />
           </div>
-          <span className="font-extrabold text-[#1B1B1B] tracking-wide">Flowora</span>
+          <span className="font-extrabold text-foreground tracking-wide">Flowora</span>
         </div>
         <div className="ml-auto flex items-center gap-4">
-          <span className="text-sm text-[#9B9B9B]">Step {step} of {STEPS.length}</span>
+          <span className="text-sm text-muted-foreground">Step {step} of {STEPS.length}</span>
           <button
             onClick={handleSignOut}
-            className="text-xs font-semibold text-red-600 hover:text-red-800 transition-colors border border-red-200 hover:border-red-400 rounded-lg px-2.5 py-1"
+            className="text-xs font-semibold text-destructive hover:text-destructive/80 transition-colors border border-destructive/20 hover:border-destructive/40 rounded-lg px-2.5 py-1"
           >
             Sign Out
           </button>
@@ -191,35 +180,34 @@ export default function OnboardingPage() {
       </header>
 
       {/* Progress bar */}
-      <div className="h-1 bg-[#F4F4F2]">
+      <div className="h-1 bg-muted">
         <motion.div
-          className="h-full bg-[#FFE27C]"
+          className="h-full bg-primary"
           initial={{ width: 0 }}
-          animate={{ width: `${progress}%` }}
+          animate={{ width: \`\${progress}%\` }}
           transition={{ duration: 0.4 }}
         />
       </div>
 
       <div className="flex-1 flex">
         {/* Left stepper */}
-        <div className="hidden md:flex flex-col w-64 bg-[#1B1B1B] p-8 gap-3">
+        <div className="hidden md:flex flex-col w-64 bg-zinc-950 p-8 gap-3">
           <p className="text-xs text-white/40 uppercase tracking-widest font-semibold mb-4">Setup guide</p>
-          {STEPS.map((s, i) => {
+          {STEPS.map((s) => {
             const Icon = s.icon
             const done = step > s.id
             const active = step === s.id
             return (
-              <div key={s.id} className={`flex items-start gap-3 p-3 rounded-xl transition-all ${active ? "bg-white/10" : ""}`}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all
-                  ${done ? "bg-[#22C55E]" : active ? "bg-[#FFE27C]" : "bg-white/10"}`}>
+              <div key={s.id} className={\`flex items-start gap-3 p-3 rounded-xl transition-all \${active ? "bg-white/10" : ""}\`}>
+                <div className={\`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all
+                  \${done ? "bg-primary" : active ? "bg-primary text-primary-foreground" : "bg-white/10"}\`}>
                   {done
                     ? <Check className="w-4 h-4 text-white" />
-                    : <Icon className={`w-4 h-4 ${active ? "text-[#1B1B1B]" : "text-white/50"}`} />
+                    : <Icon className={\`w-4 h-4 \${active ? "text-primary-foreground" : "text-white/50"}\`} />
                   }
                 </div>
                 <div>
-                  <p className={`text-sm font-semibold ${active ? "text-white" : done ? "text-white/80" : "text-white/50"}`}>{s.label}</p>
-                  {/* CONTRAST FIX: was text-white/30 — barely readable */}
+                  <p className={\`text-sm font-semibold \${active ? "text-white" : done ? "text-white/80" : "text-white/50"}\`}>{s.label}</p>
                   <p className="text-xs text-white/55 mt-0.5">{s.description}</p>
                 </div>
               </div>
@@ -243,39 +231,39 @@ export default function OnboardingPage() {
                 {step === 1 && (
                   <div className="space-y-6">
                     <div>
-                      <h2 className="text-2xl font-bold text-[#1B1B1B]">Set up your workspace</h2>
-                      <p className="text-[#4B5563] mt-1.5 text-sm">Tell us a bit about your company to personalize your experience.</p>
+                      <h2 className="text-2xl font-bold text-foreground">Set up your workspace</h2>
+                      <p className="text-muted-foreground mt-1.5 text-sm">Tell us a bit about your company to personalize your experience.</p>
                     </div>
 
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-semibold text-[#1B1B1B] mb-1.5">Company name *</label>
+                        <label className="block text-sm font-semibold text-foreground mb-1.5">Company name *</label>
                         <input
                           value={companyName}
                           onChange={e => setCompanyName(e.target.value)}
                           placeholder="Acme Corp"
-                          className="w-full px-4 py-2.5 border border-[#E8E8E4] rounded-xl text-sm text-[#1B1B1B] focus:outline-none focus:border-[#FFE27C] focus:ring-2 focus:ring-[#FFE27C]/20 bg-white"
+                          className="w-full px-4 py-2.5 border border-border rounded-xl text-sm text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 bg-card placeholder-muted-foreground"
                         />
                       </div>
 
                       <div className="relative">
-                        <label className="block text-sm font-semibold text-[#1B1B1B] mb-1.5">Industry</label>
+                        <label className="block text-sm font-semibold text-foreground mb-1.5">Industry</label>
                         <button
                           type="button"
                           onClick={() => setIndustryOpen(!industryOpen)}
-                          className="w-full flex items-center justify-between px-4 py-2.5 border border-[#E8E8E4] rounded-xl text-sm bg-white hover:border-[#FFE27C] transition-colors"
+                          className="w-full flex items-center justify-between px-4 py-2.5 border border-border rounded-xl text-sm bg-card hover:border-primary transition-colors"
                         >
-                          <span className={industry ? "text-[#1B1B1B]" : "text-[#9B9B9B]"}>{industry || "Select your industry"}</span>
-                          <ChevronDown className={`w-4 h-4 text-[#9B9B9B] transition-transform ${industryOpen ? "rotate-180" : ""}`} />
+                          <span className={industry ? "text-foreground" : "text-muted-foreground"}>{industry || "Select your industry"}</span>
+                          <ChevronDown className={\`w-4 h-4 text-muted-foreground transition-transform \${industryOpen ? "rotate-180" : ""}\`} />
                         </button>
                         {industryOpen && (
-                          <div className="absolute z-10 w-full mt-1 bg-white border border-[#E8E8E4] rounded-xl shadow-lg max-h-52 overflow-y-auto">
+                          <div className="absolute z-10 w-full mt-1 bg-card border border-border rounded-xl shadow-lg max-h-52 overflow-y-auto">
                             {INDUSTRIES.map(ind => (
                               <button
                                 key={ind}
                                 type="button"
                                 onClick={() => { setIndustry(ind); setIndustryOpen(false) }}
-                                className={`w-full text-left px-4 py-2.5 text-sm hover:bg-[#FAFAF8] transition-colors ${industry === ind ? "bg-[#FFF9E6] text-[#1B1B1B] font-medium" : "text-[#6B6B6B]"}`}
+                                className={\`w-full text-left px-4 py-2.5 text-sm hover:bg-muted transition-colors \${industry === ind ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground"}\`}
                               >
                                 {ind}
                               </button>
@@ -288,7 +276,7 @@ export default function OnboardingPage() {
                     <button
                       onClick={handleCreateWorkspace}
                       disabled={saving || !companyName.trim()}
-                      className="w-full flex items-center justify-center gap-2 bg-[#FFE27C] hover:bg-[#FFD84A] text-[#1B1B1B] font-semibold py-3 rounded-xl transition-all shadow-[0_2px_8px_rgba(255,226,124,0.4)] disabled:opacity-60"
+                      className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 rounded-xl transition-all shadow-[0_2px_8px_rgba(16,185,129,0.3)] disabled:opacity-60"
                     >
                       {saving ? "Creating..." : "Create Workspace"}
                       <ArrowRight className="w-4 h-4" />
@@ -300,12 +288,11 @@ export default function OnboardingPage() {
                 {step === 2 && (
                   <div className="space-y-6">
                     <div>
-                      <h2 className="text-2xl font-bold text-[#1B1B1B]">Connect WhatsApp</h2>
-                      <p className="text-[#4B5563] mt-1.5 text-sm">Add your Meta WhatsApp Business API credentials to start sending messages.</p>
+                      <h2 className="text-2xl font-bold text-foreground">Connect WhatsApp</h2>
+                      <p className="text-muted-foreground mt-1.5 text-sm">Add your Meta WhatsApp Business API credentials to start sending messages.</p>
                     </div>
 
-                    {/* CONTRAST FIX: tip text on light yellow bg needs darker color */}
-                    <div className="bg-[#FFF9E6] border border-[#FFE27C]/30 rounded-xl p-4 text-sm text-[#374151]">
+                    <div className="bg-primary/10 border border-primary/30 rounded-xl p-4 text-sm text-foreground/80">
                       💡 You can skip this now and add credentials later in Settings → Channels.
                     </div>
 
@@ -316,14 +303,14 @@ export default function OnboardingPage() {
                         { key: "accessToken", label: "Permanent Access Token", value: accessToken, set: setAccessToken },
                       ].map(f => (
                         <div key={f.key}>
-                          <label className="block text-sm font-semibold text-[#1B1B1B] mb-1.5">{f.label}</label>
+                          <label className="block text-sm font-semibold text-foreground mb-1.5">{f.label}</label>
                           <input
                             type={f.key === "accessToken" ? "password" : "text"}
                             value={f.value}
                             onChange={e => { f.set(e.target.value); setSkipWA(false) }}
                             placeholder={f.key === "accessToken" ? "EAA..." : ""}
                             disabled={skipWA}
-                            className="w-full px-4 py-2.5 border border-[#E8E8E4] rounded-xl text-sm text-[#1B1B1B] focus:outline-none focus:border-[#FFE27C] focus:ring-2 focus:ring-[#FFE27C]/20 bg-white disabled:opacity-50"
+                            className="w-full px-4 py-2.5 border border-border rounded-xl text-sm text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 bg-card disabled:opacity-50"
                           />
                         </div>
                       ))}
@@ -332,14 +319,14 @@ export default function OnboardingPage() {
                     <div className="flex gap-3">
                       <button
                         onClick={() => { setSkipWA(true); setStep(3) }}
-                        className="flex-1 py-3 border border-[#E8E8E4] rounded-xl text-sm font-semibold text-[#6B6B6B] hover:bg-[#FAFAF8] transition-colors"
+                        className="flex-1 py-3 border border-border rounded-xl text-sm font-semibold text-muted-foreground hover:bg-muted transition-colors"
                       >
                         Skip for now
                       </button>
                       <button
                         onClick={handleConnectWhatsApp}
                         disabled={saving}
-                        className="flex-1 flex items-center justify-center gap-2 bg-[#FFE27C] hover:bg-[#FFD84A] text-[#1B1B1B] font-semibold py-3 rounded-xl transition-all shadow-[0_2px_8px_rgba(255,226,124,0.4)]"
+                        className="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 rounded-xl transition-all shadow-[0_2px_8px_rgba(16,185,129,0.3)]"
                       >
                         {saving ? "Saving..." : "Connect"} <ArrowRight className="w-4 h-4" />
                       </button>
@@ -351,8 +338,8 @@ export default function OnboardingPage() {
                 {step === 3 && (
                   <div className="space-y-6">
                     <div>
-                      <h2 className="text-2xl font-bold text-[#1B1B1B]">Import your contacts</h2>
-                      <p className="text-[#4B5563] mt-1.5 text-sm">Import existing leads to start reaching out right away.</p>
+                      <h2 className="text-2xl font-bold text-foreground">Import your contacts</h2>
+                      <p className="text-muted-foreground mt-1.5 text-sm">Import existing leads to start reaching out right away.</p>
                     </div>
 
                     <div className="grid grid-cols-1 gap-3">
@@ -364,29 +351,29 @@ export default function OnboardingPage() {
                         <button
                           key={opt.id}
                           onClick={() => setImportMethod(opt.id)}
-                          className={`flex items-center gap-4 p-4 border-2 rounded-xl text-left transition-all
-                            ${importMethod === opt.id ? "border-[#FFE27C] bg-[#FFF9E6]" : "border-[#E8E8E4] bg-white hover:border-[#FFE27C]/50"}`}
+                          className={\`flex items-center gap-4 p-4 border-2 rounded-xl text-left transition-all
+                            \${importMethod === opt.id ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/50"}\`}
                         >
-                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center
-                            ${importMethod === opt.id ? "bg-[#FFE27C]" : "bg-[#F4F4F2]"}`}>
-                            <opt.icon className={`w-5 h-5 ${importMethod === opt.id ? "text-[#1B1B1B]" : "text-[#6B6B6B]"}`} />
+                          <div className={\`w-10 h-10 rounded-lg flex items-center justify-center
+                            \${importMethod === opt.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}\`}>
+                            <opt.icon className="w-5 h-5" />
                           </div>
                           <div>
-                            <p className="font-semibold text-sm text-[#1B1B1B]">{opt.title}</p>
-                            <p className="text-xs text-[#6B6B6B] mt-0.5">{opt.desc}</p>
+                            <p className="font-semibold text-sm text-foreground">{opt.title}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">{opt.desc}</p>
                           </div>
-                          {importMethod === opt.id && <Check className="w-5 h-5 text-[#22C55E] ml-auto" />}
+                          {importMethod === opt.id && <Check className="w-5 h-5 text-primary ml-auto" />}
                         </button>
                       ))}
                     </div>
 
                     <div className="flex gap-3">
-                      <button onClick={() => setStep(2)} className="px-6 py-3 border border-[#E8E8E4] rounded-xl text-sm font-semibold text-[#6B6B6B] hover:bg-[#FAFAF8] transition-colors flex items-center gap-1.5">
+                      <button onClick={() => setStep(2)} className="px-6 py-3 border border-border rounded-xl text-sm font-semibold text-muted-foreground hover:bg-muted transition-colors flex items-center gap-1.5">
                         <ArrowLeft className="w-4 h-4" /> Back
                       </button>
                       <button
                         onClick={() => setStep(4)}
-                        className="flex-1 flex items-center justify-center gap-2 bg-[#FFE27C] hover:bg-[#FFD84A] text-[#1B1B1B] font-semibold py-3 rounded-xl transition-all shadow-[0_2px_8px_rgba(255,226,124,0.4)]"
+                        className="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 rounded-xl transition-all shadow-[0_2px_8px_rgba(16,185,129,0.3)]"
                       >
                         Continue <ArrowRight className="w-4 h-4" />
                       </button>
@@ -398,8 +385,8 @@ export default function OnboardingPage() {
                 {step === 4 && (
                   <div className="space-y-6">
                     <div>
-                      <h2 className="text-2xl font-bold text-[#1B1B1B]">Pick your first workflow</h2>
-                      <p className="text-[#4B5563] mt-1.5 text-sm">Start with a proven template. You can customize everything later.</p>
+                      <h2 className="text-2xl font-bold text-foreground">Pick your first workflow</h2>
+                      <p className="text-muted-foreground mt-1.5 text-sm">Start with a proven template. You can customize everything later.</p>
                     </div>
 
                     <div className="grid grid-cols-1 gap-3">
@@ -407,33 +394,33 @@ export default function OnboardingPage() {
                         <button
                           key={t.id}
                           onClick={() => setSelectedTemplate(t.id)}
-                          className={`flex items-start gap-4 p-4 border-2 rounded-xl text-left transition-all
-                            ${selectedTemplate === t.id ? "border-[#FFE27C] bg-[#FFF9E6]" : "border-[#E8E8E4] bg-white hover:border-[#FFE27C]/50"}`}
+                          className={\`flex items-start gap-4 p-4 border-2 rounded-xl text-left transition-all
+                            \${selectedTemplate === t.id ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/50"}\`}
                         >
-                          <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: t.color + "20" }}>
+                          <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: t.color + "1A" }}>
                             <t.icon className="w-5 h-5" style={{ color: t.color }} />
                           </div>
                           <div className="flex-1">
-                            <p className="font-semibold text-sm text-[#1B1B1B]">{t.name}</p>
-                            <p className="text-xs text-[#6B6B6B] mt-0.5">{t.description}</p>
+                            <p className="font-semibold text-sm text-foreground">{t.name}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">{t.description}</p>
                             <div className="flex gap-1.5 mt-2">
                               {t.tags.map(tag => (
-                                <span key={tag} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#F4F4F2] text-[#6B6B6B]">{tag}</span>
+                                <span key={tag} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{tag}</span>
                               ))}
                             </div>
                           </div>
-                          {selectedTemplate === t.id && <Check className="w-5 h-5 text-[#22C55E] flex-shrink-0 mt-0.5" />}
+                          {selectedTemplate === t.id && <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />}
                         </button>
                       ))}
                     </div>
 
                     <div className="flex gap-3">
-                      <button onClick={() => setStep(3)} className="px-6 py-3 border border-[#E8E8E4] rounded-xl text-sm font-semibold text-[#6B6B6B] hover:bg-[#FAFAF8] transition-colors flex items-center gap-1.5">
+                      <button onClick={() => setStep(3)} className="px-6 py-3 border border-border rounded-xl text-sm font-semibold text-muted-foreground hover:bg-muted transition-colors flex items-center gap-1.5">
                         <ArrowLeft className="w-4 h-4" /> Back
                       </button>
                       <button
                         onClick={() => setStep(5)}
-                        className="flex-1 flex items-center justify-center gap-2 bg-[#FFE27C] hover:bg-[#FFD84A] text-[#1B1B1B] font-semibold py-3 rounded-xl transition-all shadow-[0_2px_8px_rgba(255,226,124,0.4)]"
+                        className="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 rounded-xl transition-all shadow-[0_2px_8px_rgba(16,185,129,0.3)]"
                       >
                         {selectedTemplate ? "Use this template" : "Skip"} <ArrowRight className="w-4 h-4" />
                       </button>
@@ -445,24 +432,24 @@ export default function OnboardingPage() {
                 {step === 5 && (
                   <div className="space-y-8 text-center">
                     <div>
-                      <div className="w-20 h-20 bg-[#FFF9E6] border-2 border-[#FFE27C] rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <Rocket className="w-10 h-10 text-[#FFE27C]" />
+                      <div className="w-20 h-20 bg-primary/10 border-2 border-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <Rocket className="w-10 h-10 text-primary" />
                       </div>
-                      <h2 className="text-2xl font-bold text-[#1B1B1B]">You're all set! 🎉</h2>
-                      <p className="text-[#4B5563] mt-2 text-sm leading-relaxed max-w-md mx-auto">
+                      <h2 className="text-2xl font-bold text-foreground">You're all set! 🎉</h2>
+                      <p className="text-muted-foreground mt-2 text-sm leading-relaxed max-w-md mx-auto">
                         Your Flowora workspace is ready. Your AI agent will start handling conversations, qualifying leads, and booking appointments automatically.
                       </p>
                     </div>
 
                     <div className="grid grid-cols-3 gap-4 text-center">
                       {[
-                        { label: "Trial Credits", value: "1,000", color: "#C4B1F9" },
-                        { label: "Channels", value: skipWA ? "0" : "1", color: "#B1D8FC" },
-                        { label: "Workflows", value: selectedTemplate ? "1" : "0", color: "#FFE27C" },
+                        { label: "Trial Credits", value: "1,000", color: "#10B981" },
+                        { label: "Channels", value: skipWA ? "0" : "1", color: "#6366F1" },
+                        { label: "Workflows", value: selectedTemplate ? "1" : "0", color: "#3B82F6" },
                       ].map(s => (
-                        <div key={s.label} className="bg-white border border-[#E8E8E4] rounded-xl p-4">
+                        <div key={s.label} className="bg-card border border-border rounded-xl p-4">
                           <div className="text-2xl font-bold" style={{ color: s.color }}>{s.value}</div>
-                          <div className="text-xs text-[#6B6B6B] mt-1">{s.label}</div>
+                          <div className="text-xs text-muted-foreground mt-1">{s.label}</div>
                         </div>
                       ))}
                     </div>
@@ -470,7 +457,7 @@ export default function OnboardingPage() {
                     <button
                       onClick={handleComplete}
                       disabled={saving}
-                      className="w-full flex items-center justify-center gap-2 bg-[#1B1B1B] hover:bg-[#2a2a2a] text-white font-semibold py-4 rounded-xl transition-all text-base shadow-lg disabled:opacity-60"
+                      className="w-full flex items-center justify-center gap-2 bg-zinc-950 hover:bg-zinc-800 text-white font-semibold py-4 rounded-xl transition-all text-base shadow-lg disabled:opacity-60"
                     >
                       {saving ? "Launching..." : "Go to Dashboard"}
                       <ArrowRight className="w-5 h-5" />
