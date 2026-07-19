@@ -48,30 +48,30 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8] flex">
+    <div className="min-h-screen bg-background flex">
       {/* Left panel — branding */}
-      <div className="hidden lg:flex flex-col justify-between w-[480px] bg-[#1B1B1B] p-12 flex-shrink-0">
+      <div className="hidden lg:flex flex-col justify-between w-[480px] bg-zinc-50 dark:bg-black border-r border-border dark:border-transparent p-12 flex-shrink-0">
         {/* Logo */}
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-[#FFE27C] rounded-lg flex items-center justify-center">
-            <svg viewBox="0 0 32 32" className="w-5 h-5" fill="#1B1B1B">
+          <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center">
+            <svg viewBox="0 0 32 32" className="w-5 h-5" fill="white">
               <path d="M16 2L6 8v12l10 6 10-6V8L16 2zm0 3.2L23.5 10l-7.5 4.5L8.5 10 16 5.2zM8 11.5l7 4.2v8.5L8 20V11.5zm9 12.7v-8.5l7-4.2V20l-7 4.2z"/>
             </svg>
           </div>
-          <span className="text-white font-extrabold text-xl tracking-wide">Flowora</span>
+          <span className="text-gray-900 dark:text-white font-extrabold text-xl tracking-wide">Flowora</span>
         </div>
 
         {/* Main copy */}
         <div className="space-y-6">
-          <div className="inline-flex items-center gap-2 bg-[#FFE27C]/10 border border-[#FFE27C]/20 rounded-full px-4 py-2">
-            <Sparkles className="w-4 h-4 text-[#FFE27C]" />
-            <span className="text-[#FFE27C] text-sm font-medium">AI Communication OS</span>
+          <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-2">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <span className="text-primary text-sm font-medium">AI Communication OS</span>
           </div>
-          <h1 className="text-4xl font-bold text-white leading-tight">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white leading-tight">
             Automate. Engage.<br />
-            <span className="text-[#FFE27C]">Convert.</span>
+            <span className="text-primary">Convert.</span>
           </h1>
-          <p className="text-[rgba(255,255,255,0.6)] text-base leading-relaxed">
+          <p className="text-gray-600 dark:text-gray-400 text-base leading-relaxed">
             The AI-powered platform that turns every WhatsApp conversation into a qualified lead — automatically.
           </p>
         </div>
@@ -83,37 +83,37 @@ function LoginForm() {
             { value: "98%", label: "Delivery rate" },
             { value: "3.2×", label: "Avg conversion" },
           ].map((s) => (
-            <div key={s.label} className="bg-white/5 rounded-xl p-4 border border-white/8">
-              <div className="text-2xl font-bold text-[#FFE27C]">{s.value}</div>
-              <div className="text-xs text-white/50 mt-1">{s.label}</div>
+            <div key={s.label} className="bg-white dark:bg-white/5 rounded-xl p-4 border border-border dark:border-white/8 shadow-sm dark:shadow-none">
+              <div className="text-2xl font-bold text-primary">{s.value}</div>
+              <div className="text-xs text-gray-500 dark:text-white/50 mt-1">{s.label}</div>
             </div>
           ))}
         </div>
       </div>
 
       {/* Right panel — form */}
-      <div className="flex-1 flex items-center justify-center p-8">
-        <div className="w-full max-w-md space-y-8">
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-12 lg:pr-20 xl:pr-32">
+        <div className="w-full max-w-[440px] bg-card border border-border shadow-sm rounded-2xl p-8 sm:p-10 space-y-7">
           {/* Mobile logo */}
-          <div className="lg:hidden flex items-center gap-3">
-            <div className="w-8 h-8 bg-[#FFE27C] rounded-lg flex items-center justify-center">
-              <svg viewBox="0 0 32 32" className="w-4 h-4" fill="#1B1B1B">
+          <div className="lg:hidden flex items-center gap-3 justify-center mb-2">
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <svg viewBox="0 0 32 32" className="w-4 h-4" fill="white">
                 <path d="M16 2L6 8v12l10 6 10-6V8L16 2zm0 3.2L23.5 10l-7.5 4.5L8.5 10 16 5.2zM8 11.5l7 4.2v8.5L8 20V11.5zm9 12.7v-8.5l7-4.2V20l-7 4.2z"/>
               </svg>
             </div>
-            <span className="font-extrabold text-lg text-[#1B1B1B] tracking-wide">Flowora</span>
+            <span className="font-extrabold text-lg text-foreground tracking-wide">Flowora</span>
           </div>
 
-          <div>
-            <h2 className="text-2xl font-bold text-[#1B1B1B]">Welcome back</h2>
-            <p className="text-[#6B6B6B] mt-1 text-sm">Sign in to your workspace</p>
+          <div className="text-center lg:text-left">
+            <h2 className="text-2xl font-semibold text-foreground tracking-tight">Welcome back</h2>
+            <p className="text-muted-foreground mt-1.5 text-sm">Sign in to your workspace</p>
           </div>
 
           {/* Google OAuth */}
           <button
             onClick={handleGoogleLogin}
             disabled={googleLoading || loading}
-            className="w-full flex items-center justify-center gap-3 bg-white border border-[#E8E8E4] rounded-xl px-4 py-3 text-sm font-semibold text-[#1B1B1B] hover:bg-[#FAFAF8] transition-colors shadow-sm disabled:opacity-60"
+            className="w-full flex items-center justify-center gap-3 bg-card border border-border rounded-xl h-11 px-4 text-sm font-medium text-foreground hover:bg-muted hover:border-border active:scale-[0.98] transition-all duration-200 shadow-sm disabled:opacity-60"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -126,58 +126,58 @@ function LoginForm() {
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-[#E8E8E4]" />
+              <div className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="bg-[#FAFAF8] px-3 text-[#9B9B9B] font-medium">or continue with email</span>
+              <span className="bg-background px-3 text-muted-foreground font-medium">or continue with email</span>
             </div>
           </div>
 
           {/* Email/password form */}
           <form onSubmit={handleEmailLogin} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-[#1B1B1B] mb-1.5">Email address</label>
+              <label className="block text-[13px] font-medium text-foreground mb-1.5">Email address</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B9B9B]" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@company.com"
-                  className="w-full pl-10 pr-4 py-2.5 border border-[#E8E8E4] rounded-xl bg-white text-sm text-[#1B1B1B] placeholder-[#9B9B9B] focus:outline-none focus:border-[#FFE27C] focus:ring-2 focus:ring-[#FFE27C]/20 transition-all"
+                  className="w-full pl-10 pr-4 h-11 border border-border rounded-xl bg-background text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 hover:border-gray-400 dark:hover:border-gray-600 transition-all duration-200"
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[#1B1B1B] mb-1.5">Password</label>
+              <label className="block text-[13px] font-medium text-foreground mb-1.5">Password</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B9B9B]" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-10 py-2.5 border border-[#E8E8E4] rounded-xl bg-white text-sm text-[#1B1B1B] placeholder-[#9B9B9B] focus:outline-none focus:border-[#FFE27C] focus:ring-2 focus:ring-[#FFE27C]/20 transition-all"
+                  className="w-full pl-10 pr-10 h-11 border border-border rounded-xl bg-background text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 hover:border-gray-400 dark:hover:border-gray-600 transition-all duration-200"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9B9B9B] hover:text-[#6B6B6B] transition-colors"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center justify-between text-[13px]">
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="w-4 h-4 rounded border-[#E8E8E4] accent-[#FFE27C]" />
-                <span className="text-[#6B6B6B]">Remember me</span>
+                <input type="checkbox" className="w-4 h-4 rounded border-border accent-primary focus:ring-primary focus:ring-offset-1 focus:ring-offset-card" />
+                <span className="text-muted-foreground">Remember me</span>
               </label>
-              <Link href="/auth/forgot-password" className="text-[#1B1B1B] font-medium hover:text-[#FFE27C] transition-colors">
+              <Link href="/auth/forgot-password" className="text-foreground font-medium hover:text-primary transition-colors">
                 Forgot password?
               </Link>
             </div>
@@ -185,18 +185,18 @@ function LoginForm() {
             <button
               type="submit"
               disabled={loading || googleLoading || !email || !password}
-              className="w-full flex items-center justify-center gap-2 bg-[#FFE27C] hover:bg-[#FFD84A] active:bg-[#FFC800] text-[#1B1B1B] font-semibold py-2.5 rounded-xl transition-all shadow-[0_2px_8px_rgba(255,226,124,0.4)] disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium h-11 rounded-xl transition-all duration-200 active:scale-[0.98] shadow-sm shadow-primary/20 disabled:opacity-50 disabled:active:scale-100"
             >
               {loading ? "Signing in..." : "Sign in"}
               {!loading && <ArrowRight className="w-4 h-4" />}
             </button>
           </form>
 
-          <p className="text-center text-sm text-[#6B6B6B]">
+          <p className="text-center text-sm text-muted-foreground">
             Don&apos;t have an account?{" "}
             <Link 
               href={searchParams.toString() ? `/auth/signup?${searchParams.toString()}` : "/auth/signup"} 
-              className="text-[#1B1B1B] font-semibold hover:text-[#FFE27C] transition-colors"
+              className="text-foreground font-semibold hover:text-primary transition-colors"
             >
               Create one free
             </Link>
@@ -209,7 +209,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#FAFAF8]" />}>
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
       <LoginForm />
     </Suspense>
   )

@@ -59,7 +59,7 @@ const nodeLibrary = [
 // Reusable form primitives 
 function Label({ children, required }: { children: React.ReactNode; required?: boolean }) {
  return (
- <label className="block text-[12px] font-semibold text-gray-900 mb-1.5 tracking-wide uppercase">
+ <label className="block text-[12px] font-semibold text-[var(--text-primary)] mb-1.5 tracking-wide uppercase">
  {children}{required && <span className="text-rose-500 ml-0.5">*</span>}
  </label>
  )
@@ -69,7 +69,7 @@ function FieldWrap({ children, hint }: { children: React.ReactNode; hint?: strin
  return (
  <div className="space-y-1.5">
  {children}
- {hint && <p className="text-[11px] text-gray-400 leading-relaxed">{hint}</p>}
+ {hint && <p className="text-[11px] text-[var(--text-tertiary)] leading-relaxed">{hint}</p>}
  </div>
  )
 }
@@ -151,11 +151,11 @@ function VarPicker({ onInsert, availableVars = COMMON_VARS }: { onInsert: (v: st
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute top-6 left-0 z-50 bg-white border border-border rounded-xl shadow-xl p-2 w-48 space-y-0.5 max-h-64 overflow-y-auto">
+          <div className="absolute top-6 left-0 z-50 bg-[var(--node-bg)] border border-[var(--node-border)] rounded-xl shadow-xl p-2 w-48 space-y-0.5 max-h-64 overflow-y-auto">
             {availableVars.map(v => (
               <button key={v} type="button"
                 onClick={() => { onInsert(v); setOpen(false) }}
-                className="w-full text-left px-3 py-1.5 text-[12px] font-mono text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
+                className="w-full text-left px-3 py-1.5 text-[12px] font-mono text-[var(--text-primary)] hover:bg-[var(--canvas-bg)] rounded-lg transition-colors">
                 {v}
               </button>
             ))}
@@ -1420,39 +1420,39 @@ export default function WorkflowBuilderPage() {
  )
 
  return (
- <div className="fixed inset-0 z-50 flex flex-col bg-[#fafaf9]">
+ <div className="fixed inset-0 z-50 flex flex-col bg-[var(--canvas-bg)]">
  {/* Topbar */}
- <div className="h-[52px] bg-zinc-900 px-5 flex items-center justify-between shrink-0 z-20 border-b border-zinc-800">
+ <div className="h-[52px] bg-[var(--panel-bg)] px-5 flex items-center justify-between shrink-0 z-20 border-b border-[var(--node-border)]">
  <div className="flex items-center gap-4">
  <button onClick={() => router.push("/dashboard/workflows")}
- className="flex items-center gap-1.5 text-[13px] text-zinc-400 hover:text-white transition-colors">
+ className="flex items-center gap-1.5 text-[13px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
  <ArrowLeft className="h-4 w-4" /> Workflows
  </button>
- <div className="w-px h-5 bg-zinc-700" />
+ <div className="w-px h-5 bg-[var(--node-border)]" />
  <div className="flex items-center gap-2">
  {editingName ? (
  <input autoFocus value={workflowName} onChange={e => setWorkflowName(e.target.value)}
  onBlur={() => setEditingName(false)} onKeyDown={e => e.key === "Enter" && setEditingName(false)}
- className="text-[15px] font-semibold bg-zinc-800 text-white border border-zinc-600 rounded-lg px-2.5 py-1 focus:outline-none w-52" />
+ className="text-[15px] font-semibold bg-[var(--canvas-bg)] text-[var(--text-primary)] border border-[var(--node-border)] rounded-lg px-2.5 py-1 focus:outline-none w-52" />
  ) : (
- <span className="text-[15px] font-semibold text-white">{workflowName}</span>
+ <span className="text-[15px] font-semibold text-[var(--text-primary)]">{workflowName}</span>
  )}
- <button onClick={() => setEditingName(true)} className="p-1 rounded hover:bg-zinc-800 transition-colors">
- <Pencil className="h-3 w-3 text-zinc-500 hover:text-zinc-300" />
+ <button onClick={() => setEditingName(true)} className="p-1 rounded hover:bg-[var(--canvas-bg)] transition-colors">
+ <Pencil className="h-3 w-3 text-[var(--text-secondary)] hover:text-[var(--text-primary)]" />
  </button>
  </div>
  <span className={cn("text-[11px] px-2.5 py-1 rounded-full font-semibold tracking-wide",
- workflowStatus === "active" ? "bg-green-500/20 text-green-400" : "bg-zinc-700 text-zinc-400"
+ workflowStatus === "active" ? "bg-green-500/20 text-green-600 dark:text-green-400" : "bg-[var(--canvas-bg)] text-[var(--text-secondary)]"
  )}>
  {workflowStatus === "active" ? " LIVE" : " DRAFT"}
  </span>
  </div>
-
+ 
  <div className="flex h-full items-center">
  {["Builder", "Logs", "Analytics"].map(tab => (
  <button key={tab} onClick={() => setActiveTab(tab)}
  className={cn("h-full px-5 text-[13px] font-medium transition-colors border-b-2",
- activeTab === tab ? "border-primary text-white" : "border-transparent text-zinc-500 hover:text-zinc-300"
+ activeTab === tab ? "border-primary text-[var(--text-primary)]" : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
  )}>
  {tab}
  </button>
@@ -1461,22 +1461,22 @@ export default function WorkflowBuilderPage() {
 
  <div className="flex items-center gap-2.5">
  <button onClick={handleSaveDraft} disabled={saving}
- className="px-3.5 py-1.5 text-[12px] font-semibold border border-zinc-700 text-zinc-400 hover:bg-zinc-800 hover:text-white rounded-lg transition-colors disabled:opacity-40">
+ className="px-3.5 py-1.5 text-[12px] font-semibold border border-[var(--node-border)] text-[var(--text-secondary)] hover:bg-[var(--canvas-bg)] hover:text-[var(--text-primary)] rounded-lg transition-colors disabled:opacity-40">
  {saving ? <><Loader2 className="h-3 w-3 animate-spin inline mr-1" />Saving…</> : <><Save className="h-3 w-3 inline mr-1" />Save</>}
  </button>
  <button onClick={() => setShowSaveTemplateModal(true)}
- className="px-3 py-1.5 text-[12px] font-semibold border border-zinc-700 text-zinc-400 hover:bg-zinc-800 hover:text-white rounded-lg transition-colors flex items-center gap-1.5">
+ className="px-3 py-1.5 text-[12px] font-semibold border border-[var(--node-border)] text-[var(--text-secondary)] hover:bg-[var(--canvas-bg)] hover:text-[var(--text-primary)] rounded-lg transition-colors flex items-center gap-1.5">
  <BookmarkPlus className="h-3.5 w-3.5" /> Template
  </button>
  <button onClick={() => { setTestRunResult(null); setShowTestModal(true) }}
- className="px-3 py-1.5 text-[12px] font-semibold border border-zinc-700 text-zinc-400 hover:bg-zinc-800 hover:text-white rounded-lg transition-colors flex items-center gap-1.5">
+ className="px-3 py-1.5 text-[12px] font-semibold border border-[var(--node-border)] text-[var(--text-secondary)] hover:bg-[var(--canvas-bg)] hover:text-[var(--text-primary)] rounded-lg transition-colors flex items-center gap-1.5">
  <Play className="h-3.5 w-3.5" /> Test Run
  </button>
  <button onClick={handleActivate} disabled={activating}
  className={cn("flex items-center gap-1.5 px-4 py-1.5 text-[12px] font-bold rounded-lg shadow-sm transition-all disabled:opacity-50",
  workflowStatus === "active"
  ? "bg-red-500 text-white hover:bg-red-600"
- : "bg-primary text-gray-900 hover:bg-primary/90 shadow-primary/20"
+ : "bg-primary text-white hover:bg-primary/90 shadow-primary/20"
  )}>
  <Zap className="h-3.5 w-3.5" />
  {activating ? "Working…" : workflowStatus === "active" ? "Deactivate" : "Activate"}
@@ -1617,31 +1617,31 @@ export default function WorkflowBuilderPage() {
 
  {/* Logs Tab */}
  {activeTab === "Logs" && (
- <div className="flex flex-1 flex-col overflow-hidden bg-[#fafaf9]">
- <div className="px-8 py-5 border-b border-border bg-white flex items-center justify-between">
+ <div className="flex flex-1 flex-col overflow-hidden bg-[var(--canvas-bg)]">
+ <div className="px-8 py-5 border-b border-[var(--node-border)] bg-[var(--panel-bg)] flex items-center justify-between">
  <div>
- <h2 className="text-[18px] font-bold flex items-center gap-2"><Activity className="h-5 w-5 text-primary" /> Execution Logs</h2>
- <p className="text-[13px] text-gray-500 mt-0.5">{workflowId ? `Runs for: ${workflowName}` : "Save workflow first to see logs."}</p>
+ <h2 className="text-[18px] font-bold flex items-center gap-2 text-[var(--text-primary)]"><Activity className="h-5 w-5 text-primary" /> Execution Logs</h2>
+ <p className="text-[13px] text-[var(--text-secondary)] mt-0.5">{workflowId ? `Runs for: ${workflowName}` : "Save workflow first to see logs."}</p>
  </div>
  {workflowId && (
  <button onClick={() => { setRunsLoaded(false); fetchRuns() }} disabled={runsLoading}
- className="flex items-center gap-1.5 px-3 py-2 text-[13px] border border-border rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50">
+ className="flex items-center gap-1.5 px-3 py-2 text-[13px] border border-[var(--node-border)] rounded-lg hover:bg-[var(--canvas-bg)] transition-colors disabled:opacity-50 text-[var(--text-primary)]">
  <RefreshCw className={cn("h-3.5 w-3.5", runsLoading && "animate-spin")} /> Refresh
  </button>
  )}
  </div>
  <div className="flex-1 overflow-y-auto p-8">
  {!workflowId ? (
- <div className="flex flex-col items-center justify-center h-full gap-3 text-gray-500 text-center">
+ <div className="flex flex-col items-center justify-center h-full gap-3 text-[var(--text-secondary)] text-center">
  <Save className="h-10 w-10 opacity-20" />
  <p className="font-semibold">Save the workflow to view logs</p>
  </div>
  ) : runsLoading ? (
- <div className="flex items-center justify-center h-full gap-2 text-gray-500">
+ <div className="flex items-center justify-center h-full gap-2 text-[var(--text-secondary)]">
  <Loader2 className="h-5 w-5 animate-spin" /><span>Loading…</span>
  </div>
  ) : workflowRuns.length === 0 ? (
- <div className="flex flex-col items-center justify-center h-full gap-3 text-gray-500 text-center">
+ <div className="flex flex-col items-center justify-center h-full gap-3 text-[var(--text-secondary)] text-center">
  <Activity className="h-10 w-10 opacity-20" />
  <p className="font-semibold">No runs yet</p>
  <p className="text-[13px]">Use Test Run or activate to see executions here.</p>
@@ -1649,7 +1649,7 @@ export default function WorkflowBuilderPage() {
  ) : (
  <div className="space-y-3 max-w-4xl">
  {workflowRuns.map(run => (
- <div key={run.id} className="border border-border rounded-xl p-4 bg-white shadow-sm">
+ <div key={run.id} className="border border-[var(--node-border)] rounded-xl p-4 bg-[var(--node-bg)] shadow-sm">
  <div className="flex items-center justify-between mb-2">
  <div className="flex items-center gap-2">
  {run.status === "completed" ? <CheckCircle2 className="h-4 w-4 text-green-500" /> :
@@ -1657,23 +1657,23 @@ export default function WorkflowBuilderPage() {
  run.status === "running" ? <Loader2 className="h-4 w-4 text-blue-500 animate-spin" /> :
  <AlertCircle className="h-4 w-4 text-amber-500" />}
  <span className={cn("text-[11px] font-bold px-2 py-0.5 rounded-full",
- run.status === "completed" ? "bg-green-100 text-green-700" :
- run.status === "failed" ? "bg-red-100 text-red-700" :
- run.status === "running" ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"
+ run.status === "completed" ? "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400" :
+ run.status === "failed" ? "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400" :
+ run.status === "running" ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400" : "bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400"
  )}>{run.status.toUpperCase()}</span>
- <span className="text-[11px] font-mono text-gray-500">#{run.id?.slice(0, 8)}</span>
+ <span className="text-[11px] font-mono text-[var(--text-secondary)]">#{run.id?.slice(0, 8)}</span>
  </div>
- <span className="text-[11px] text-gray-500">{run.created_at ? format(new Date(run.created_at), "dd MMM HH:mm:ss") : "—"}</span>
+ <span className="text-[11px] text-[var(--text-secondary)]">{run.created_at ? format(new Date(run.created_at), "dd MMM HH:mm:ss") : "—"}</span>
  </div>
- <div className="flex gap-4 text-[12px] text-gray-500">
- <span>Trigger: <b className="text-gray-900">{run.trigger_type ?? "manual"}</b></span>
- <span>Steps: <b className="text-gray-900">{run.steps_completed ?? 0}/{run.steps_total ?? 0}</b></span>
- {run.error_message && <span className="text-red-600 font-medium"> {run.error_message}</span>}
+ <div className="flex gap-4 text-[12px] text-[var(--text-secondary)]">
+ <span>Trigger: <b className="text-[var(--text-primary)]">{run.trigger_type ?? "manual"}</b></span>
+ <span>Steps: <b className="text-[var(--text-primary)]">{run.steps_completed ?? 0}/{run.steps_total ?? 0}</b></span>
+ {run.error_message && <span className="text-red-600 dark:text-red-400 font-medium"> {run.error_message}</span>}
  </div>
  {run.trigger_data && Object.keys(run.trigger_data).length > 0 && (
  <details className="mt-2">
- <summary className="text-[11px] text-gray-500 cursor-pointer hover:text-gray-900 font-medium">Trigger data </summary>
- <pre className="mt-1 text-[10px] font-mono bg-gray-50 p-2 rounded-lg text-gray-900 overflow-x-auto">{JSON.stringify(run.trigger_data, null, 2)}</pre>
+ <summary className="text-[11px] text-[var(--text-secondary)] cursor-pointer hover:text-[var(--text-primary)] font-medium">Trigger data </summary>
+ <pre className="mt-1 text-[10px] font-mono bg-[var(--canvas-bg)] p-2 rounded-lg text-[var(--text-primary)] overflow-x-auto">{JSON.stringify(run.trigger_data, null, 2)}</pre>
  </details>
  )}
  </div>
@@ -1691,15 +1691,15 @@ export default function WorkflowBuilderPage() {
  const total = workflowRuns.length
  const rate = total > 0 ? Math.round((completed / total) * 100) : 0
  return (
- <div className="flex flex-1 flex-col overflow-hidden bg-[#fafaf9]">
- <div className="px-8 py-5 border-b border-border bg-white flex items-center justify-between">
+ <div className="flex flex-1 flex-col overflow-hidden bg-[var(--canvas-bg)]">
+ <div className="px-8 py-5 border-b border-[var(--node-border)] bg-[var(--panel-bg)] flex items-center justify-between">
  <div>
- <h2 className="text-[18px] font-bold flex items-center gap-2"><BarChart3 className="h-5 w-5 text-primary" /> Analytics</h2>
- <p className="text-[13px] text-gray-500 mt-0.5">Execution performance overview</p>
+ <h2 className="text-[18px] font-bold flex items-center gap-2 text-[var(--text-primary)]"><BarChart3 className="h-5 w-5 text-primary" /> Analytics</h2>
+ <p className="text-[13px] text-[var(--text-secondary)] mt-0.5">Execution performance overview</p>
  </div>
  {workflowId && (
  <button onClick={() => { setRunsLoaded(false); fetchRuns() }} disabled={runsLoading}
- className="flex items-center gap-1.5 px-3 py-2 text-[13px] border border-border rounded-lg hover:bg-gray-100 disabled:opacity-50">
+ className="flex items-center gap-1.5 px-3 py-2 text-[13px] border border-[var(--node-border)] rounded-lg hover:bg-[var(--canvas-bg)] disabled:opacity-50 text-[var(--text-primary)]">
  <RefreshCw className={cn("h-3.5 w-3.5", runsLoading && "animate-spin")} /> Refresh
  </button>
  )}
@@ -1707,28 +1707,28 @@ export default function WorkflowBuilderPage() {
  <div className="flex-1 overflow-y-auto p-8 space-y-6 max-w-5xl">
  <div className="grid grid-cols-4 gap-4">
  {[
- { label: "Total Runs", value: total, icon: Activity, color: "text-blue-600", bg: "bg-blue-50" },
- { label: "Successful", value: completed, icon: CheckCircle2, color: "text-green-600", bg: "bg-green-50" },
- { label: "Failed", value: failed, icon: XCircle, color: "text-red-600", bg: "bg-red-50" },
+ { label: "Total Runs", value: total, icon: Activity, color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-900/30" },
+ { label: "Successful", value: completed, icon: CheckCircle2, color: "text-green-600 dark:text-green-400", bg: "bg-green-50 dark:bg-green-900/30" },
+ { label: "Failed", value: failed, icon: XCircle, color: "text-red-600 dark:text-red-400", bg: "bg-red-50 dark:bg-red-900/30" },
  { label: "Success Rate", value: `${rate}%`, icon: TrendingUp, color: "text-primary", bg: "bg-primary/10" },
  ].map(({ label, value, icon: Icon, color, bg }) => (
- <div key={label} className="border border-border rounded-xl p-5 bg-white shadow-sm">
+ <div key={label} className="border border-[var(--node-border)] rounded-xl p-5 bg-[var(--node-bg)] shadow-sm">
  <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center mb-3", bg)}>
  <Icon className={cn("h-5 w-5", color)} />
  </div>
- <p className="text-[28px] font-bold text-gray-900 leading-none mb-1">{value}</p>
- <p className="text-[12px] text-gray-500 font-medium">{label}</p>
+ <p className="text-[28px] font-bold text-[var(--text-primary)] leading-none mb-1">{value}</p>
+ <p className="text-[12px] text-[var(--text-secondary)] font-medium">{label}</p>
  </div>
  ))}
  </div>
- <div className="border border-border rounded-xl p-6 bg-white shadow-sm">
- <h3 className="text-[14px] font-bold mb-4 flex items-center gap-2"><CircuitBoard className="h-4 w-4 text-gray-500" /> Workflow Nodes ({nodes.length})</h3>
+ <div className="border border-[var(--node-border)] rounded-xl p-6 bg-[var(--node-bg)] shadow-sm">
+ <h3 className="text-[14px] font-bold mb-4 flex items-center gap-2 text-[var(--text-primary)]"><CircuitBoard className="h-4 w-4 text-[var(--text-secondary)]" /> Workflow Nodes ({nodes.length})</h3>
  <div className="space-y-2">
  {nodes.map(n => (
- <div key={n.id} className="flex items-center gap-3 py-1.5 border-b border-border last:border-0">
+ <div key={n.id} className="flex items-center gap-3 py-1.5 border-b border-[var(--node-border)] last:border-0">
  <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
- <span className="text-[13px] font-semibold text-gray-900 flex-1">{n.data?.label ?? n.id}</span>
- <span className="text-[11px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">{n.data?.subtype ?? n.data?.type ?? n.type}</span>
+ <span className="text-[13px] font-semibold text-[var(--text-primary)] flex-1">{n.data?.label ?? n.id}</span>
+ <span className="text-[11px] text-[var(--text-secondary)] bg-[var(--canvas-bg)] px-2 py-0.5 rounded-full">{n.data?.subtype ?? n.data?.type ?? n.type}</span>
  </div>
  ))}
  </div>
@@ -1740,11 +1740,11 @@ export default function WorkflowBuilderPage() {
 
  {/* Save Template Modal */}
  {showSaveTemplateModal && (
- <div className="fixed inset-0 z-50 bg-white/80 backdrop-blur-sm flex items-center justify-center p-4">
- <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-border overflow-hidden">
- <div className="px-5 py-4 border-b border-border flex justify-between items-center bg-gray-100/30">
- <h3 className="font-bold text-[15px] flex items-center gap-2"><BookmarkPlus className="h-4 w-4 text-primary" /> Save as Template</h3>
- <button onClick={() => setShowSaveTemplateModal(false)} className="text-gray-500 hover:text-gray-900"><X className="h-4 w-4" /></button>
+ <div className="fixed inset-0 z-50 bg-black/40 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+ <div className="bg-[var(--panel-bg)] rounded-2xl shadow-2xl w-full max-w-md border border-[var(--node-border)] overflow-hidden">
+ <div className="px-5 py-4 border-b border-[var(--node-border)] flex justify-between items-center bg-[var(--canvas-bg)]">
+ <h3 className="font-bold text-[15px] flex items-center gap-2 text-[var(--text-primary)]"><BookmarkPlus className="h-4 w-4 text-primary" /> Save as Template</h3>
+ <button onClick={() => setShowSaveTemplateModal(false)} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"><X className="h-4 w-4" /></button>
  </div>
  <form onSubmit={handleSaveTemplate} className="p-5 space-y-4">
  <div><Label required>Template Name</Label><input type="text" value={templateName} onChange={e => setTemplateName(e.target.value)} className={inputCls} placeholder="My Drip Workflow" required /></div>
@@ -1758,8 +1758,8 @@ export default function WorkflowBuilderPage() {
  </select>
  </div>
  <div className="flex justify-end gap-2 pt-2">
- <button type="button" onClick={() => setShowSaveTemplateModal(false)} className="px-4 py-2 text-[13px] font-medium hover:bg-gray-100 rounded-lg">Cancel</button>
- <button type="submit" className="px-4 py-2 text-[13px] font-bold bg-primary text-gray-900 rounded-lg hover:bg-primary/90 shadow-sm">Save Template</button>
+ <button type="button" onClick={() => setShowSaveTemplateModal(false)} className="px-4 py-2 text-[13px] font-medium hover:bg-[var(--canvas-bg)] rounded-lg text-[var(--text-primary)]">Cancel</button>
+ <button type="submit" className="px-4 py-2 text-[13px] font-bold bg-primary text-white rounded-lg hover:bg-primary/90 shadow-sm">Save Template</button>
  </div>
  </form>
  </div>
@@ -1768,22 +1768,22 @@ export default function WorkflowBuilderPage() {
 
  {/* Test Run Modal */}
  {showTestModal && (
- <div className="fixed inset-0 z-50 bg-white/80 backdrop-blur-sm flex items-center justify-center p-4">
- <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-border overflow-hidden">
- <div className="px-5 py-4 border-b border-border flex justify-between items-center bg-gray-100/30">
- <h3 className="font-bold text-[15px] flex items-center gap-2"><Play className="h-4 w-4 text-primary" /> Test Workflow</h3>
- <button onClick={() => setShowTestModal(false)} className="text-gray-500 hover:text-gray-900"><X className="h-4 w-4" /></button>
+ <div className="fixed inset-0 z-50 bg-black/40 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+ <div className="bg-[var(--panel-bg)] rounded-2xl shadow-2xl w-full max-w-md border border-[var(--node-border)] overflow-hidden">
+ <div className="px-5 py-4 border-b border-[var(--node-border)] flex justify-between items-center bg-[var(--canvas-bg)]">
+ <h3 className="font-bold text-[15px] flex items-center gap-2 text-[var(--text-primary)]"><Play className="h-4 w-4 text-primary" /> Test Workflow</h3>
+ <button onClick={() => setShowTestModal(false)} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"><X className="h-4 w-4" /></button>
  </div>
  <div className="p-5">
  {!testRunResult ? (
  <form onSubmit={handleTestRunSubmit} className="space-y-4">
- <p className="text-[13px] text-gray-500">Provide dummy contact data to simulate a live execution.</p>
+ <p className="text-[13px] text-[var(--text-secondary)]">Provide dummy contact data to simulate a live execution.</p>
  <div><Label required>Contact Name</Label><input type="text" value={testName} onChange={e => setTestName(e.target.value)} className={inputCls} required /></div>
  <div><Label required>Phone (with country code)</Label><input type="text" value={testPhone} onChange={e => setTestPhone(e.target.value)} className={inputCls} required /></div>
  <div><Label required>Email</Label><input type="email" value={testEmail} onChange={e => setTestEmail(e.target.value)} className={inputCls} required /></div>
  <div className="flex justify-end gap-2 pt-2">
- <button type="button" onClick={() => setShowTestModal(false)} className="px-4 py-2 text-[13px] font-medium hover:bg-gray-100 rounded-lg" disabled={testing}>Cancel</button>
- <button type="submit" disabled={testing} className="flex items-center gap-2 px-4 py-2 text-[13px] font-bold bg-primary text-gray-900 rounded-lg hover:bg-primary/90 disabled:opacity-50 shadow-sm">
+ <button type="button" onClick={() => setShowTestModal(false)} className="px-4 py-2 text-[13px] font-medium hover:bg-[var(--canvas-bg)] rounded-lg text-[var(--text-primary)]" disabled={testing}>Cancel</button>
+ <button type="submit" disabled={testing} className="flex items-center gap-2 px-4 py-2 text-[13px] font-bold bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 shadow-sm">
  {testing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
  {testing ? "Running…" : "Start Test"}
  </button>
@@ -1794,24 +1794,24 @@ export default function WorkflowBuilderPage() {
  {(testRunResult.status === "saving" || testRunResult.status === "triggering") && (
  <div className="flex flex-col items-center gap-3">
  <Loader2 className="h-8 w-8 animate-spin text-primary" />
- <p className="text-[13px] font-medium text-gray-900">{testRunResult.message}</p>
+ <p className="text-[13px] font-medium text-[var(--text-primary)]">{testRunResult.message}</p>
  </div>
  )}
  {testRunResult.status === "success" && (
  <div className="flex flex-col items-center gap-3">
- <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center"><CheckCircle2 className="h-7 w-7 text-green-600" /></div>
- <p className="text-[14px] font-bold text-green-700">Test Executed Successfully</p>
- <p className="text-[12px] text-gray-500 font-mono">Run ID: {testRunResult.runId}</p>
+ <div className="w-14 h-14 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center"><CheckCircle2 className="h-7 w-7 text-green-600 dark:text-green-400" /></div>
+ <p className="text-[14px] font-bold text-green-700 dark:text-green-400">Test Executed Successfully</p>
+ <p className="text-[12px] text-[var(--text-secondary)] font-mono">Run ID: {testRunResult.runId}</p>
  <button onClick={() => { setShowTestModal(false); setTestRunResult(null); setActiveTab("Logs"); setRunsLoaded(false) }}
- className="w-full px-4 py-2 text-[13px] font-bold bg-primary text-gray-900 rounded-xl hover:bg-primary/90">View Logs →</button>
+ className="w-full px-4 py-2 text-[13px] font-bold bg-primary text-white rounded-xl hover:bg-primary/90">View Logs →</button>
  </div>
  )}
  {testRunResult.status === "failed" && (
  <div className="flex flex-col items-center gap-3">
- <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center"><XCircle className="h-7 w-7 text-red-600" /></div>
- <p className="text-[14px] font-bold text-red-700">Test Failed</p>
- <p className="text-[11px] bg-red-50 text-red-600 p-3 rounded-xl w-full text-left font-mono break-all">{testRunResult.message}</p>
- <button onClick={() => setTestRunResult(null)} className="w-full px-4 py-2 text-[13px] font-bold bg-gray-100 hover:bg-gray-100/80 rounded-xl">Try Again</button>
+ <div className="w-14 h-14 rounded-full bg-red-100 dark:bg-red-900/40 flex items-center justify-center"><XCircle className="h-7 w-7 text-red-600 dark:text-red-400" /></div>
+ <p className="text-[14px] font-bold text-red-700 dark:text-red-400">Test Failed</p>
+ <p className="text-[11px] bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 p-3 rounded-xl w-full text-left font-mono break-all">{testRunResult.message}</p>
+ <button onClick={() => setTestRunResult(null)} className="w-full px-4 py-2 text-[13px] font-bold bg-[var(--canvas-bg)] hover:opacity-80 rounded-xl text-[var(--text-primary)]">Try Again</button>
  </div>
  )}
  </div>

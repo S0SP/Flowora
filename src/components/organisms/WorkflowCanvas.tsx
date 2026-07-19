@@ -502,7 +502,7 @@ export function WorkflowCanvas({
   const t = n.data?.subtype ?? n.data?.type ?? ""
   return (TYPE_CONFIG as any)[t as string]?.accentColor ?? "var(--node-border)"
   }}
- maskColor="rgba(250,250,249,0.85)"
+ maskColor="var(--minimap-mask)"
  pannable zoomable
  />
  </ReactFlow>

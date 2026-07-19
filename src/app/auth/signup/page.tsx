@@ -116,21 +116,21 @@ function SignupForm() {
   return (
     <div className="min-h-screen bg-background flex">
       {/* Left panel — branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-zinc-950 flex-col justify-between p-12">
+      <div className="hidden lg:flex lg:w-1/2 bg-zinc-50 dark:bg-black border-r border-border dark:border-transparent flex-col justify-between p-12">
         <div>
           {/* Logo */}
           <div className="flex items-center gap-3 mb-12">
             <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
               <Zap className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold text-white tracking-tight">Flowora</span>
+            <span className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Flowora</span>
           </div>
 
-          <h2 className="text-3xl font-bold text-white leading-tight mb-4">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white leading-tight mb-4">
             The AI Communication OS<br />
             <span className="text-primary">Built for Growth</span>
           </h2>
-          <p className="text-zinc-400 text-[15px] leading-relaxed mb-8">
+          <p className="text-gray-600 dark:text-zinc-400 text-[15px] leading-relaxed mb-8">
             Automate WhatsApp outreach, handle conversations with AI, and convert leads with voice agents — all in one platform.
           </p>
 
@@ -138,22 +138,22 @@ function SignupForm() {
             {FEATURES.map((f, i) => (
               <div key={i} className="flex items-center gap-3">
                 <CheckCircle className="w-4 h-4 text-primary shrink-0" />
-                <span className="text-[14px] text-zinc-300">{f}</span>
+                <span className="text-[14px] text-gray-700 dark:text-zinc-300">{f}</span>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="text-[13px] text-zinc-500">
+        <div className="text-[13px] text-gray-500 dark:text-zinc-500">
           © {new Date().getFullYear()} Flowora. All rights reserved.
         </div>
       </div>
 
       {/* Right panel — form */}
-      <div className="flex-1 flex items-center justify-center p-6">
-        <div className="w-full max-w-md">
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-12 lg:pr-20 xl:pr-32">
+        <div className="w-full max-w-[440px] bg-card border border-border shadow-sm rounded-2xl p-8 sm:p-10">
           {/* Mobile logo */}
-          <div className="flex items-center gap-2 mb-8 lg:hidden">
+          <div className="flex items-center gap-3 justify-center mb-6 lg:hidden">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <Zap className="w-4 h-4 text-primary-foreground" />
             </div>
@@ -179,17 +179,16 @@ function SignupForm() {
 
           {step === "account" ? (
             <>
-              <div className="mb-6">
-                <h1 className="text-2xl font-bold text-foreground">Create your account</h1>
-                <p className="text-sm text-muted-foreground mt-1">Start your 14-day free trial — no credit card required</p>
+              <div className="mb-6 text-center lg:text-left">
+                <h1 className="text-2xl font-semibold text-foreground tracking-tight">Create your account</h1>
+                <p className="text-[13px] text-muted-foreground mt-1.5">Start your 14-day free trial — no credit card required</p>
               </div>
 
-              {/* Google OAuth */}
               <button
                 type="button"
                 onClick={handleGoogleLogin}
                 disabled={googleLoading || loading}
-                className="w-full flex items-center justify-center gap-3 bg-card border border-border rounded-xl px-4 py-3 text-sm font-semibold text-foreground hover:bg-muted transition-colors shadow-sm disabled:opacity-60 mb-6"
+                className="w-full flex items-center justify-center gap-3 bg-card border border-border rounded-xl h-11 px-4 text-sm font-medium text-foreground hover:bg-muted hover:border-border active:scale-[0.98] transition-all duration-200 shadow-sm disabled:opacity-60 mb-6"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -211,31 +210,31 @@ function SignupForm() {
 
               <form onSubmit={handleCreateAccount} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">Full Name</label>
+                  <label className="block text-[13px] font-medium text-foreground mb-1.5">Full Name</label>
                   <input
                     type="text"
                     value={fullName}
                     onChange={e => setFullName(e.target.value)}
                     placeholder="Robert Fox"
                     required
-                    className="w-full border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 bg-card"
+                    className="w-full h-11 border border-border rounded-xl px-4 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 hover:border-gray-400 dark:hover:border-gray-600 bg-background transition-all duration-200"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">Work Email</label>
+                  <label className="block text-[13px] font-medium text-foreground mb-1.5">Work Email</label>
                   <input
                     type="email"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     placeholder="you@company.com"
                     required
-                    className="w-full border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 bg-card"
+                    className="w-full h-11 border border-border rounded-xl px-4 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 hover:border-gray-400 dark:hover:border-gray-600 bg-background transition-all duration-200"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">Password</label>
+                  <label className="block text-[13px] font-medium text-foreground mb-1.5">Password</label>
                   <div className="relative">
                     <input
                       type={showPassword ? "text" : "password"}
@@ -244,12 +243,12 @@ function SignupForm() {
                       placeholder="Min. 8 characters"
                       required
                       minLength={8}
-                      className="w-full border border-border rounded-xl px-4 py-3 pr-11 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 bg-card"
+                      className="w-full h-11 border border-border rounded-xl px-4 pr-11 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 hover:border-gray-400 dark:hover:border-gray-600 bg-background transition-all duration-200"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(s => !s)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -268,10 +267,10 @@ function SignupForm() {
                 <button
                   type="submit"
                   disabled={loading || googleLoading}
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 rounded-xl transition-all shadow-[0_2px_8px_rgba(16,185,129,0.3)] disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium h-11 rounded-xl transition-all duration-200 active:scale-[0.98] shadow-sm shadow-primary/20 disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-2 mt-2"
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                  Create Account →
+                  Create Account
                 </button>
 
                 <p className="text-xs text-muted-foreground text-center mt-2">
@@ -307,30 +306,30 @@ function SignupForm() {
             </div>
           ) : (
             <>
-              <div className="mb-6">
-                <h1 className="text-2xl font-bold text-foreground">Set up your workspace</h1>
-                <p className="text-sm text-muted-foreground mt-1">This is where your team will collaborate</p>
+              <div className="mb-6 text-center lg:text-left">
+                <h1 className="text-2xl font-semibold text-foreground tracking-tight">Set up your workspace</h1>
+                <p className="text-[13px] text-muted-foreground mt-1.5">This is where your team will collaborate</p>
               </div>
 
               <form onSubmit={handleCreateWorkspace} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">Company / Workspace Name</label>
+                  <label className="block text-[13px] font-medium text-foreground mb-1.5">Company / Workspace Name</label>
                   <input
                     type="text"
                     value={workspaceName}
                     onChange={e => setWorkspaceName(e.target.value)}
                     placeholder="Acme Corp"
                     required
-                    className="w-full border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 bg-card"
+                    className="w-full h-11 border border-border rounded-xl px-4 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 hover:border-gray-400 dark:hover:border-gray-600 bg-background transition-all duration-200"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">Industry (optional)</label>
+                  <label className="block text-[13px] font-medium text-foreground mb-1.5">Industry (optional)</label>
                   <select
                     value={industry}
                     onChange={e => setIndustry(e.target.value)}
-                    className="w-full border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 bg-card"
+                    className="w-full h-11 border border-border rounded-xl px-4 text-sm text-foreground focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 hover:border-gray-400 dark:hover:border-gray-600 bg-background transition-all duration-200"
                   >
                     <option value="">Select industry…</option>
                     <option value="saas">SaaS / Technology</option>
@@ -359,10 +358,10 @@ function SignupForm() {
                 <button
                   type="submit"
                   disabled={loading || !workspaceName}
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 rounded-xl transition-all shadow-[0_2px_8px_rgba(16,185,129,0.3)] disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium h-11 rounded-xl transition-all duration-200 active:scale-[0.98] shadow-sm shadow-primary/20 disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-2 mt-4"
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                  Launch My Workspace →
+                  Launch My Workspace
                 </button>
               </form>
             </>

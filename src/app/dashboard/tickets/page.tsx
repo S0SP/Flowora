@@ -142,7 +142,7 @@ export default function TicketsPage() {
         <div className="flex items-start gap-3">
           <TicketIcon className="w-6 h-6 text-gray-900 shrink-0 mt-0.5" />
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 leading-none">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 leading-none">
               Support Tickets
             </h1>
             <p className="text-sm text-gray-500 mt-2">
@@ -272,9 +272,9 @@ export default function TicketsPage() {
       {/* New Ticket Modal */}
       {isNewTicketModalOpen && typeof document !== "undefined" && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-card border border-border w-[460px] rounded-[12px] shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 p-6 flex flex-col gap-4">
+        <div className="bg-card dark:bg-zinc-900 border border-border w-[460px] rounded-[12px] shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 p-6 flex flex-col gap-4">
             <div className="flex items-center justify-between border-b border-border pb-3">
-              <h2 className="text-base font-bold text-gray-900">Create Support Ticket</h2>
+              <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">Create Support Ticket</h2>
               <button 
                 onClick={() => setIsNewTicketModalOpen(false)} 
                 className="p-1 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"

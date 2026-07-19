@@ -161,12 +161,12 @@ export default function DashboardPage() {
                     <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
-                <XAxis dataKey="date" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} dy={10} />
-                <YAxis tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
+                <XAxis dataKey="date" tick={{ fontSize: 10, fill: "hsl(var(--foreground))", opacity: 0.7 }} axisLine={false} tickLine={false} dy={10} />
+                <YAxis tick={{ fontSize: 10, fill: "hsl(var(--foreground))", opacity: 0.7 }} axisLine={false} tickLine={false} />
                 <RechartsTooltip
-                  contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12, boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }}
-                  itemStyle={{ color: "var(--foreground)", fontWeight: 600 }}
+                  contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12, boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }}
+                  itemStyle={{ color: "hsl(var(--foreground))", fontWeight: 600 }}
                 />
                 <Area type="monotone" dataKey="messages" stroke="#10B981" fillOpacity={1} fill="url(#colorMessages)" strokeWidth={2.5} activeDot={{ r: 4, strokeWidth: 0, fill: "#10B981" }} />
               </AreaChart>

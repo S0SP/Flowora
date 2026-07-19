@@ -154,21 +154,21 @@ export default function BroadcastsPage() {
   }
 
   return (
-    <div className="absolute inset-0 flex flex-col bg-gray-100/30 overflow-hidden">
+    <div className="absolute inset-0 flex flex-col bg-[#FAFAF8] dark:bg-black overflow-hidden">
 
       {/* Header */}
-      <div className="bg-white border-b border-border px-8 py-5 shrink-0">
+      <div className="bg-white dark:bg-[#111114] border-b border-border dark:border-[#27272A] px-8 py-5 shrink-0">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-[22px] font-bold text-gray-900 flex items-center gap-2.5">
+            <h1 className="text-[22px] font-bold text-gray-900 dark:text-white flex items-center gap-2.5">
               <Megaphone className="h-6 w-6 text-primary" />
               Broadcasts
             </h1>
-            <p className="text-[13px] text-gray-500 mt-0.5">Send WhatsApp message templates to multiple contacts at once</p>
+            <p className="text-[13px] text-gray-500 dark:text-gray-400 mt-0.5">Send WhatsApp message templates to multiple contacts at once</p>
           </div>
           <button
             onClick={openModal}
-            className="flex items-center gap-2 bg-foreground text-white px-4 py-2.5 rounded-lg text-[13px] font-semibold hover:bg-foreground/90 transition-all shadow-sm"
+            className="flex items-center gap-2 bg-foreground dark:bg-white text-white dark:text-black px-4 py-2.5 rounded-lg text-[13px] font-semibold hover:bg-foreground/90 dark:hover:bg-white/90 transition-all shadow-sm"
           >
             <Plus className="h-4 w-4" /> New Broadcast
           </button>
@@ -176,21 +176,21 @@ export default function BroadcastsPage() {
       </div>
 
       {/* Stats bar */}
-      <div className="bg-white border-b border-border px-8 py-4 shrink-0">
+      <div className="bg-white dark:bg-[#111114] border-b border-border dark:border-[#27272A] px-8 py-4 shrink-0">
         <div className="grid grid-cols-4 gap-6">
           {[
             { label: "Total Broadcasts", value: stats.total, icon: Megaphone, color: "text-primary" },
-            { label: "Running Now", value: stats.running, icon: Clock, color: "text-amber-600" },
-            { label: "Completed", value: stats.completed, icon: CheckCheck, color: "text-green-600" },
-            { label: "Messages Sent", value: stats.totalSent.toLocaleString(), icon: Send, color: "text-blue-600" },
+            { label: "Running Now", value: stats.running, icon: Clock, color: "text-amber-600 dark:text-amber-400" },
+            { label: "Completed", value: stats.completed, icon: CheckCheck, color: "text-green-600 dark:text-green-400" },
+            { label: "Messages Sent", value: stats.totalSent.toLocaleString(), icon: Send, color: "text-blue-600 dark:text-blue-400" },
           ].map(s => (
             <div key={s.label} className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-white/5 flex items-center justify-center shrink-0">
                 <s.icon className={cn("h-5 w-5", s.color)} />
               </div>
               <div>
-                <div className="text-[20px] font-bold text-gray-900 leading-tight">{s.value}</div>
-                <div className="text-[11px] text-gray-500">{s.label}</div>
+                <div className="text-[20px] font-bold text-gray-900 dark:text-white leading-tight">{s.value}</div>
+                <div className="text-[11px] text-gray-500 dark:text-gray-400">{s.label}</div>
               </div>
             </div>
           ))}
@@ -201,20 +201,20 @@ export default function BroadcastsPage() {
       <div className="flex-1 overflow-y-auto p-8">
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+            <Loader2 className="h-8 w-8 animate-spin text-gray-500 dark:text-gray-400" />
           </div>
         ) : broadcasts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-5">
               <Megaphone className="h-10 w-10 text-primary" />
             </div>
-            <h2 className="text-[20px] font-bold text-gray-900 mb-2">No broadcasts yet</h2>
-            <p className="text-[14px] text-gray-500 max-w-[380px] mb-6">
+            <h2 className="text-[20px] font-bold text-gray-900 dark:text-white mb-2">No broadcasts yet</h2>
+            <p className="text-[14px] text-gray-500 dark:text-gray-400 max-w-[380px] mb-6">
               Send a WhatsApp message template to hundreds of contacts at once. Use broadcasts for promotions, reminders, or updates.
             </p>
             <button
               onClick={openModal}
-              className="flex items-center gap-2 bg-foreground text-white px-5 py-2.5 rounded-lg text-[14px] font-semibold hover:bg-foreground/90 transition-all"
+              className="flex items-center gap-2 bg-foreground dark:bg-white text-white dark:text-black px-5 py-2.5 rounded-lg text-[14px] font-semibold hover:bg-foreground/90 dark:hover:bg-white/90 transition-all"
             >
               <Plus className="h-4 w-4" /> Create First Broadcast
             </button>
@@ -222,7 +222,7 @@ export default function BroadcastsPage() {
         ) : (
           <div className="space-y-3">
             {broadcasts.map(b => (
-              <div key={b.id} className="bg-white border border-border rounded-xl p-5 flex items-center gap-5 hover:shadow-sm transition-shadow">
+              <div key={b.id} className="bg-white dark:bg-[#111114] border border-border dark:border-[#27272A] rounded-xl p-5 flex items-center gap-5 hover:shadow-sm transition-shadow">
                 {/* Icon */}
                 <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                   <Megaphone className="h-5 w-5 text-primary" />
@@ -231,13 +231,13 @@ export default function BroadcastsPage() {
                 {/* Main info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
-                    <span className="text-[15px] font-semibold text-gray-900 truncate">{b.name}</span>
+                    <span className="text-[15px] font-semibold text-gray-900 dark:text-white truncate">{b.name}</span>
                     <span className={cn("text-[11px] font-bold px-2 py-0.5 rounded-full shrink-0", STATUS_STYLE[b.status])}>
                       {b.status.toUpperCase()}
                     </span>
                   </div>
-                  <div className="flex items-center gap-3 text-[12px] text-gray-500">
-                    {b.template_name && <span>Template: <span className="font-medium text-gray-900">{b.template_name}</span></span>}
+                  <div className="flex items-center gap-3 text-[12px] text-gray-500 dark:text-gray-400">
+                    {b.template_name && <span>Template: <span className="font-medium text-gray-900 dark:text-gray-200">{b.template_name}</span></span>}
                     <span>·</span>
                     <span>Created {format(new Date(b.created_at), "MMM d, yyyy")}</span>
                     {b.scheduled_at && (
@@ -258,8 +258,8 @@ export default function BroadcastsPage() {
                     { label: "Read", value: b.read_count ?? 0 },
                   ].map(s => (
                     <div key={s.label} className="text-center">
-                      <div className="text-[16px] font-bold text-gray-900">{s.value.toLocaleString()}</div>
-                      <div className="text-[10px] text-gray-500 uppercase tracking-wider">{s.label}</div>
+                      <div className="text-[16px] font-bold text-gray-900 dark:text-white">{s.value.toLocaleString()}</div>
+                      <div className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider">{s.label}</div>
                     </div>
                   ))}
                 </div>
@@ -268,7 +268,7 @@ export default function BroadcastsPage() {
                 {b.status === "draft" && (
                   <button
                     onClick={() => handleDelete(b.id)}
-                    className="text-red-400 hover:text-red-600 p-1.5 rounded hover:bg-red-50 transition-colors shrink-0"
+                    className="text-red-400 hover:text-red-600 p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors shrink-0"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -282,33 +282,33 @@ export default function BroadcastsPage() {
       {/* Create Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowModal(false)}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-7" onClick={e => e.stopPropagation()}>
+          <div className="bg-white dark:bg-[#18181B] border border-border dark:border-[#27272A] rounded-2xl shadow-2xl w-full max-w-lg p-7" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-[18px] font-bold text-gray-900">New Broadcast</h3>
-                <p className="text-[13px] text-gray-500 mt-0.5">Send a template message to your contacts</p>
+                <h3 className="text-[18px] font-bold text-gray-900 dark:text-white">New Broadcast</h3>
+                <p className="text-[13px] text-gray-500 dark:text-gray-400 mt-0.5">Send a template message to your contacts</p>
               </div>
-              <button onClick={() => setShowModal(false)} className="p-1.5 hover:bg-gray-100 rounded-lg">
-                <X className="h-5 w-5 text-gray-500" />
+              <button onClick={() => setShowModal(false)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg">
+                <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
               </button>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="text-[13px] font-semibold text-gray-900 mb-1.5 block">Broadcast Name</label>
+                <label className="text-[13px] font-semibold text-gray-900 dark:text-white mb-1.5 block">Broadcast Name</label>
                 <input
                   type="text"
                   value={name}
                   onChange={e => setName(e.target.value)}
                   placeholder="e.g. Weekend Promo - July"
-                  className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-full border border-border dark:border-[#27272A] rounded-lg px-3.5 py-2.5 text-[14px] bg-white dark:bg-[#111114] text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
 
               <div>
-                <label className="text-[13px] font-semibold text-gray-900 mb-1.5 block">Message Template</label>
+                <label className="text-[13px] font-semibold text-gray-900 dark:text-white mb-1.5 block">Message Template</label>
                 {loadingTemplates ? (
-                  <div className="flex items-center gap-2 text-gray-500 text-[13px]">
+                  <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-[13px]">
                     <Loader2 className="h-4 w-4 animate-spin" /> Loading templates...
                   </div>
                 ) : (
@@ -316,7 +316,7 @@ export default function BroadcastsPage() {
                     <select
                       value={selectedTemplate}
                       onChange={e => setSelectedTemplate(e.target.value)}
-                      className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] focus:outline-none focus:ring-1 focus:ring-primary appearance-none bg-white pr-9"
+                      className="w-full border border-border dark:border-[#27272A] rounded-lg px-3.5 py-2.5 text-[14px] bg-white dark:bg-[#111114] text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-primary appearance-none pr-9"
                     >
                       {templates.length === 0 && (
                         <option value="">No approved templates found</option>
@@ -331,8 +331,8 @@ export default function BroadcastsPage() {
               </div>
 
               <div>
-                <label className="text-[13px] font-semibold text-gray-900 mb-1.5 block">
-                  Schedule <span className="font-normal text-gray-500">(optional — leave blank to send now)</span>
+                <label className="text-[13px] font-semibold text-gray-900 dark:text-white mb-1.5 block">
+                  Schedule <span className="font-normal text-gray-500 dark:text-gray-400">(optional — leave blank to send now)</span>
                 </label>
                 <DatePicker
                   selected={scheduleAt ? new Date(scheduleAt) : null}
@@ -341,25 +341,25 @@ export default function BroadcastsPage() {
                   timeFormat="HH:mm"
                   timeIntervals={15}
                   dateFormat="MMMM d, yyyy h:mm aa"
-                  className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-full border border-border dark:border-[#27272A] rounded-lg px-3.5 py-2.5 text-[14px] bg-white dark:bg-[#111114] text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-primary"
                   placeholderText="Select date and time"
                   isClearable
                 />
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-[12px] text-blue-700">
+              <div className="bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-lg p-3 text-[12px] text-blue-700 dark:text-blue-400">
                 <strong>Tip:</strong> Recipients are loaded from your Contacts list. Only contacts with valid WhatsApp numbers will receive the message.
               </div>
             </div>
 
             <div className="flex gap-3 mt-6">
-              <button onClick={() => setShowModal(false)} className="flex-1 py-2.5 border border-border rounded-lg text-[14px] font-medium text-gray-900 hover:bg-gray-100 transition-colors">
+              <button onClick={() => setShowModal(false)} className="flex-1 py-2.5 border border-border dark:border-[#27272A] rounded-lg text-[14px] font-medium text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
                 Cancel
               </button>
               <button
                 onClick={handleCreate}
                 disabled={creating || !name.trim() || !selectedTemplate}
-                className="flex-1 py-2.5 bg-foreground text-white rounded-lg text-[14px] font-semibold hover:bg-foreground/90 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                className="flex-1 py-2.5 bg-foreground dark:bg-white text-white dark:text-black rounded-lg text-[14px] font-semibold hover:bg-foreground/90 dark:hover:bg-white/90 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
               >
                 {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                 {creating ? "Creating..." : scheduleAt ? "Schedule Broadcast" : "Send Broadcast"}

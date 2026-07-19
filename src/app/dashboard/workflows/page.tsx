@@ -52,7 +52,7 @@ function WorkflowCard({ wf, onDelete, onToggle }: {
   const TriggerIcon = triggerCfg.icon
 
   return (
-    <div className="bg-white border border-border rounded-2xl p-5 hover:shadow-md transition-all group relative">
+    <div className="bg-white dark:bg-[#111114] border border-border dark:border-[#27272A] rounded-2xl p-5 hover:shadow-md transition-all group relative">
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3 min-w-0">
@@ -60,9 +60,9 @@ function WorkflowCard({ wf, onDelete, onToggle }: {
             <Workflow className="h-5 w-5 text-primary" />
           </div>
           <div className="min-w-0">
-            <h3 className="text-[15px] font-semibold text-gray-900 truncate">{wf.name}</h3>
+            <h3 className="text-[15px] font-semibold text-gray-900 dark:text-white truncate">{wf.name}</h3>
             {wf.description && (
-              <p className="text-[12px] text-gray-500 truncate mt-0.5">{wf.description}</p>
+              <p className="text-[12px] text-gray-500 dark:text-gray-400 truncate mt-0.5">{wf.description}</p>
             )}
           </div>
         </div>
@@ -74,31 +74,31 @@ function WorkflowCard({ wf, onDelete, onToggle }: {
           <div className="relative">
             <button
               onClick={() => setMenuOpen(o => !o)}
-              className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity"
+              className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-gray-500 dark:text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"
             >
               <MoreHorizontal className="h-4 w-4" />
             </button>
             {menuOpen && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-                <div className="absolute right-0 top-8 z-20 bg-white border border-border rounded-xl shadow-xl w-44 py-1 text-[13px]">
+                <div className="absolute right-0 top-8 z-20 bg-white dark:bg-[#18181B] border border-border dark:border-[#27272A] rounded-xl shadow-xl w-44 py-1 text-[13px]">
                   <Link href={`/dashboard/workflows/builder?id=${wf.id}`}
-                    className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-gray-900">
+                    className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-white/5 text-gray-900 dark:text-white">
                     <Edit3 className="h-3.5 w-3.5" /> Edit
                   </Link>
                   <button
                     onClick={() => { onToggle(wf.id, wf.status === "active" ? "paused" : "active"); setMenuOpen(false) }}
-                    className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-gray-900"
+                    className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-white/5 text-gray-900 dark:text-white"
                   >
                     {wf.status === "active"
                       ? <><Pause className="h-3.5 w-3.5" /> Pause</>
                       : <><Play className="h-3.5 w-3.5" /> Activate</>
                     }
                   </button>
-                  <div className="border-t border-border my-1" />
+                  <div className="border-t border-border dark:border-[#27272A] my-1" />
                   <button
                     onClick={() => { onDelete(wf.id); setMenuOpen(false) }}
-                    className="w-full flex items-center gap-2 px-4 py-2 hover:bg-red-50 text-red-600"
+                    className="w-full flex items-center gap-2 px-4 py-2 hover:bg-red-50 dark:hover:bg-red-500/10 text-red-600 dark:text-red-400"
                   >
                     <Trash2 className="h-3.5 w-3.5" /> Delete
                   </button>
@@ -111,14 +111,14 @@ function WorkflowCard({ wf, onDelete, onToggle }: {
 
       {/* Trigger */}
       <div className="flex items-center gap-2 mb-3">
-        <div className="flex items-center gap-1.5 text-[12px] text-gray-500 bg-gray-50 rounded-lg px-2.5 py-1">
+        <div className="flex items-center gap-1.5 text-[12px] text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-white/5 rounded-lg px-2.5 py-1">
           <TriggerIcon className={cn("h-3.5 w-3.5", triggerCfg.color)} />
           <span className="capitalize">{(wf.trigger_type ?? "manual").replace(/_/g, " ")} trigger</span>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="flex items-center gap-4 text-[12px] text-gray-500">
+      <div className="flex items-center gap-4 text-[12px] text-gray-500 dark:text-gray-400">
         <div className="flex items-center gap-1">
           <Activity className="h-3.5 w-3.5" />
           <span>{(wf.total_runs ?? 0).toLocaleString()} runs</span>
@@ -200,15 +200,15 @@ export default function WorkflowsPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-full bg-[#FAFAF8] p-6 space-y-5">
+    <div className="flex flex-col min-h-full bg-[#FAFAF8] dark:bg-black p-6 space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Workflow Builder</h1>
-          <p className="text-[14px] text-gray-500 mt-0.5">Automate lead engagement with multi-channel AI workflows</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Workflow Builder</h1>
+          <p className="text-[14px] text-gray-500 dark:text-gray-400 mt-0.5">Automate lead engagement with multi-channel AI workflows</p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={fetchWorkflows} className="p-2 rounded-xl border border-border bg-white hover:bg-gray-100 text-gray-500">
+          <button onClick={fetchWorkflows} className="p-2 rounded-xl border border-border dark:border-[#27272A] bg-white dark:bg-[#111114] hover:bg-gray-100 dark:hover:bg-white/5 text-gray-500 dark:text-gray-400">
             <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
           </button>
           <Link
@@ -223,13 +223,13 @@ export default function WorkflowsPage() {
       {/* Stats */}
       <div className="grid grid-cols-4 gap-4">
         {[
-          { label: "Total", value: counts.all, color: "text-gray-900" },
-          { label: "Active", value: counts.active, color: "text-green-600" },
-          { label: "Draft", value: counts.draft, color: "text-gray-500" },
+          { label: "Total", value: counts.all, color: "text-gray-900 dark:text-white" },
+          { label: "Active", value: counts.active, color: "text-green-600 dark:text-green-400" },
+          { label: "Draft", value: counts.draft, color: "text-gray-500 dark:text-gray-400" },
           { label: "Total Runs", value: workflows.reduce((s, w) => s + (w.total_runs ?? 0), 0), color: "text-primary" },
         ].map((s, i) => (
-          <div key={i} className="bg-white border border-border rounded-xl p-4 shadow-sm">
-            <p className="text-[12px] text-gray-500">{s.label}</p>
+          <div key={i} className="bg-white dark:bg-[#111114] border border-border dark:border-[#27272A] rounded-xl p-4 shadow-sm">
+            <p className="text-[12px] text-gray-500 dark:text-gray-400">{s.label}</p>
             <p className={cn("text-[22px] font-bold mt-0.5", s.color)}>{s.value.toLocaleString()}</p>
           </div>
         ))}
@@ -238,11 +238,11 @@ export default function WorkflowsPage() {
       {/* Filters */}
       <div className="flex items-center gap-3 flex-wrap">
         <div className="relative flex-1 min-w-52">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-gray-400" />
           <input
             type="text" value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Search workflows…"
-            className="w-full pl-9 pr-4 py-2.5 border border-border rounded-xl text-[14px] bg-white focus:outline-none focus:ring-1 focus:ring-primary"
+            className="w-full pl-9 pr-4 py-2.5 border border-border dark:border-[#27272A] rounded-xl text-[14px] bg-white dark:bg-[#111114] text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-primary"
           />
         </div>
         {(["all", "active", "draft", "paused"] as const).map(f => (
@@ -250,7 +250,7 @@ export default function WorkflowsPage() {
             key={f}
             onClick={() => setFilter(f)}
             className={cn("px-3 py-2 rounded-xl text-[13px] font-medium transition-all",
-              filter === f ? "bg-foreground text-background" : "bg-white border border-border text-gray-500 hover:text-gray-900"
+              filter === f ? "bg-foreground dark:bg-white text-background dark:text-black" : "bg-white dark:bg-[#111114] border border-border dark:border-[#27272A] text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
             )}
           >
             {f === "all" ? `All (${counts.all})` : `${f.charAt(0).toUpperCase() + f.slice(1)} (${counts[f as keyof typeof counts] ?? 0})`}
@@ -262,16 +262,16 @@ export default function WorkflowsPage() {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3].map(i => (
-            <div key={i} className="bg-white border border-border rounded-2xl p-5 h-40 animate-pulse" />
+            <div key={i} className="bg-white dark:bg-[#111114] border border-border dark:border-[#27272A] rounded-2xl p-5 h-40 animate-pulse" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
-            <Workflow className="h-8 w-8 text-gray-500/40" />
+          <div className="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-[#111114] flex items-center justify-center mb-4 border border-border dark:border-[#27272A]">
+            <Workflow className="h-8 w-8 text-gray-500/40 dark:text-gray-400" />
           </div>
-          <p className="text-lg font-semibold text-gray-900">No workflows yet</p>
-          <p className="text-[14px] text-gray-500 mt-1 mb-5">
+          <p className="text-lg font-semibold text-gray-900 dark:text-white">No workflows yet</p>
+          <p className="text-[14px] text-gray-500 dark:text-gray-400 mt-1 mb-5">
             Build your first automated lead funnel
           </p>
           <Link
@@ -295,12 +295,12 @@ export default function WorkflowsPage() {
           {/* Add new card */}
           <Link
             href="/dashboard/workflows/builder"
-            className="border-2 border-dashed border-border rounded-2xl p-5 flex flex-col items-center justify-center gap-3 hover:border-primary hover:bg-primary/5 transition-all group min-h-[160px]"
+            className="border-2 border-dashed border-border dark:border-[#27272A] rounded-2xl p-5 flex flex-col items-center justify-center gap-3 hover:border-primary hover:bg-primary/5 transition-all group min-h-[160px]"
           >
-            <div className="w-10 h-10 rounded-xl bg-gray-100 group-hover:bg-primary/10 flex items-center justify-center transition-colors">
-              <Plus className="h-5 w-5 text-gray-500 group-hover:text-primary transition-colors" />
+            <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-white/5 group-hover:bg-primary/10 flex items-center justify-center transition-colors">
+              <Plus className="h-5 w-5 text-gray-500 dark:text-gray-400 group-hover:text-primary transition-colors" />
             </div>
-            <p className="text-[14px] font-medium text-gray-500 group-hover:text-primary transition-colors">
+            <p className="text-[14px] font-medium text-gray-500 dark:text-gray-400 group-hover:text-primary transition-colors">
               New Workflow
             </p>
           </Link>

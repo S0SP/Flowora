@@ -20,18 +20,7 @@ export function DashboardShell({ workspaceData, children }: Props) {
   const { isSidebarOpen, isDark, setDark } = useUIStore();
   const pathname = usePathname();
 
-  // Hydrate dark mode from localStorage on first render
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("flowra_dark_mode")
-      if (stored !== null) {
-        setDark(stored === "true")
-      } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-        setDark(true)
-      }
-    } catch { }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  // Custom dark mode hydration removed in favor of next-themes
 
   const isViewportPage =
     pathname === "/dashboard/inbox" ||
@@ -53,10 +42,7 @@ export function DashboardShell({ workspaceData, children }: Props) {
         workspaceId={workspaceData.workspace.id}
         userId={workspaceData.profile.id}
       >
-        <div className={cn(
-          "relative flex h-screen w-full overflow-hidden bg-background text-foreground",
-          isDark && "dark"
-        )}>
+        <div className="relative flex h-screen w-full overflow-hidden bg-background text-foreground">
           {/* Headless presence heartbeat — reports online/away every 30s */}
           <PresenceHeartbeat />
           <Sidebar />
