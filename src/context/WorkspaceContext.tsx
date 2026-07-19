@@ -18,6 +18,7 @@ export interface Workspace {
   slug: string;
   logo_url: string | null;
   owner_id: string;
+  default_currency: string;
 }
 
 export interface WorkspaceMember {

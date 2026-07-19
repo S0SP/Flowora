@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { usePresence } from "@/hooks/use-presence"
 import { PresenceDot } from "@/components/presence/PresenceDot"
+import { useWorkspace } from "@/context/WorkspaceContext"
+import { formatCurrency } from "@/lib/currency"
 
 type Analytics = {
   contacts: { total: number; new_today: number }
@@ -30,6 +32,7 @@ export default function DashboardPage() {
   const [analytics, setAnalytics] = useState<Analytics | null>(null)
   const [loading, setLoading] = useState(true)
   const { rows, now } = usePresence()
+  const { workspace } = useWorkspace()
 
   // Derive per-member status from last_seen_at
   const onlineRows = rows.filter(r => {
@@ -85,7 +88,7 @@ export default function DashboardPage() {
     },
     { 
       label: "Voice Calls (Mo)", value: analytics?.voice.completed_calls ?? 0, 
-      sub: analytics?.voice.total_minutes ? `${analytics.voice.total_minutes} mins · ₹${analytics.voice.total_cost_inr}` : undefined, icon: Phone 
+      sub: analytics?.voice.total_minutes ? `${analytics.voice.total_minutes} mins · ${formatCurrency(analytics.voice.total_cost_inr, workspace.default_currency)}` : undefined, icon: Phone 
     },
     { label: "Messages (7d)", value: analytics?.messages.total_week ?? 0, icon: TrendingUp },
     { label: "Delivery Rate", value: `${analytics?.messages.delivery_rate ?? 0}%`, icon: ArrowUpRight },

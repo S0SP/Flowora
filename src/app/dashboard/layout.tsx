@@ -70,6 +70,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       slug: workspace.slug,
       logo_url: workspace.logo_url,
       owner_id: workspace.owner_id,
+      default_currency: workspace.default_currency ?? "USD",
     },
     member: {
       role: membership.role,

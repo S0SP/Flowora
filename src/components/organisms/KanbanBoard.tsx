@@ -28,6 +28,8 @@ import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback } from "@/components/atoms/Avatar"
 import { Badge } from "@/components/atoms/Badge"
 import { Lead } from "@/app/dashboard/leads/page"
+import { useWorkspace } from "@/context/WorkspaceContext"
+import { formatCurrency } from "@/lib/currency"
 
 type LeadCard = {
   id: string
@@ -230,6 +232,7 @@ function SortableColumn({ col, items, onOpenAdd, onEditLead }: { col: ColumnData
 const emptyLeads: any[] = []
 
 export function KanbanBoard({ onOpenAdd, onEditLead, filterQuery = "" }: { onOpenAdd: (status: string) => void, onEditLead: (id: string) => void, filterQuery?: string }) {
+  const { workspace } = useWorkspace()
   const queryClient = useQueryClient()
   const { data: leads = emptyLeads, isLoading } = useQuery({
     queryKey: ["leads"],
@@ -280,7 +283,7 @@ export function KanbanBoard({ onOpenAdd, onEditLead, filterQuery = "" }: { onOpe
           name: lead.name,
           source: lead.company,
           value: lead.value && !isNaN(Number(String(lead.value).replace(/[^0-9.-]+/g, "")))
-            ? (String(lead.value).startsWith("$") ? lead.value : `$${Number(String(lead.value).replace(/[^0-9.-]+/g, "")).toLocaleString()}`) 
+            ? formatCurrency(Number(String(lead.value).replace(/[^0-9.-]+/g, "")), workspace.default_currency)
             : "—",
           type: lead.status === "won" ? "converted" : "standard",
           phone: lead.phone,

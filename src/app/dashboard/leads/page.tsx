@@ -11,6 +11,8 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import Papa from "papaparse"
 import { ChevronDown } from "lucide-react"
+import { useWorkspace } from "@/context/WorkspaceContext"
+import { formatCurrency } from "@/lib/currency"
 
 export interface Lead {
   id: string
@@ -62,6 +64,7 @@ function CustomSelect({ value, onChange, options }: { value: string, onChange: (
 export default function LeadsKanbanPage() {
   const router = useRouter()
   const queryClient = useQueryClient()
+  const { workspace } = useWorkspace()
   
   const [view, setView] = useState<"kanban" | "table" | "analytics">("kanban")
   const [searchQuery, setSearchQuery] = useState("")
@@ -376,12 +379,12 @@ export default function LeadsKanbanPage() {
           <div className="w-px h-8 bg-border" />
           <div className="flex flex-col px-4 min-w-[120px]">
             <span className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider mb-1">Avg Deal Value</span>
-            <span className="text-lg font-bold text-gray-900">${avgDealValue.toLocaleString()}</span>
+            <span className="text-lg font-bold text-gray-900">{formatCurrency(avgDealValue, workspace.default_currency)}</span>
           </div>
           <div className="w-px h-8 bg-border" />
           <div className="flex flex-col px-4 min-w-[120px]">
             <span className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider mb-1">Pipeline Value</span>
-            <span className="text-lg font-bold text-gray-900">${pipelineValue.toLocaleString()}</span>
+            <span className="text-lg font-bold text-gray-900">{formatCurrency(pipelineValue, workspace.default_currency)}</span>
           </div>
         </div>
       </div>
@@ -414,7 +417,7 @@ export default function LeadsKanbanPage() {
                       </td>
                       <td className="px-6 py-4 text-[13px] text-gray-500">{lead.company || "—"}</td>
                       <td className="px-6 py-4 text-[13px] font-bold text-gray-900">
-                        {lead.value ? `$${Number(lead.value).toLocaleString()}` : "—"}
+                        {lead.value ? formatCurrency(Number(String(lead.value).replace(/[^0-9.-]+/g, "")), workspace.default_currency) : "—"}
                       </td>
                       <td className="px-6 py-4">
                         <span className={cn(
@@ -505,7 +508,7 @@ export default function LeadsKanbanPage() {
                     ].map((stat, i) => (
                       <div key={i} className="flex justify-between py-2.5 border-b border-[#E5E7EB] last:border-0">
                         <span className="text-sm text-gray-500 font-medium">{stat.label}</span>
-                        <span className="text-sm font-bold text-gray-900">${stat.value.toLocaleString()}</span>
+                        <span className="text-sm font-bold text-gray-900">{formatCurrency(stat.value, workspace.default_currency)}</span>
                       </div>
                     ))}
                   </div>
