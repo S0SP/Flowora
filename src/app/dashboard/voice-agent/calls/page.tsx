@@ -55,6 +55,7 @@ interface VoiceCall {
   status: string;
   duration_seconds: number | null;
   recording_url: string | null;
+  livekit_sip_call_id: string | null;
   transcript: string | null;
   cost_breakdown: CostBreakdown | null;
   created_at: string;
@@ -239,14 +240,47 @@ function CostPanel({ cost }: { cost: CostBreakdown }) {
 
 function CallRow({ call }: { call: VoiceCall }) {
   const [open, setOpen] = useState(false);
-  const hasRecording = Boolean(call.recording_url);
+  const [recordingUrl, setRecordingUrl] = useState<string | null>(
+    call.recording_url
+  );
+  const [recordingLoading, setRecordingLoading] = useState(false);
+  const recordingFetchedRef = useRef(false);
+  const hasRecording = Boolean(recordingUrl);
   const hasCost      = Boolean(call.cost_breakdown?.total_inr);
+  const canFetchRecording =
+    !call.recording_url && Boolean(call.livekit_sip_call_id);
+
+  async function fetchRecordingUrl() {
+    if (recordingFetchedRef.current || recordingLoading) return;
+    recordingFetchedRef.current = true;
+    setRecordingLoading(true);
+    try {
+      const res = await fetch(`/api/voice/calls/${call.id}/recording`);
+      if (res.ok) {
+        const { url } = await res.json();
+        if (url) setRecordingUrl(url);
+      }
+    } catch {
+      // silently ignore — recording may not be ready yet
+    } finally {
+      setRecordingLoading(false);
+    }
+  }
+
+  function handleToggle() {
+    const nextOpen = !open;
+    setOpen(nextOpen);
+    // Lazy-fetch recording URL the first time the row is expanded
+    if (nextOpen && canFetchRecording) {
+      fetchRecordingUrl();
+    }
+  }
 
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden">
       <div
         className="flex items-center gap-4 p-4 cursor-pointer hover:bg-muted/30 transition-colors"
-        onClick={() => setOpen(!open)}
+        onClick={handleToggle}
       >
         {/* Icon */}
         <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
@@ -310,7 +344,12 @@ function CallRow({ call }: { call: VoiceCall }) {
           {hasRecording ? (
             <div>
               <p className="text-xs font-semibold text-muted-foreground mb-2">Recording</p>
-              <AudioPlayer url={call.recording_url!} />
+              <AudioPlayer url={recordingUrl!} />
+            </div>
+          ) : recordingLoading ? (
+            <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-xl">
+              <Waves className="w-4 h-4 text-muted-foreground shrink-0 animate-pulse" />
+              <p className="text-xs text-muted-foreground">Loading recording…</p>
             </div>
           ) : call.status === "completed" ? (
             <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-xl">
@@ -340,7 +379,7 @@ function CallRow({ call }: { call: VoiceCall }) {
           )}
 
           {/* Nothing available */}
-          {!hasRecording && !call.transcript && !call.cost_breakdown && (
+          {!hasRecording && !recordingLoading && !call.transcript && !call.cost_breakdown && (
             <p className="text-xs text-muted-foreground italic">No recording, transcript, or cost data available yet.</p>
           )}
         </div>

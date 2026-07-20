@@ -1,7 +1,7 @@
 import { defineConfig } from "@trigger.dev/sdk/v3";
 
 export default defineConfig({
-  project: "flowora",
+  project: "proj_tjulrzvrslkplxbjtnpv",
   runtime: "node",
   logLevel: "log",
   maxDuration: 300, 
