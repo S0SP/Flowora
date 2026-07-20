@@ -3,6 +3,16 @@
 @tailwind utilities;
 
 /*
+ * ───────────────────────────────────────────────────────────────
+ *  DARK MODE GLOBAL OVERRIDES
+ *
+ *  Many pages use hardcoded Tailwind color classes (text-gray-900,
+ *  bg-white, etc.) without dark: variants. These rules force correct
+ *  contrast across ALL dashboard pages in dark mode.
+ * ───────────────────────────────────────────────────────────────
+ */
+
+/*
  * ═══════════════════════════════════════════════════════
  *  FLOWORA — Premium SaaS Color System (Stripe/Linear Inspired)
  *
@@ -74,6 +84,7 @@
     --text-primary: #111827;
     --text-secondary: #6B7280;
     --text-tertiary: #9CA3AF;
+    --minimap-mask: rgba(250, 250, 249, 0.85);
 
     --node-whatsapp: #10B981;
     --node-voice: #6366F1;
@@ -135,15 +146,16 @@
     --sidebar-ring:                160 84% 39%;
 
     /* — Node Canvas (Dark) — */
-    --canvas-bg: #09090B;
-    --node-bg: #18181B;
+    --canvas-bg: #000000;
+    --node-bg: #111114;
     --node-border: #27272A;
-    --panel-bg: #18181B;
+    --panel-bg: #111114;
     --node-shadow: none;
 
     --text-primary: #F9FAFB;
     --text-secondary: #9CA3AF;
     --text-tertiary: #52525B;
+    --minimap-mask: rgba(0, 0, 0, 0.7);
 
     --node-whatsapp: #10B981;
     --node-voice: #818CF8;
@@ -227,3 +239,144 @@
   }
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   GLOBAL DARK MODE FIXES
+   Override hardcoded Tailwind classes that lack dark: variants.
+   These rules target the .dark class (set on <html> by next-themes).
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── Text color overrides ─────────────────────────────────────── */
+.dark .text-gray-900 { color: hsl(210 40% 96%) !important; }
+.dark .text-gray-800 { color: hsl(210 40% 90%) !important; }
+.dark .text-gray-700 { color: hsl(210 20% 82%) !important; }
+.dark .text-gray-600 { color: hsl(210 15% 72%) !important; }
+.dark .text-gray-500 { color: hsl(215 12% 60%) !important; }
+.dark .text-gray-400 { color: hsl(215 12% 50%) !important; }
+
+/* ── Background overrides ─────────────────────────────────────── */
+.dark .bg-white {
+  background-color: hsl(240 5% 10%) !important;
+}
+.dark .bg-gray-50 {
+  background-color: hsl(240 5% 12%) !important;
+}
+.dark .bg-gray-100 {
+  background-color: hsl(240 4% 16%) !important;
+}
+.dark .bg-gray-100\/30 {
+  background-color: hsl(240 4% 16% / 0.3) !important;
+}
+.dark .bg-gray-100\/10 {
+  background-color: hsl(240 4% 16% / 0.1) !important;
+}
+.dark .bg-gray-100\/40 {
+  background-color: hsl(240 4% 16% / 0.4) !important;
+}
+.dark .bg-gray-200 {
+  background-color: hsl(240 4% 20%) !important;
+}
+
+/* ── Border overrides ─────────────────────────────────────────── */
+.dark .border-gray-200 { border-color: hsl(240 4% 22%) !important; }
+.dark .border-gray-100 { border-color: hsl(240 4% 18%) !important; }
+
+/* ── Hover overrides ──────────────────────────────────────────── */
+.dark .hover\:bg-gray-100:hover  { background-color: hsl(240 4% 18%) !important; }
+.dark .hover\:bg-gray-50:hover   { background-color: hsl(240 5% 14%) !important; }
+.dark .hover\:text-gray-900:hover { color: hsl(210 40% 96%) !important; }
+
+/* ── Inbox / Chat message area ────────────────────────────────── */
+.dark .bg-\[\#DCF8C6\] {
+  /* outbound whatsapp bubble */
+  background-color: hsl(145 40% 18%) !important;
+}
+/* Inbound message bubble in dark */
+.dark .bg-white.border.border-border\/60 {
+  background-color: hsl(240 4% 16%) !important;
+}
+.dark .text-gray-900.whitespace-pre-wrap {
+  color: hsl(210 40% 96%) !important;
+}
+
+/* ── Contacts page table / cards ──────────────────────────────── */
+.dark .divide-y > * { border-color: hsl(240 4% 18%) !important; }
+
+/* ── Input / textarea fields ──────────────────────────────────── */
+.dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+.dark textarea,
+.dark select {
+  background-color: hsl(240 4% 16%);
+  color: hsl(210 40% 96%);
+  border-color: hsl(240 4% 22%);
+}
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: hsl(215 12% 50%);
+}
+
+/* ── Modals & drawers ─────────────────────────────────────────── */
+.dark .bg-white.rounded-xl,
+.dark .bg-white.rounded-\[12px\],
+.dark .bg-white.rounded-2xl,
+.dark .bg-white.rounded-lg {
+  background-color: hsl(240 5% 10%) !important;
+}
+
+/* ── Heading / label weight boost for dark headings ──────────── */
+.dark h1.text-gray-900,
+.dark h2.text-gray-900,
+.dark h3.text-gray-900,
+.dark p.font-bold.text-gray-900,
+.dark p.font-semibold.text-gray-900,
+.dark span.font-bold.text-gray-900,
+.dark span.font-semibold.text-gray-900 {
+  color: hsl(0 0% 100%) !important;
+  font-weight: 700;
+}
+
+/* ── Scrollbar in dark mode ───────────────────────────────────── */
+.dark ::-webkit-scrollbar-thumb {
+  background-color: hsl(240 4% 24%);
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(240 4% 30%);
+}
+
+/* ── Stats strip and table header bg in dark ──────────────────── */
+.dark .sticky.bg-white {
+  background-color: hsl(240 5% 10%) !important;
+}
+
+/* Composer input bg in dark */
+.dark .bg-gray-100.rounded-xl,
+.dark .bg-gray-100.flex-1 {
+  background-color: hsl(240 4% 18%) !important;
+  color: hsl(210 40% 96%);
+}
+
+/* ── amber/note bubble extra contrast ─────────────────────────── */
+.dark .bg-amber-50 {
+  background-color: hsl(38 50% 12%) !important;
+}
+.dark .border-amber-200 { border-color: hsl(38 60% 22%) !important; }
+.dark .text-amber-900 { color: hsl(38 90% 80%) !important; }
+.dark .text-amber-800 { color: hsl(38 90% 75%) !important; }
+
+/* ── Template / blue accent areas ────────────────────────────── */
+.dark .bg-blue-50 { background-color: hsl(220 50% 12%) !important; }
+.dark .border-blue-200 { border-color: hsl(220 50% 22%) !important; }
+.dark .text-blue-700 { color: hsl(210 90% 72%) !important; }
+
+/* ── emerald window indicator ─────────────────────────────────── */
+.dark .bg-emerald-50 { background-color: hsl(160 40% 10%) !important; }
+.dark .text-emerald-700 { color: hsl(160 60% 55%) !important; }
+
+/* ── red window expired ───────────────────────────────────────── */
+.dark .bg-red-50 { background-color: hsl(0 40% 12%) !important; }
+.dark .text-red-600 { color: hsl(0 80% 65%) !important; }
+
+/* ── AvatarFallback ───────────────────────────────────────────── */
+.dark .bg-gray-100.text-gray-900 {
+  background-color: hsl(240 4% 22%) !important;
+  color: hsl(210 40% 96%) !important;
+}

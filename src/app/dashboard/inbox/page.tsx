@@ -125,7 +125,7 @@ function MessageBubble({ msg }: { msg: Message }) {
   if (isSystem) {
     return (
       <div className="flex justify-center my-2">
-        <span className="text-[11px] text-gray-500 bg-gray-100 px-3 py-1 rounded-full">{msg.content}</span>
+        <span className="text-[11px] text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-zinc-800 px-3 py-1 rounded-full">{msg.content}</span>
       </div>
     )
   }
@@ -149,8 +149,8 @@ function MessageBubble({ msg }: { msg: Message }) {
     <div className={cn("flex gap-2 max-w-[80%]", isOutbound ? "ml-auto flex-row-reverse" : "mr-auto")}>
       <div className={cn("px-3 py-2 rounded-2xl text-[13px] leading-relaxed shadow-sm",
         isOutbound 
-          ? "bg-[#DCF8C6] dark:bg-emerald-950/40 text-gray-900 dark:text-emerald-300 rounded-br-none" 
-          : "bg-white dark:bg-gray-100 border border-border/60 dark:border-border/10 rounded-bl-none text-gray-900"
+          ? "bg-[#DCF8C6] dark:bg-emerald-950/60 text-gray-900 dark:text-emerald-100 rounded-br-none" 
+          : "bg-white dark:bg-zinc-800 border border-border/60 dark:border-zinc-700 rounded-bl-none text-gray-900 dark:text-gray-100"
       )}>
         {msg.sender_type === "bot" && (
           <div className="flex items-center gap-1 mb-1">
@@ -179,7 +179,7 @@ function MessageBubble({ msg }: { msg: Message }) {
           <video controls src={msg.file_url} className="max-w-[220px] rounded-lg mb-1" />
         )}
 
-        {msg.content && <p className="text-gray-900 whitespace-pre-wrap break-words">{msg.content}</p>}
+        {msg.content && <p className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap break-words">{msg.content}</p>}
 
         <div className={cn("flex items-center gap-1 mt-1", isOutbound ? "justify-end" : "justify-start")}>
           <span className="text-[10px] text-gray-500/70">{format(new Date(msg.created_at), "HH:mm")}</span>
@@ -208,7 +208,7 @@ function ComposerInput({ composerMode, pendingMedia, sending, uploadingMedia, on
 
   return (
     <div className="flex items-end gap-2">
-      <div className={cn("flex-1 rounded-xl px-3 py-2 min-h-[44px] flex items-end", composerMode === "note" ? "bg-amber-50 border border-amber-200" : "bg-gray-100")}>
+      <div className={cn("flex-1 rounded-xl px-3 py-2 min-h-[44px] flex items-end", composerMode === "note" ? "bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50" : "bg-gray-100 dark:bg-zinc-800")}>
         <textarea
           value={text}
           onChange={e => setText(e.target.value)}
@@ -218,7 +218,7 @@ function ComposerInput({ composerMode, pendingMedia, sending, uploadingMedia, on
               handleSend();
             }
           }}
-          className="w-full bg-transparent text-[13px] outline-none resize-none max-h-32"
+          className="w-full bg-transparent text-[13px] text-gray-900 dark:text-gray-100 outline-none resize-none max-h-32 placeholder:text-gray-500 dark:placeholder:text-gray-500"
           rows={1}
           placeholder={composerMode === "note" ? "Add internal note..." : composerMode === "template" ? "Template will be sent..." : "Type a message... (Enter to send)"}
           disabled={composerMode === "template"}
@@ -1206,7 +1206,7 @@ export default function InboxPage() {
   }), [threads])
 
   return (
-    <div className="absolute inset-0 flex bg-white overflow-hidden">
+    <div className="absolute inset-0 flex bg-white dark:bg-zinc-950 overflow-hidden">
       <div className="w-[300px] border-r border-border bg-card flex flex-col shrink-0 relative">
         <div className="p-3 border-b border-border space-y-2">
           <div className="flex items-center justify-between">
@@ -1344,7 +1344,7 @@ export default function InboxPage() {
           <div className="flex-1 flex min-h-0 overflow-hidden">
             {/* Messages area */}
             <div className="flex-1 flex flex-col min-w-0">
-              <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#F0F2F5]">
+              <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-white dark:bg-zinc-900">
                 {loadingMessages ? (
                   <div className="flex items-center justify-center py-12 gap-2 text-gray-500">
                     <Loader2 className="h-4 w-4 animate-spin" /><span className="text-[12px]">Loading messages...</span>

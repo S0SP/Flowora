@@ -767,23 +767,23 @@ export function LeadCaptureClient() {
     <div className="flex-1 flex flex-col min-h-0">
 
       {/* SECTION 2: WORKFLOW CONFIGURATION & CAPTURED LEADS LIST */}
-      <div className="flex flex-1 min-h-0 w-full relative border border-border rounded-2xl shadow-sm overflow-hidden bg-white">
+      <div className="flex flex-1 min-h-0 w-full relative border border-border dark:border-[#27272A] rounded-2xl shadow-sm overflow-hidden bg-white dark:bg-[#111114]">
 
         {/* Left Column (Config) */}
         <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden px-8 py-6">
           <div>
-            <div className="flex items-center gap-2 mb-4 border-b border-border pb-3">
+            <div className="flex items-center gap-2 mb-4 border-b border-border dark:border-[#27272A] pb-3">
               <Settings2 className="w-5 h-5 text-primary" />
-              <h3 className="font-semibold text-sm text-gray-900">Configure Workflows</h3>
+              <h3 className="font-semibold text-sm text-gray-900 dark:text-white">Configure Workflows</h3>
             </div>
 
             {/* Tab navigation buttons */}
             {/* Tab navigation buttons */}
-            <div className="flex flex-wrap bg-gray-100/40 p-1 rounded-xl mb-4 border border-border/50 text-[11px] font-medium gap-1">
+            <div className="flex flex-wrap bg-gray-100/40 dark:bg-white/5 p-1 rounded-xl mb-4 border border-border/50 dark:border-[#27272A] text-[11px] font-medium gap-1">
               <button
                 onClick={() => setActiveTab("sheet")}
                 type="button"
-                className={`flex-1 py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-all relative ${activeTab === "sheet" ? "bg-white text-gray-900 shadow-sm font-semibold" : "text-gray-500 hover:text-gray-900"
+                className={`flex-1 py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-all relative ${activeTab === "sheet" ? "bg-white dark:bg-white/10 text-gray-900 dark:text-white shadow-sm font-semibold" : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                   }`}
               >
                 <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-500" />
@@ -795,7 +795,7 @@ export function LeadCaptureClient() {
               <button
                 onClick={() => setActiveTab("whatsapp")}
                 type="button"
-                className={`flex-1 py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-all relative ${activeTab === "whatsapp" ? "bg-white text-gray-900 shadow-sm font-semibold" : "text-gray-500 hover:text-gray-900"
+                className={`flex-1 py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-all relative ${activeTab === "whatsapp" ? "bg-white dark:bg-white/10 text-gray-900 dark:text-white shadow-sm font-semibold" : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                   }`}
               >
                 <MessageSquare className="w-3.5 h-3.5 text-primary" />
@@ -807,7 +807,7 @@ export function LeadCaptureClient() {
               <button
                 onClick={() => setActiveTab("smtp")}
                 type="button"
-                className={`flex-1 py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-all relative ${activeTab === "smtp" ? "bg-white text-gray-900 shadow-sm font-semibold" : "text-gray-500 hover:text-gray-900"
+                className={`flex-1 py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-all relative ${activeTab === "smtp" ? "bg-white dark:bg-white/10 text-gray-900 dark:text-white shadow-sm font-semibold" : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                   }`}
               >
                 <Server className="w-3.5 h-3.5 text-amber-500" />
@@ -816,7 +816,7 @@ export function LeadCaptureClient() {
               <button
                 onClick={() => setActiveTab("email_template")}
                 type="button"
-                className={`flex-1 py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-all relative ${activeTab === "email_template" ? "bg-white text-gray-900 shadow-sm font-semibold" : "text-gray-500 hover:text-gray-900"
+                className={`flex-1 py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-all relative ${activeTab === "email_template" ? "bg-white dark:bg-white/10 text-gray-900 dark:text-white shadow-sm font-semibold" : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                   }`}
               >
                 <Layout className="w-3.5 h-3.5 text-pink-500" />
@@ -828,7 +828,7 @@ export function LeadCaptureClient() {
               <button
                 onClick={() => setActiveTab("voice")}
                 type="button"
-                className={`flex-1 py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-all relative ${activeTab === "voice" ? "bg-white text-gray-900 shadow-sm font-semibold" : "text-gray-500 hover:text-gray-900"
+                className={`flex-1 py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-all relative ${activeTab === "voice" ? "bg-white dark:bg-white/10 text-gray-900 dark:text-white shadow-sm font-semibold" : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                   }`}
               >
                 <Headphones className="w-3.5 h-3.5 text-purple-500" />
@@ -845,20 +845,20 @@ export function LeadCaptureClient() {
               {activeTab === "sheet" && (
                 <div className="animate-fade-in space-y-4">
                   {/* How To Share Sheet Accordion */}
-                  <details className="group border border-gray-200 rounded-lg bg-gray-50/50 open:bg-gray-50 transition-colors">
-                    <summary className="flex items-center cursor-pointer p-4 text-xs font-semibold text-gray-500">
+                  <details className="group border border-gray-200 dark:border-[#27272A] rounded-lg bg-gray-50/50 dark:bg-white/5 open:bg-gray-50 dark:open:bg-white/10 transition-colors">
+                    <summary className="flex items-center cursor-pointer p-4 text-xs font-semibold text-gray-500 dark:text-gray-400">
                       <HelpCircle className="w-4 h-4 text-primary mr-2" />
                       How to share your Google Sheet correctly
-                      <span className="ml-auto text-gray-500 group-open:rotate-180 transition-transform">
+                      <span className="ml-auto text-gray-500 dark:text-gray-400 group-open:rotate-180 transition-transform">
                         ▼
                       </span>
                     </summary>
-                    <div className="p-4 pt-0 text-[11px] text-gray-500 leading-relaxed border-t border-gray-100 mt-2">
+                    <div className="p-4 pt-0 text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed border-t border-gray-100 dark:border-[#27272A] mt-2">
                       <ol className="list-decimal pl-4 space-y-1.5">
                         <li>Open your Google Sheet.</li>
                         <li>Click the <strong>Share</strong> button in the top-right corner.</li>
                         <li>Under <strong>General Access</strong>, change Restricted to:
-                          <span className="font-medium text-gray-900 block mt-0.5">"Anyone with the link can view"</span>
+                          <span className="font-medium text-gray-900 dark:text-white block mt-0.5">"Anyone with the link can view"</span>
                         </li>
                         <li>Copy the full browser URL and paste it in the config form below.</li>
                       </ol>
@@ -1265,14 +1265,14 @@ export function LeadCaptureClient() {
         </div>
 
         {/* Right Column (Logs) */}
-        <div className="w-[400px] border-l border-gray-200 bg-gray-50/30 h-full overflow-y-auto [&::-webkit-scrollbar]:hidden px-6 py-6">
+        <div className="w-[400px] border-l border-gray-200 dark:border-[#27272A] bg-gray-50/30 dark:bg-black h-full overflow-y-auto [&::-webkit-scrollbar]:hidden px-6 py-6">
 
           {/* Live workflow activity feed */}
           <div className="overflow-hidden flex flex-col mb-4">
-            <div className="py-2 border-b border-border flex items-center justify-between">
+            <div className="py-2 border-b border-border dark:border-[#27272A] flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Activity className={`w-4 h-4 ${autoRefresh ? "text-primary" : "text-gray-500"}`} />
-                <h3 className="font-semibold text-sm text-gray-900">Live Activity</h3>
+                <h3 className="font-semibold text-sm text-gray-900 dark:text-white">Live Activity</h3>
                 {autoRefresh && (
                   <span className="flex items-center gap-1 text-[10px] text-primary">
                     <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
@@ -1281,7 +1281,7 @@ export function LeadCaptureClient() {
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] text-gray-500">
+                <span className="text-[10px] text-gray-500 dark:text-gray-400">
                   {lastSynced ? `Synced ${lastSynced.toLocaleTimeString()}` : "Not synced"}
                 </span>
                 <button
@@ -1289,7 +1289,7 @@ export function LeadCaptureClient() {
                   onClick={() => setAutoRefresh((v) => !v)}
                   className={`text-[10px] px-2 py-1 rounded-lg border transition-all ${autoRefresh
                       ? "bg-primary/10 text-primary border-primary/20"
-                      : "bg-gray-100 text-gray-500 border-border"
+                      : "bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400 border-border dark:border-[#27272A]"
                     }`}
                   title="Toggle 10s auto-refresh"
                 >
@@ -1297,7 +1297,7 @@ export function LeadCaptureClient() {
                 </button>
               </div>
             </div>
-            <div className="max-h-[220px] overflow-y-auto scrollbar-thin p-3 space-y-1.5 font-mono text-[10px] bg-gray-100/10">
+            <div className="max-h-[220px] overflow-y-auto scrollbar-thin p-3 space-y-1.5 font-mono text-[10px] bg-gray-100/10 dark:bg-white/5 border-b border-x border-border dark:border-[#27272A] rounded-b-xl">
               {activity.length === 0 ? (
                 <p className="text-gray-500/60 text-center py-6">
                   Waiting for workflow events… Activate automation and add a row to your sheet.
@@ -1310,11 +1310,11 @@ export function LeadCaptureClient() {
                       : entry.kind === "error"
                         ? "text-destructive"
                         : entry.kind === "sync"
-                          ? "text-gray-500"
+                          ? "text-gray-500 dark:text-gray-400"
                           : "text-blue-500";
                   return (
                     <div key={i} className="flex items-start gap-2 leading-relaxed">
-                      <span className="text-gray-500/50 shrink-0">{entry.ts}</span>
+                      <span className="text-gray-500/50 dark:text-gray-500 shrink-0">{entry.ts}</span>
                       <span className={`${color} break-all`}>{entry.message}</span>
                     </div>
                   );
@@ -1324,10 +1324,10 @@ export function LeadCaptureClient() {
           </div>
 
           <div className="overflow-hidden flex flex-col h-full min-h-[400px]">
-            <div className="py-3 border-b border-border flex items-center justify-between">
+            <div className="py-3 border-b border-border dark:border-[#27272A] flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <FileSpreadsheet className="w-4 h-4 text-primary" />
-                <h3 className="font-semibold text-sm text-gray-900">Captured Lead Logs</h3>
+                <h3 className="font-semibold text-sm text-gray-900 dark:text-white">Captured Lead Logs</h3>
               </div>
               <button
                 onClick={() => fetchSettingsAndLeads(true)}

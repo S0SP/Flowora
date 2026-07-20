@@ -92,21 +92,21 @@ function CreateCampaignModal({ onClose, onCreated }: { onClose: () => void; onCr
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-[#18181B] border border-border dark:border-[#27272A] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-border sticky top-0 bg-white z-10">
+        <div className="flex items-center justify-between p-6 border-b border-border dark:border-[#27272A] sticky top-0 bg-white dark:bg-[#18181B] z-10">
           <div>
-            <h2 className="text-[18px] font-bold text-gray-900">New Campaign</h2>
-            <p className="text-[13px] text-gray-500">Step {step} of 3</p>
+            <h2 className="text-[18px] font-bold text-gray-900 dark:text-white">New Campaign</h2>
+            <p className="text-[13px] text-gray-500 dark:text-gray-400">Step {step} of 3</p>
           </div>
-          <button onClick={onClose}><X className="h-5 w-5 text-gray-500" /></button>
+          <button onClick={onClose} className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg"><X className="h-5 w-5 text-gray-500 dark:text-gray-400" /></button>
         </div>
 
         {/* Step progress */}
         <div className="px-6 pt-4 flex items-center gap-2">
           {[1, 2, 3].map(s => (
             <div key={s} className={cn("flex-1 h-1.5 rounded-full transition-colors",
-              s <= step ? "bg-primary" : "bg-gray-100")} />
+              s <= step ? "bg-primary" : "bg-gray-100 dark:bg-white/10")} />
           ))}
         </div>
 
@@ -115,17 +115,17 @@ function CreateCampaignModal({ onClose, onCreated }: { onClose: () => void; onCr
           {step === 1 && (
             <>
               <div>
-                <h3 className="text-[15px] font-semibold text-gray-900 mb-1">Campaign Name</h3>
-                <p className="text-[13px] text-gray-500 mb-3">Give your campaign a descriptive name</p>
+                <h3 className="text-[15px] font-semibold text-gray-900 dark:text-white mb-1">Campaign Name</h3>
+                <p className="text-[13px] text-gray-500 dark:text-gray-400 mb-3">Give your campaign a descriptive name</p>
                 <input
                   type="text" value={name} onChange={e => setName(e.target.value)}
                   placeholder="e.g. Webinar Invite Jan 2026"
-                  className="w-full border border-border rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  className="w-full border border-border dark:border-[#27272A] bg-white dark:bg-[#111114] text-gray-900 dark:text-white rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-primary/40"
                 />
               </div>
               <div>
-                <h3 className="text-[15px] font-semibold text-gray-900 mb-1">Recipients</h3>
-                <p className="text-[13px] text-gray-500 mb-3">Select who receives this campaign</p>
+                <h3 className="text-[15px] font-semibold text-gray-900 dark:text-white mb-1">Recipients</h3>
+                <p className="text-[13px] text-gray-500 dark:text-gray-400 mb-3">Select who receives this campaign</p>
                 <div className="grid grid-cols-2 gap-3">
                   {[
                     { value: "all", label: "All Contacts", desc: "Send to entire contact list" },
@@ -137,11 +137,11 @@ function CreateCampaignModal({ onClose, onCreated }: { onClose: () => void; onCr
                       key={opt.value}
                       onClick={() => setRecipientFilter(opt.value)}
                       className={cn("text-left p-3 rounded-xl border-2 transition-all",
-                        recipientFilter === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/30"
+                        recipientFilter === opt.value ? "border-primary bg-primary/5 dark:bg-primary/10" : "border-border dark:border-[#27272A] hover:border-primary/30 dark:hover:border-primary/50"
                       )}
                     >
-                      <p className="text-[13px] font-medium text-gray-900">{opt.label}</p>
-                      <p className="text-[11px] text-gray-500 mt-0.5">{opt.desc}</p>
+                      <p className="text-[13px] font-medium text-gray-900 dark:text-white">{opt.label}</p>
+                      <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">{opt.desc}</p>
                     </button>
                   ))}
                 </div>
@@ -153,20 +153,20 @@ function CreateCampaignModal({ onClose, onCreated }: { onClose: () => void; onCr
           {step === 2 && (
             <>
               <div>
-                <h3 className="text-[15px] font-semibold text-gray-900 mb-1">Select WhatsApp Template</h3>
-                <p className="text-[13px] text-gray-500 mb-3">
+                <h3 className="text-[15px] font-semibold text-gray-900 dark:text-white mb-1">Select WhatsApp Template</h3>
+                <p className="text-[13px] text-gray-500 dark:text-gray-400 mb-3">
                   Only approved Meta templates can be used for broadcasts
                 </p>
                 {loadingTemplates ? (
-                  <div className="flex items-center justify-center py-8 gap-2 text-gray-500">
+                  <div className="flex items-center justify-center py-8 gap-2 text-gray-500 dark:text-gray-400">
                     <Loader2 className="h-4 w-4 animate-spin" />
                     <span className="text-[13px]">Loading templates from Meta…</span>
                   </div>
                 ) : templates.length === 0 ? (
-                  <div className="text-center py-8 border-2 border-dashed border-border rounded-xl">
-                    <MessageSquare className="h-8 w-8 text-gray-500/40 mx-auto mb-2" />
-                    <p className="text-[13px] text-gray-500">No approved templates found</p>
-                    <p className="text-[12px] text-gray-500/70 mt-1">
+                  <div className="text-center py-8 border-2 border-dashed border-border dark:border-[#27272A] rounded-xl">
+                    <MessageSquare className="h-8 w-8 text-gray-500/40 dark:text-gray-400/40 mx-auto mb-2" />
+                    <p className="text-[13px] text-gray-500 dark:text-gray-400">No approved templates found</p>
+                    <p className="text-[12px] text-gray-500/70 dark:text-gray-400/70 mt-1">
                       Create and get templates approved in Meta Business Manager
                     </p>
                   </div>
@@ -179,19 +179,19 @@ function CreateCampaignModal({ onClose, onCreated }: { onClose: () => void; onCr
                         className={cn(
                           "w-full text-left p-4 rounded-xl border-2 transition-all",
                           selectedTemplate?.name === t.name && selectedTemplate?.language === t.language
-                            ? "border-primary bg-primary/5"
-                            : "border-border hover:border-primary/30"
+                            ? "border-primary bg-primary/5 dark:bg-primary/10"
+                            : "border-border dark:border-[#27272A] hover:border-primary/30 dark:hover:border-primary/50"
                         )}
                       >
                         <div className="flex items-center justify-between">
-                          <p className="text-[14px] font-semibold text-gray-900">{t.display_name}</p>
+                          <p className="text-[14px] font-semibold text-gray-900 dark:text-white">{t.display_name}</p>
                           <div className="flex items-center gap-2">
-                            <span className="text-[11px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">Approved</span>
-                            <span className="text-[11px] text-gray-500">{t.language}</span>
+                            <span className="text-[11px] bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400 px-2 py-0.5 rounded-full font-medium">Approved</span>
+                            <span className="text-[11px] text-gray-500 dark:text-gray-400">{t.language}</span>
                           </div>
                         </div>
-                        <p className="text-[12px] text-gray-500 mt-0.5 capitalize">{t.category?.toLowerCase()}</p>
-                        <p className="text-[11px] text-gray-500/70 font-mono mt-1">{t.name}</p>
+                        <p className="text-[12px] text-gray-500 dark:text-gray-400 mt-0.5 capitalize">{t.category?.toLowerCase()}</p>
+                        <p className="text-[11px] text-gray-500/70 dark:text-gray-400/70 font-mono mt-1">{t.name}</p>
                       </button>
                     ))}
                   </div>
@@ -204,34 +204,34 @@ function CreateCampaignModal({ onClose, onCreated }: { onClose: () => void; onCr
           {step === 3 && (
             <div className="space-y-5">
               <div>
-                <h3 className="text-[15px] font-semibold text-gray-900 mb-1">Schedule Campaign</h3>
-                <p className="text-[13px] text-gray-500 mb-3">Send now or schedule for later</p>
+                <h3 className="text-[15px] font-semibold text-gray-900 dark:text-white mb-1">Schedule Campaign</h3>
+                <p className="text-[13px] text-gray-500 dark:text-gray-400 mb-3">Send now or schedule for later</p>
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   <button
                     onClick={() => setScheduledAt("")}
                     className={cn("p-4 rounded-xl border-2 text-left transition-all",
-                      !scheduledAt ? "border-primary bg-primary/5" : "border-border hover:border-primary/30"
+                      !scheduledAt ? "border-primary bg-primary/5 dark:bg-primary/10" : "border-border dark:border-[#27272A] hover:border-primary/30 dark:hover:border-primary/50"
                     )}
                   >
                     <Zap className="h-5 w-5 text-primary mb-2" />
-                    <p className="text-[14px] font-semibold text-gray-900">Send Now</p>
-                    <p className="text-[12px] text-gray-500 mt-0.5">Launch immediately</p>
+                    <p className="text-[14px] font-semibold text-gray-900 dark:text-white">Send Now</p>
+                    <p className="text-[12px] text-gray-500 dark:text-gray-400 mt-0.5">Launch immediately</p>
                   </button>
                   <button
                     onClick={() => !scheduledAt && setScheduledAt(new Date(Date.now() + 3600000).toISOString().slice(0, 16))}
                     className={cn("p-4 rounded-xl border-2 text-left transition-all",
-                      scheduledAt ? "border-primary bg-primary/5" : "border-border hover:border-primary/30"
+                      scheduledAt ? "border-primary bg-primary/5 dark:bg-primary/10" : "border-border dark:border-[#27272A] hover:border-primary/30 dark:hover:border-primary/50"
                     )}
                   >
-                    <Calendar className="h-5 w-5 text-blue-600 mb-2" />
-                    <p className="text-[14px] font-semibold text-gray-900">Schedule Later</p>
-                    <p className="text-[12px] text-gray-500 mt-0.5">Pick a date & time</p>
+                    <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400 mb-2" />
+                    <p className="text-[14px] font-semibold text-gray-900 dark:text-white">Schedule Later</p>
+                    <p className="text-[12px] text-gray-500 dark:text-gray-400 mt-0.5">Pick a date & time</p>
                   </button>
                 </div>
 
                 {scheduledAt && (
                   <div>
-                    <label className="block text-[13px] font-medium mb-1.5">Scheduled Date & Time</label>
+                    <label className="block text-[13px] font-medium text-gray-900 dark:text-white mb-1.5">Scheduled Date & Time</label>
                     <DatePicker
                       selected={scheduledAt ? new Date(scheduledAt) : null}
                       onChange={(date: Date | null) => setScheduledAt(date ? date.toISOString() : "")}
@@ -240,7 +240,7 @@ function CreateCampaignModal({ onClose, onCreated }: { onClose: () => void; onCr
                       timeIntervals={15}
                       dateFormat="MMMM d, yyyy h:mm aa"
                       minDate={new Date()}
-                      className="w-full border border-border rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-primary/40"
+                      className="w-full border border-border dark:border-[#27272A] bg-white dark:bg-[#111114] text-gray-900 dark:text-white rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-primary/40"
                       placeholderText="Select date and time"
                       isClearable
                     />
@@ -249,8 +249,8 @@ function CreateCampaignModal({ onClose, onCreated }: { onClose: () => void; onCr
               </div>
 
               {/* Summary */}
-              <div className="bg-gray-50 rounded-xl p-4 space-y-2">
-                <h4 className="text-[13px] font-semibold text-gray-900 mb-2">Campaign Summary</h4>
+              <div className="bg-gray-50 dark:bg-white/5 border border-border dark:border-[#27272A] rounded-xl p-4 space-y-2">
+                <h4 className="text-[13px] font-semibold text-gray-900 dark:text-white mb-2">Campaign Summary</h4>
                 {[
                   ["Name", name],
                   ["Template", selectedTemplate?.display_name ?? "—"],
@@ -259,8 +259,8 @@ function CreateCampaignModal({ onClose, onCreated }: { onClose: () => void; onCr
                   ["Launch", scheduledAt ? format(new Date(scheduledAt), "dd MMM yyyy, HH:mm") : "Immediately"],
                 ].map(([k, v]) => (
                   <div key={k} className="flex items-center justify-between text-[13px]">
-                    <span className="text-gray-500">{k}</span>
-                    <span className="font-medium text-gray-900 capitalize">{v}</span>
+                    <span className="text-gray-500 dark:text-gray-400">{k}</span>
+                    <span className="font-medium text-gray-900 dark:text-white capitalize">{v}</span>
                   </div>
                 ))}
               </div>
@@ -272,7 +272,7 @@ function CreateCampaignModal({ onClose, onCreated }: { onClose: () => void; onCr
         <div className="p-6 pt-0 flex gap-3">
           {step > 1 && (
             <button onClick={() => setStep(s => s - 1)}
-              className="flex-1 border border-border rounded-xl py-3 text-[14px] font-medium hover:bg-gray-100">
+              className="flex-1 border border-border dark:border-[#27272A] text-gray-900 dark:text-white rounded-xl py-3 text-[14px] font-medium hover:bg-gray-100 dark:hover:bg-white/10">
               ← Back
             </button>
           )}
@@ -355,17 +355,17 @@ export default function CampaignsPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-full bg-[#FAFAF8] p-6 space-y-5">
+    <div className="flex flex-col min-h-full bg-[#FAFAF8] dark:bg-black p-6 space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Broadcast Campaigns</h1>
-          <p className="text-[14px] text-gray-500 mt-0.5">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Broadcast Campaigns</h1>
+          <p className="text-[14px] text-gray-500 dark:text-gray-400 mt-0.5">
             Send WhatsApp template messages to your contacts at scale
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={fetchCampaigns} className="p-2 rounded-xl border border-border bg-white hover:bg-gray-100 text-gray-500">
+          <button onClick={fetchCampaigns} className="p-2 rounded-xl border border-border dark:border-[#27272A] bg-white dark:bg-[#111114] hover:bg-gray-100 dark:hover:bg-white/5 text-gray-500 dark:text-gray-400">
             <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
           </button>
           <button
@@ -381,13 +381,13 @@ export default function CampaignsPage() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: "Total", value: counts.all },
-          { label: "Scheduled", value: counts.scheduled, color: "text-blue-600" },
-          { label: "Completed", value: counts.completed, color: "text-green-600" },
-          { label: "Running", value: counts.running, color: "text-amber-600" },
+          { label: "Scheduled", value: counts.scheduled, color: "text-blue-600 dark:text-blue-400" },
+          { label: "Completed", value: counts.completed, color: "text-green-600 dark:text-green-400" },
+          { label: "Running", value: counts.running, color: "text-amber-600 dark:text-amber-400" },
         ].map((s, i) => (
-          <div key={i} className="bg-white border border-border rounded-xl p-4 shadow-sm">
-            <p className="text-[12px] text-gray-500">{s.label}</p>
-            <p className={cn("text-[22px] font-bold mt-0.5", s.color ?? "text-gray-900")}>{s.value}</p>
+          <div key={i} className="bg-white dark:bg-[#111114] border border-border dark:border-[#27272A] rounded-xl p-4 shadow-sm">
+            <p className="text-[12px] text-gray-500 dark:text-gray-400">{s.label}</p>
+            <p className={cn("text-[22px] font-bold mt-0.5", s.color ?? "text-gray-900 dark:text-white")}>{s.value}</p>
           </div>
         ))}
       </div>
@@ -395,17 +395,17 @@ export default function CampaignsPage() {
       {/* Filters */}
       <div className="flex items-center gap-3 flex-wrap">
         <div className="relative flex-1 min-w-52">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-gray-400" />
           <input
             type="text" value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Search campaigns…"
-            className="w-full pl-9 pr-4 py-2.5 border border-border rounded-xl text-[14px] bg-white focus:outline-none focus:ring-1 focus:ring-primary"
+            className="w-full pl-9 pr-4 py-2.5 border border-border dark:border-[#27272A] rounded-xl text-[14px] bg-white dark:bg-[#111114] text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-primary"
           />
         </div>
         {(["all", "scheduled", "running", "completed", "failed", "draft"] as const).map(f => (
           <button key={f} onClick={() => setFilter(f)}
             className={cn("px-3 py-2 rounded-xl text-[13px] font-medium transition-all",
-              filter === f ? "bg-foreground text-background" : "bg-white border border-border text-gray-500 hover:text-gray-900"
+              filter === f ? "bg-foreground dark:bg-white text-background dark:text-black" : "bg-white dark:bg-[#111114] border border-border dark:border-[#27272A] text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
             )}>
             {f.charAt(0).toUpperCase() + f.slice(1)}
             {f !== "all" && counts[f] !== undefined && ` (${counts[f as keyof typeof counts] ?? 0})`}
@@ -415,17 +415,17 @@ export default function CampaignsPage() {
 
       {/* Table */}
       {loading ? (
-        <div className="bg-white border border-border rounded-2xl p-8 flex items-center justify-center gap-2 text-gray-500">
+        <div className="bg-white dark:bg-[#111114] border border-border dark:border-[#27272A] rounded-2xl p-8 flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400">
           <Loader2 className="h-5 w-5 animate-spin" />
           <span className="text-[14px]">Loading campaigns…</span>
         </div>
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
-            <Megaphone className="h-8 w-8 text-gray-500/40" />
+          <div className="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-white/5 border border-border dark:border-[#27272A] flex items-center justify-center mb-4">
+            <Megaphone className="h-8 w-8 text-gray-500/40 dark:text-gray-400" />
           </div>
-          <p className="text-lg font-semibold text-gray-900">No campaigns yet</p>
-          <p className="text-[14px] text-gray-500 mt-1 mb-5">
+          <p className="text-lg font-semibold text-gray-900 dark:text-white">No campaigns yet</p>
+          <p className="text-[14px] text-gray-500 dark:text-gray-400 mt-1 mb-5">
             Launch your first WhatsApp broadcast campaign
           </p>
           <button
@@ -436,35 +436,35 @@ export default function CampaignsPage() {
           </button>
         </div>
       ) : (
-        <div className="bg-white border border-border rounded-2xl overflow-hidden shadow-sm">
+        <div className="bg-white dark:bg-[#111114] border border-border dark:border-[#27272A] rounded-2xl overflow-hidden shadow-sm">
           <table className="w-full">
-            <thead className="bg-[#FAFAF8] border-b border-border">
+            <thead className="bg-[#FAFAF8] dark:bg-white/5 border-b border-border dark:border-[#27272A]">
               <tr>
                 {["Campaign", "Template", "Status", "Scheduled", "Recipients", "Delivered", "Actions"].map(h => (
-                  <th key={h} className="text-left px-5 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+                  <th key={h} className="text-left px-5 py-3 text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     {h}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody className="divide-y divide-border dark:divide-[#27272A]">
               {filtered.map((c, idx) => {
                 const cfg = STATUS_CONFIG[c.status]
                 const StatusIcon = cfg.icon
                 const isLastRow = idx === filtered.length - 1
                 return (
-                  <tr key={c.id} className="hover:bg-gray-100/20 transition-colors">
+                  <tr key={c.id} className="hover:bg-gray-100/20 dark:hover:bg-white/5 transition-colors">
                     <td className="px-5 py-4">
-                      <p className="text-[14px] font-semibold text-gray-900">{c.name}</p>
-                      <p className="text-[12px] text-gray-500">
+                      <p className="text-[14px] font-semibold text-gray-900 dark:text-white">{c.name}</p>
+                      <p className="text-[12px] text-gray-500 dark:text-gray-400">
                         {format(new Date(c.created_at), "dd MMM yyyy")}
                       </p>
                     </td>
                     <td className="px-5 py-4">
-                      <p className="text-[13px] text-gray-900 font-medium truncate max-w-[160px]">
+                      <p className="text-[13px] text-gray-900 dark:text-gray-200 font-medium truncate max-w-[160px]">
                         {c.template_name.replace(/_/g, " ")}
                       </p>
-                      <p className="text-[11px] text-gray-500">{c.template_language}</p>
+                      <p className="text-[11px] text-gray-500 dark:text-gray-400">{c.template_language}</p>
                     </td>
                     <td className="px-5 py-4">
                       <span className={cn("inline-flex items-center gap-1.5 text-[12px] font-medium px-2.5 py-1 rounded-full", cfg.badge)}>
@@ -472,16 +472,16 @@ export default function CampaignsPage() {
                         {cfg.label}
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-[13px] text-gray-500">
+                    <td className="px-5 py-4 text-[13px] text-gray-500 dark:text-gray-400">
                       {c.scheduled_at
                         ? format(new Date(c.scheduled_at), "dd MMM, HH:mm")
                         : "—"}
                     </td>
-                    <td className="px-5 py-4 text-[14px] text-gray-900">{c.recipient_count.toLocaleString()}</td>
+                    <td className="px-5 py-4 text-[14px] text-gray-900 dark:text-white">{c.recipient_count.toLocaleString()}</td>
                     <td className="px-5 py-4">
-                      <span className="text-[14px] text-green-600 font-medium">{c.delivered_count.toLocaleString()}</span>
+                      <span className="text-[14px] text-green-600 dark:text-green-400 font-medium">{c.delivered_count.toLocaleString()}</span>
                       {c.failed_count > 0 && (
-                        <span className="text-[12px] text-red-500 ml-2">{c.failed_count} failed</span>
+                        <span className="text-[12px] text-red-500 dark:text-red-400 ml-2">{c.failed_count} failed</span>
                       )}
                     </td>
                     <td className="px-5 py-4">
@@ -489,7 +489,7 @@ export default function CampaignsPage() {
                         <div className="relative">
                           <button
                             onClick={() => setMenuId(menuId === c.id ? null : c.id)}
-                            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500"
+                            className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-gray-500 dark:text-gray-400"
                           >
                             <MoreHorizontal className="h-4 w-4" />
                           </button>
@@ -497,12 +497,12 @@ export default function CampaignsPage() {
                             <>
                               <div className="fixed inset-0 z-10" onClick={() => setMenuId(null)} />
                               <div className={cn(
-                                "absolute right-0 z-20 bg-white border border-border rounded-xl shadow-xl w-40 py-1 text-[13px]",
+                                "absolute right-0 z-20 bg-white dark:bg-[#18181B] border border-border dark:border-[#27272A] rounded-xl shadow-xl w-40 py-1 text-[13px]",
                                 isLastRow ? "bottom-full mb-1" : "top-8"
                               )}>
                                 <button
                                   onClick={() => { handleCancel(c.id); setMenuId(null) }}
-                                  className="w-full flex items-center gap-2 px-4 py-2 hover:bg-red-50 text-red-600"
+                                  className="w-full flex items-center gap-2 px-4 py-2 hover:bg-red-50 dark:hover:bg-red-500/10 text-red-600 dark:text-red-400"
                                 >
                                   <Trash2 className="h-3.5 w-3.5" /> Cancel
                                 </button>

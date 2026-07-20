@@ -774,7 +774,7 @@ export default function SettingsPage() {
               </div>
               <button
                 onClick={() => { setGeneratedKey(null); setShowCreateKeyModal(true) }}
-                className="flex items-center gap-2 bg-foreground text-white px-4 py-2 rounded-lg text-[13px] font-medium hover:bg-foreground/90 transition-colors"
+                className="flex items-center gap-2 bg-white dark:bg-[#111114] border border-border dark:border-[#27272A] text-gray-900 dark:text-white px-4 py-2 rounded-lg text-[13px] font-medium hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
               >
                 <Plus className="h-4 w-4" /> Generate Key
               </button>
@@ -825,30 +825,30 @@ export default function SettingsPage() {
             {/* Create key modal */}
             {showCreateKeyModal && (
               <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setShowCreateKeyModal(false)}>
-                <div className="bg-card rounded-2xl shadow-xl w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
+                <div className="bg-card dark:bg-[#18181B] border border-transparent dark:border-[#27272A] rounded-2xl shadow-xl w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
                   <div className="flex items-center justify-between mb-5">
-                    <h3 className="text-[16px] font-bold text-gray-900">Generate API Key</h3>
-                    <button onClick={() => setShowCreateKeyModal(false)}><X className="h-5 w-5 text-gray-500" /></button>
+                    <h3 className="text-[16px] font-bold text-gray-900 dark:text-white">Generate API Key</h3>
+                    <button onClick={() => setShowCreateKeyModal(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg"><X className="h-5 w-5 text-gray-500 dark:text-gray-400" /></button>
                   </div>
                   <div className="space-y-4">
                     <div>
-                      <label className="text-[13px] font-semibold text-gray-900 mb-1.5 block">Key Name</label>
+                      <label className="text-[13px] font-semibold text-gray-900 dark:text-gray-200 mb-1.5 block">Key Name</label>
                       <input
                         type="text"
                         value={newKeyName}
                         onChange={e => setNewKeyName(e.target.value)}
                         placeholder="e.g. Production Server"
-                        className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] focus:outline-none focus:ring-1 focus:ring-primary"
+                        className="w-full border border-border dark:border-[#27272A] bg-white dark:bg-[#111114] text-gray-900 dark:text-white rounded-lg px-3.5 py-2.5 text-[14px] focus:outline-none focus:ring-1 focus:ring-primary"
                         onKeyDown={e => e.key === "Enter" && handleCreateKey()}
                       />
                     </div>
                   </div>
                   <div className="flex gap-3 mt-6">
-                    <button onClick={() => setShowCreateKeyModal(false)} className="flex-1 py-2 border border-border rounded-lg text-[14px] font-medium text-gray-900 hover:bg-gray-100">Cancel</button>
+                    <button onClick={() => setShowCreateKeyModal(false)} className="flex-1 py-2 border border-border dark:border-[#27272A] rounded-lg text-[14px] font-medium text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-white/10">Cancel</button>
                     <button
                       onClick={handleCreateKey}
                       disabled={creatingKey || !newKeyName.trim()}
-                      className="flex-1 py-2 bg-foreground text-white rounded-lg text-[14px] font-semibold hover:bg-foreground/90 disabled:opacity-50 transition-all"
+                      className="flex-1 py-2 bg-white dark:bg-[#111114] border border-border dark:border-[#27272A] text-gray-900 dark:text-white rounded-lg text-[14px] font-semibold hover:bg-gray-100 dark:hover:bg-white/10 disabled:opacity-50 transition-all"
                     >
                       {creatingKey ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : "Generate"}
                     </button>
@@ -868,7 +868,7 @@ export default function SettingsPage() {
               </div>
               <button
                 onClick={() => { setGeneratedInviteUrl(null); setShowInviteModal(true) }}
-                className="flex items-center gap-2 bg-foreground text-white px-4 py-2 rounded-lg text-[13px] font-medium hover:bg-foreground/90 transition-colors"
+                className="flex items-center gap-2 bg-white dark:bg-[#111114] border border-border dark:border-[#27272A] text-gray-900 dark:text-white px-4 py-2 rounded-lg text-[13px] font-medium hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
               >
                 <UserPlus className="h-4 w-4" /> Invite Member
               </button>
@@ -1023,25 +1023,25 @@ export default function SettingsPage() {
             {/* Invite Modal */}
             {showInviteModal && (
               <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setShowInviteModal(false)}>
-                <div className="bg-card rounded-2xl shadow-xl w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
+                <div className="bg-card dark:bg-[#18181B] border border-transparent dark:border-[#27272A] rounded-2xl shadow-xl w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
                   <div className="flex items-center justify-between mb-5">
-                    <h3 className="text-[16px] font-bold text-gray-900">Invite Team Member</h3>
-                    <button onClick={() => setShowInviteModal(false)}><X className="h-5 w-5 text-gray-500" /></button>
+                    <h3 className="text-[16px] font-bold text-gray-900 dark:text-white">Invite Team Member</h3>
+                    <button onClick={() => setShowInviteModal(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg"><X className="h-5 w-5 text-gray-500 dark:text-gray-400" /></button>
                   </div>
 
                   {generatedInviteUrl ? (
                     <div className="space-y-4">
                       {/* Invite URL display */}
-                      <div className="bg-green-50 border border-green-200 rounded-xl p-4 space-y-3">
+                      <div className="bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-xl p-4 space-y-3">
                         <div className="flex items-center justify-between">
-                          <p className="text-[12px] font-bold text-green-700">✓ Invite link generated</p>
+                          <p className="text-[12px] font-bold text-green-700 dark:text-green-400">✓ Invite link generated</p>
                           {generatedInviteExpiry && (
-                            <span className="text-[11px] font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
+                            <span className="text-[11px] font-semibold text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-500/20 px-2 py-0.5 rounded-full">
                               Expires {generatedInviteExpiry.toLocaleDateString()}
                             </span>
                           )}
                         </div>
-                        <code className="block text-[11px] text-green-900 break-all bg-green-100/60 rounded-lg p-2 font-mono">
+                        <code className="block text-[11px] text-green-900 dark:text-green-300 break-all bg-green-100/60 dark:bg-green-500/20 rounded-lg p-2 font-mono">
                           {generatedInviteUrl}
                         </code>
                         {/* Expiry progress bar */}
@@ -1053,11 +1053,11 @@ export default function SettingsPage() {
                           const daysLeft = Math.ceil(remaining / (24 * 60 * 60 * 1000))
                           return (
                             <div className="space-y-1">
-                              <div className="flex justify-between text-[10px] text-green-700 font-medium">
+                              <div className="flex justify-between text-[10px] text-green-700 dark:text-green-400 font-medium">
                                 <span>Validity progress</span>
                                 <span>{daysLeft}d remaining</span>
                               </div>
-                              <div className="h-1.5 bg-green-200 rounded-full overflow-hidden">
+                              <div className="h-1.5 bg-green-200 dark:bg-green-500/20 rounded-full overflow-hidden">
                                 <div className="h-full bg-green-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
                               </div>
                             </div>
@@ -1067,30 +1067,30 @@ export default function SettingsPage() {
                       
                       {/* Actions */}
                       <div className="flex gap-2">
-                        <button onClick={copyInviteUrl} className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-foreground text-white rounded-lg text-[13px] font-semibold hover:bg-foreground/90">
+                        <button onClick={copyInviteUrl} className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-white dark:bg-[#111114] border border-border dark:border-[#27272A] text-gray-900 dark:text-white rounded-lg text-[13px] font-semibold hover:bg-gray-100 dark:hover:bg-white/10">
                           {copiedInvite ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                           {copiedInvite ? "Copied!" : "Copy Link"}
                         </button>
                         <button 
                           onClick={() => { setGeneratedInviteUrl(null); setGeneratedInviteExpiry(null); setInviteLabel(""); }} 
-                          className="flex-1 py-2.5 border border-border rounded-lg text-[13px] font-medium text-gray-900 hover:bg-gray-100 flex items-center justify-center gap-2"
+                          className="flex-1 py-2.5 border border-border dark:border-[#27272A] rounded-lg text-[13px] font-medium text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 flex items-center justify-center gap-2"
                         >
                           <RefreshCw className="h-3.5 w-3.5" />
                           New Link
                         </button>
                       </div>
-                      <p className="text-[11px] text-gray-500 text-center">
+                      <p className="text-[11px] text-gray-500 dark:text-gray-400 text-center">
                         Share this link with your team member. It can only be used once.
                       </p>
                     </div>
                   ) : (
                     <div className="space-y-4">
                       <div>
-                        <label className="text-[13px] font-semibold text-gray-900 mb-1.5 block">Role</label>
+                        <label className="text-[13px] font-semibold text-gray-900 dark:text-gray-200 mb-1.5 block">Role</label>
                         <select
                           value={inviteRole}
                           onChange={e => setInviteRole(e.target.value)}
-                          className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] focus:outline-none focus:ring-1 focus:ring-primary appearance-none bg-white"
+                          className="w-full border border-border dark:border-[#27272A] bg-white dark:bg-[#111114] text-gray-900 dark:text-white rounded-lg px-3.5 py-2.5 text-[14px] focus:outline-none focus:ring-1 focus:ring-primary appearance-none"
                         >
                           <option value="admin">Admin</option>
                           <option value="manager">Manager</option>
@@ -1098,21 +1098,21 @@ export default function SettingsPage() {
                         </select>
                       </div>
                       <div>
-                        <label className="text-[13px] font-semibold text-gray-900 mb-1.5 block">Label (optional)</label>
+                        <label className="text-[13px] font-semibold text-gray-900 dark:text-gray-200 mb-1.5 block">Label (optional)</label>
                         <input
                           type="text"
                           value={inviteLabel}
                           onChange={e => setInviteLabel(e.target.value)}
                           placeholder="e.g. John from Sales"
-                          className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] focus:outline-none focus:ring-1 focus:ring-primary"
+                          className="w-full border border-border dark:border-[#27272A] bg-white dark:bg-[#111114] text-gray-900 dark:text-white rounded-lg px-3.5 py-2.5 text-[14px] focus:outline-none focus:ring-1 focus:ring-primary"
                         />
                       </div>
                       <div>
-                        <label className="text-[13px] font-semibold text-gray-900 mb-1.5 block">Expires in</label>
+                        <label className="text-[13px] font-semibold text-gray-900 dark:text-gray-200 mb-1.5 block">Expires in</label>
                         <select
                           value={inviteExpiryDays}
                           onChange={e => setInviteExpiryDays(Number(e.target.value))}
-                          className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] focus:outline-none focus:ring-1 focus:ring-primary appearance-none bg-white"
+                          className="w-full border border-border dark:border-[#27272A] bg-white dark:bg-[#111114] text-gray-900 dark:text-white rounded-lg px-3.5 py-2.5 text-[14px] focus:outline-none focus:ring-1 focus:ring-primary appearance-none"
                         >
                           <option value={1}>1 day</option>
                           <option value={7}>7 days</option>
@@ -1120,11 +1120,11 @@ export default function SettingsPage() {
                         </select>
                       </div>
                       <div className="flex gap-3 mt-2">
-                        <button onClick={() => setShowInviteModal(false)} className="flex-1 py-2 border border-border rounded-lg text-[14px] font-medium text-gray-900 hover:bg-gray-100">Cancel</button>
+                        <button onClick={() => setShowInviteModal(false)} className="flex-1 py-2 border border-border dark:border-[#27272A] rounded-lg text-[14px] font-medium text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-white/10">Cancel</button>
                         <button
                           onClick={handleCreateInvite}
                           disabled={creatingInvite}
-                          className="flex-1 py-2 bg-foreground text-white rounded-lg text-[14px] font-semibold hover:bg-foreground/90 disabled:opacity-50"
+                          className="flex-1 py-2 bg-white dark:bg-[#111114] border border-border dark:border-[#27272A] text-gray-900 dark:text-white rounded-lg text-[14px] font-semibold hover:bg-gray-100 dark:hover:bg-white/10 disabled:opacity-50"
                         >
                           {creatingInvite ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : "Generate Link"}
                         </button>

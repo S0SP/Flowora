@@ -428,8 +428,8 @@ export default function ContactsPage() {
       {/* Page Header */}
       <div className="flex items-center justify-between pb-6 flex-shrink-0">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Contacts Directory</h1>
-          <p className="text-xs text-gray-500 mt-1 font-semibold">{totalContacts} database contacts synced</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">Contacts Directory</h1>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-semibold">{totalContacts} database contacts synced</p>
         </div>
         <div className="flex items-center gap-3">
           <button 
@@ -449,7 +449,7 @@ export default function ContactsPage() {
 
       {/* Stats Strip */}
       <div className="flex pb-6 flex-shrink-0 w-full">
-        <div className="flex w-full bg-white rounded-xl border border-border shadow-sm overflow-hidden divide-x divide-border">
+        <div className="flex w-full bg-white dark:bg-zinc-900 rounded-xl border border-border shadow-sm overflow-hidden divide-x divide-border">
           {[
             { label: "Total Contacts", val: totalContacts, icon: Users, bg: "bg-[#10B981]/10 text-[#10B981]" },
             { label: "Hot Leads", val: leadsCount, icon: Sparkles, bg: "bg-amber-500/10 text-amber-600" },
@@ -477,7 +477,7 @@ export default function ContactsPage() {
             <input
               type="text"
               placeholder="Search by name, number, email or tags..."
-              className="w-full pl-9 pr-4 py-2 bg-white border border-border rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-primary shadow-xs"
+              className="w-full pl-9 pr-4 py-2 bg-white dark:bg-zinc-800 border border-border rounded-md text-xs text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-primary shadow-xs"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -550,9 +550,9 @@ export default function ContactsPage() {
       )}
 
       {/* Contacts Table View */}
-      <div className="bg-white rounded-xl flex-1 overflow-auto">
+      <div className="bg-white dark:bg-zinc-900 rounded-xl flex-1 overflow-auto">
         <Table>
-          <TableHeader className="sticky top-0 bg-white z-10">
+          <TableHeader className="sticky top-0 bg-white dark:bg-zinc-900 z-10">
             <TableRow>
               <TableHead className="w-[50px] pl-4">
                 <input 
@@ -572,7 +572,7 @@ export default function ContactsPage() {
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody className="text-xs text-gray-900 divide-y">
+          <TableBody className="text-xs text-gray-900 dark:text-gray-100 divide-y">
             {isLoading ? (
               <TableRow>
                 <TableCell colSpan={9} className="text-center py-12">
@@ -669,12 +669,12 @@ export default function ContactsPage() {
       {/* Contact Details Drawer */}
       <div 
         className={cn(
-          "fixed top-0 right-0 z-50 h-screen w-[420px] bg-white border-l border-border shadow-2xl transform flex flex-col",
+          "fixed top-0 right-0 z-50 h-screen w-[420px] bg-white dark:bg-zinc-900 border-l border-border shadow-2xl transform flex flex-col",
           selectedContact ? "translate-x-0 transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]" : "translate-x-full transition-transform duration-150 ease-in"
         )}
       >
         {selectedContact && (
-          <div className="flex flex-col h-full overflow-hidden bg-white">
+          <div className="flex flex-col h-full overflow-hidden bg-white dark:bg-zinc-900">
             <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
               <h2 className="font-bold text-[13px] text-gray-500 uppercase tracking-wider">Contact Profile</h2>
               <button 

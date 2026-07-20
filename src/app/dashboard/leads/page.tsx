@@ -284,22 +284,22 @@ export default function LeadsKanbanPage() {
   })
 
   return (
-    <div className="h-full flex-1 flex flex-col bg-gray-100/30 overflow-hidden relative">
+    <div className="h-full flex-1 flex flex-col bg-gray-50 dark:bg-[#0B0B0F] overflow-hidden relative">
       {/* Header Area */}
-      <div className="flex-shrink-0 p-6 border-b bg-white">
+      <div className="flex-shrink-0 p-6 border-b border-zinc-200 dark:border-[#2A2E36] bg-white dark:bg-[#17181D]">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
           <div className="flex flex-wrap items-center gap-6">
-            <h1 className="text-2xl font-bold text-gray-900">Leads CRM</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-[#F8FAFC]">Leads CRM</h1>
             
             {/* View Switchers */}
-            <div className="flex items-center bg-gray-100/60 p-1 rounded-lg border border-border/80">
+            <div className="flex items-center bg-gray-100/60 dark:bg-[#0B0B0F] p-1 rounded-lg border border-border/80 dark:border-[#2A2E36]">
               <button 
                 onClick={() => setView("kanban")}
                 className={cn(
                   "flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-md transition-all duration-200",
                   view === "kanban" 
-                    ? "bg-white text-gray-900 shadow-sm" 
-                    : "text-gray-500 hover:text-gray-900"
+                    ? "bg-white dark:bg-[#1D1F25] text-gray-900 dark:text-[#F8FAFC] shadow-sm" 
+                    : "text-gray-500 dark:text-[#9CA3AF] hover:text-gray-900 dark:hover:text-[#F8FAFC]"
                 )}
               >
                 <Kanban className="h-3.5 w-3.5" /> Kanban
@@ -309,8 +309,8 @@ export default function LeadsKanbanPage() {
                 className={cn(
                   "flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-md transition-all duration-200",
                   view === "table" 
-                    ? "bg-white text-gray-900 shadow-sm" 
-                    : "text-gray-500 hover:text-gray-900"
+                    ? "bg-white dark:bg-[#1D1F25] text-gray-900 dark:text-[#F8FAFC] shadow-sm" 
+                    : "text-gray-500 dark:text-[#9CA3AF] hover:text-gray-900 dark:hover:text-[#F8FAFC]"
                 )}
               >
                 <Table2 className="h-3.5 w-3.5" /> Table
@@ -320,8 +320,8 @@ export default function LeadsKanbanPage() {
                 className={cn(
                   "flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-md transition-all duration-200",
                   view === "analytics" 
-                    ? "bg-white text-gray-900 shadow-sm" 
-                    : "text-gray-500 hover:text-gray-900"
+                    ? "bg-white dark:bg-[#1D1F25] text-gray-900 dark:text-[#F8FAFC] shadow-sm" 
+                    : "text-gray-500 dark:text-[#9CA3AF] hover:text-gray-900 dark:hover:text-[#F8FAFC]"
                 )}
               >
                 <BarChart3 className="h-3.5 w-3.5" /> Analytics
@@ -338,19 +338,19 @@ export default function LeadsKanbanPage() {
                 placeholder="Search leads..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-1.5 bg-gray-50 border border-border rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-primary outline-none"
+                className="w-full pl-9 pr-4 py-1.5 bg-gray-50 dark:bg-[#0B0B0F] border border-border dark:border-[#2A2E36] rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-primary dark:focus:ring-[#22C55E] outline-none text-gray-900 dark:text-[#F8FAFC]"
               />
             </div>
 
             <button 
               onClick={() => setIsImportModalOpen(true)}
-              className="inline-flex items-center justify-center rounded-lg text-xs font-semibold transition-all border border-border bg-white hover:bg-gray-100 h-9 px-4 gap-2 text-gray-500 shadow-sm"
+              className="inline-flex items-center justify-center rounded-lg text-xs font-semibold transition-all border border-border dark:border-[#2A2E36] bg-white dark:bg-transparent hover:bg-gray-100 dark:hover:bg-[#1D1F25] h-9 px-4 gap-2 text-gray-500 dark:text-[#F8FAFC] shadow-sm"
             >
               <Upload className="h-4 w-4" /> Import Leads
             </button>
             <button 
               onClick={() => handleOpenAdd("new")} 
-              className="inline-flex items-center justify-center rounded-lg text-xs font-bold transition-all bg-primary hover:bg-primary/90 text-primary-foreground h-9 px-4 gap-2 shadow-sm"
+              className="inline-flex items-center justify-center rounded-lg text-xs font-bold transition-all bg-primary dark:bg-[#22C55E] hover:bg-primary/90 dark:hover:bg-[#16A34A] text-primary-foreground h-9 px-4 gap-2 shadow-sm"
             >
               <Plus className="h-4 w-4" /> Add Lead
             </button>
@@ -358,33 +358,33 @@ export default function LeadsKanbanPage() {
         </div>
 
         {/* Dynamic Analytics Strip */}
-        <div className="bg-white border border-border/80 rounded-xl p-4 shadow-sm flex items-center justify-between overflow-x-auto hide-scrollbar gap-4">
+        <div className="bg-gray-100 dark:bg-[#17181D] border border-gray-200 dark:border-[#2A2E36] rounded-xl p-4 shadow-sm dark:shadow-none flex items-center justify-between overflow-x-auto hide-scrollbar gap-4">
           <div className="flex flex-col px-4 min-w-[120px]">
-            <span className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider mb-1">Total Leads</span>
-            <span className="text-lg font-bold text-gray-900">{leads.length}</span>
+            <span className="text-[10px] text-gray-500 dark:text-[#9CA3AF] font-semibold uppercase tracking-wider mb-1">Total Leads</span>
+            <span className="text-lg font-bold text-gray-900 dark:text-[#F8FAFC]">{leads.length}</span>
           </div>
-          <div className="w-px h-8 bg-border" />
+          <div className="w-px h-8 bg-gray-300 dark:bg-[#2A2E36]" />
           <div className="flex flex-col px-4 min-w-[120px]">
-            <span className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider mb-1">This Week</span>
+            <span className="text-[10px] text-gray-500 dark:text-[#9CA3AF] font-semibold uppercase tracking-wider mb-1">This Week</span>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-lg font-bold text-gray-900">+{leadsThisWeek}</span>
-              <span className="text-[9px] px-1 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-100 font-bold">New</span>
+              <span className="text-lg font-bold text-gray-900 dark:text-[#F8FAFC]">+{leadsThisWeek}</span>
+              <span className="text-[9px] px-1 py-0.5 rounded bg-emerald-100 dark:bg-[#22C55E]/10 text-emerald-700 dark:text-[#22C55E] border border-emerald-200 dark:border-[#22C55E]/20 font-bold">New</span>
             </div>
           </div>
-          <div className="w-px h-8 bg-border" />
+          <div className="w-px h-8 bg-gray-300 dark:bg-[#2A2E36]" />
           <div className="flex flex-col px-4 min-w-[120px]">
-            <span className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider mb-1">Conversion Rate</span>
-            <span className="text-lg font-bold text-gray-900">{conversionRate}</span>
+            <span className="text-[10px] text-gray-500 dark:text-[#9CA3AF] font-semibold uppercase tracking-wider mb-1">Conversion Rate</span>
+            <span className="text-lg font-bold text-gray-900 dark:text-[#F8FAFC]">{conversionRate}</span>
           </div>
-          <div className="w-px h-8 bg-border" />
+          <div className="w-px h-8 bg-gray-300 dark:bg-[#2A2E36]" />
           <div className="flex flex-col px-4 min-w-[120px]">
-            <span className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider mb-1">Avg Deal Value</span>
-            <span className="text-lg font-bold text-gray-900">{formatCurrency(avgDealValue, workspace.default_currency)}</span>
+            <span className="text-[10px] text-gray-500 dark:text-[#9CA3AF] font-semibold uppercase tracking-wider mb-1">Avg Deal Value</span>
+            <span className="text-lg font-bold text-gray-900 dark:text-[#F8FAFC]">{formatCurrency(avgDealValue, workspace.default_currency)}</span>
           </div>
-          <div className="w-px h-8 bg-border" />
+          <div className="w-px h-8 bg-gray-300 dark:bg-[#2A2E36]" />
           <div className="flex flex-col px-4 min-w-[120px]">
-            <span className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider mb-1">Pipeline Value</span>
-            <span className="text-lg font-bold text-gray-900">{formatCurrency(pipelineValue, workspace.default_currency)}</span>
+            <span className="text-[10px] text-gray-500 dark:text-[#9CA3AF] font-semibold uppercase tracking-wider mb-1">Pipeline Value</span>
+            <span className="text-lg font-bold text-gray-900 dark:text-[#F8FAFC]">{formatCurrency(pipelineValue, workspace.default_currency)}</span>
           </div>
         </div>
       </div>
@@ -400,51 +400,51 @@ export default function LeadsKanbanPage() {
             <div className="bg-transparent overflow-hidden">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-gray-100/30 border-b border-border">
-                    <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Lead Name</th>
-                    <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Company</th>
-                    <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Deal Value</th>
-                    <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Pipeline Stage</th>
-                    <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Created At</th>
-                    <th className="px-6 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                  <tr className="bg-gray-100 dark:bg-[#1D1F25] border-b border-gray-200 dark:border-[#2A2E36]">
+                    <th className="px-6 py-3.5 text-xs font-bold text-gray-500 dark:text-[#9CA3AF] uppercase tracking-wider">Lead Name</th>
+                    <th className="px-6 py-3.5 text-xs font-bold text-gray-500 dark:text-[#9CA3AF] uppercase tracking-wider">Company</th>
+                    <th className="px-6 py-3.5 text-xs font-bold text-gray-500 dark:text-[#9CA3AF] uppercase tracking-wider">Deal Value</th>
+                    <th className="px-6 py-3.5 text-xs font-bold text-gray-500 dark:text-[#9CA3AF] uppercase tracking-wider">Pipeline Stage</th>
+                    <th className="px-6 py-3.5 text-xs font-bold text-gray-500 dark:text-[#9CA3AF] uppercase tracking-wider">Created At</th>
+                    <th className="px-6 py-3.5 text-xs font-bold text-gray-500 dark:text-[#9CA3AF] uppercase tracking-wider text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E5E7EB]">
+                <tbody className="divide-y divide-gray-200 dark:divide-[#2A2E36]">
                   {filteredTableLeads.map((lead) => (
-                    <tr key={lead.id} className="hover:bg-gray-100/10 transition-colors bg-white">
+                    <tr key={lead.id} className="hover:bg-gray-50 dark:hover:bg-[#1D1F25] transition-colors bg-white dark:bg-[#17181D]">
                       <td className="px-6 py-4">
-                        <span className="text-[14px] font-semibold text-gray-900">{lead.name}</span>
+                        <span className="text-[14px] font-semibold text-gray-900 dark:text-[#F8FAFC]">{lead.name}</span>
                       </td>
-                      <td className="px-6 py-4 text-[13px] text-gray-500">{lead.company || "—"}</td>
-                      <td className="px-6 py-4 text-[13px] font-bold text-gray-900">
+                      <td className="px-6 py-4 text-[13px] text-gray-500 dark:text-[#9CA3AF]">{lead.company || "—"}</td>
+                      <td className="px-6 py-4 text-[13px] font-bold text-gray-900 dark:text-[#F8FAFC]">
                         {lead.value ? formatCurrency(Number(String(lead.value).replace(/[^0-9.-]+/g, "")), workspace.default_currency) : "—"}
                       </td>
                       <td className="px-6 py-4">
                         <span className={cn(
                           "px-2.5 py-1 rounded-[4px] text-[10px] font-bold uppercase tracking-wider",
-                          lead.status === "new" && "bg-[#0f766e]/10 text-[#0f766e]",
-                          lead.status === "contacted" && "bg-primary/10 text-primary",
-                          lead.status === "qualified" && "bg-[#c2410c]/10 text-[#c2410c]",
-                          lead.status === "proposal" && "bg-[#6366f1]/10 text-[#6366f1]",
-                          lead.status === "won" && "bg-[#15803d]/10 text-[#15803d]",
-                          lead.status === "lost" && "bg-[#b91c1c]/10 text-[#b91c1c]"
+                          lead.status === "new" && "bg-teal-100 dark:bg-[#06B6D4]/10 text-teal-700 dark:text-[#06B6D4] border border-teal-200 dark:border-[#06B6D4]/20",
+                          lead.status === "contacted" && "bg-primary/10 dark:bg-[#3B82F6]/10 text-primary dark:text-[#3B82F6] border border-primary/20 dark:border-[#3B82F6]/20",
+                          lead.status === "qualified" && "bg-orange-100 dark:bg-[#F59E0B]/10 text-orange-700 dark:text-[#F59E0B] border border-orange-200 dark:border-[#F59E0B]/20",
+                          lead.status === "proposal" && "bg-indigo-100 dark:bg-[#8B5CF6]/10 text-indigo-700 dark:text-[#8B5CF6] border border-indigo-200 dark:border-[#8B5CF6]/20",
+                          lead.status === "won" && "bg-green-100 dark:bg-[#22C55E]/10 text-green-700 dark:text-[#22C55E] border border-green-200 dark:border-[#22C55E]/20",
+                          lead.status === "lost" && "bg-red-100 dark:bg-[#EF4444]/10 text-red-700 dark:text-[#EF4444] border border-red-200 dark:border-[#EF4444]/20"
                         )}>
                           {lead.status === "new" ? "New Lead" : lead.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-[12px] text-gray-500">
+                      <td className="px-6 py-4 text-[12px] text-gray-500 dark:text-[#9CA3AF]">
                         {new Date(lead.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                       </td>
                       <td className="px-6 py-4 text-right space-x-1">
                         <button 
                           onClick={() => handleOpenEdit(lead.id)}
-                          className="p-1.5 hover:bg-gray-100 rounded-md text-gray-500 hover:text-gray-900 transition-colors"
+                          className="p-1.5 hover:bg-gray-100 dark:hover:bg-[#1D1F25] rounded-md text-gray-400 dark:text-[#9CA3AF] hover:text-gray-900 dark:hover:text-[#F8FAFC] transition-colors"
                         >
                           <Edit className="h-4 w-4" />
                         </button>
                         <button 
                           onClick={() => handleDeleteLead(lead.id)}
-                          className="p-1.5 hover:bg-red-50 rounded-md text-gray-500 hover:text-red-600 transition-colors"
+                          className="p-1.5 hover:bg-red-50 dark:hover:bg-[#EF4444]/10 rounded-md text-gray-400 dark:text-[#9CA3AF] hover:text-red-600 dark:hover:text-[#EF4444] transition-colors"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -453,7 +453,7 @@ export default function LeadsKanbanPage() {
                   ))}
                   {filteredTableLeads.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="text-center py-8 text-gray-500 text-sm">
+                      <td colSpan={6} className="text-center py-8 text-gray-500 dark:text-[#9CA3AF] text-sm bg-white dark:bg-[#17181D]">
                         No leads found matching your search.
                       </td>
                     </tr>
@@ -466,29 +466,29 @@ export default function LeadsKanbanPage() {
 
         {view === "analytics" && (
           <div className="p-6">
-            <div className="bg-white border border-border rounded-xl shadow-sm flex flex-col md:flex-row">
+            <div className="bg-white dark:bg-[#17181D] border border-gray-200 dark:border-[#2A2E36] rounded-xl shadow-sm dark:shadow-none flex flex-col md:flex-row">
               {/* Stage Distribution */}
-              <div className="p-6 flex-1 border-b md:border-b-0 md:border-r border-[#E5E7EB]">
-                <h3 className="text-[15px] font-bold text-gray-900 mb-4">Pipeline Stage Distribution</h3>
+              <div className="p-6 flex-1 border-b md:border-b-0 md:border-r border-gray-200 dark:border-[#2A2E36]">
+                <h3 className="text-[15px] font-bold text-gray-900 dark:text-[#F8FAFC] mb-4">Pipeline Stage Distribution</h3>
                 <div className="space-y-4">
                   {[
-                    { key: "new", label: "New Lead", color: "bg-[#0f766e]" },
-                    { key: "contacted", label: "Contacted", color: "bg-primary" },
-                    { key: "qualified", label: "Qualified", color: "bg-[#c2410c]" },
-                    { key: "proposal", label: "Proposal Sent", color: "bg-[#6366f1]" },
-                    { key: "won", label: "Won", color: "bg-[#15803d]" },
-                    { key: "lost", label: "Lost", color: "bg-[#b91c1c]" }
+                    { key: "new", label: "New Lead", color: "bg-teal-500", track: "bg-teal-100 dark:bg-teal-900/40" },
+                    { key: "contacted", label: "Contacted", color: "bg-primary dark:bg-[#3B82F6]", track: "bg-primary/10 dark:bg-primary/20" },
+                    { key: "qualified", label: "Qualified", color: "bg-orange-500 dark:bg-[#F59E0B]", track: "bg-orange-100 dark:bg-orange-900/40" },
+                    { key: "proposal", label: "Proposal Sent", color: "bg-indigo-500 dark:bg-[#8B5CF6]", track: "bg-indigo-100 dark:bg-indigo-900/40" },
+                    { key: "won", label: "Won", color: "bg-emerald-500 dark:bg-[#22C55E]", track: "bg-emerald-100 dark:bg-emerald-900/40" },
+                    { key: "lost", label: "Lost", color: "bg-red-500 dark:bg-[#EF4444]", track: "bg-red-100 dark:bg-red-900/40" }
                   ].map(stage => {
                     const count = leads.filter(l => l.status === stage.key).length
                     const percentage = leads.length ? (count / leads.length) * 100 : 0
                     return (
-                      <div key={stage.key} className="space-y-1">
+                      <div key={stage.key} className="space-y-1.5">
                         <div className="flex items-center justify-between text-xs font-semibold">
-                          <span className="text-gray-900">{stage.label}</span>
-                          <span className="text-gray-500">{count} ({percentage.toFixed(0)}%)</span>
+                          <span className="text-gray-800 dark:text-[#F8FAFC]">{stage.label}</span>
+                          <span className="text-gray-500 dark:text-[#9CA3AF]">{count} ({percentage.toFixed(0)}%)</span>
                         </div>
-                        <div className="w-full bg-gray-100 rounded-sm h-1.5">
-                          <div className={cn("h-1.5 rounded-sm", stage.color)} style={{ width: `${percentage}%` }} />
+                        <div className={cn("w-full rounded-sm h-1.5", stage.track)}>
+                          <div className={cn("h-1.5 rounded-sm transition-all duration-500", stage.color)} style={{ width: `${percentage}%` }} />
                         </div>
                       </div>
                     )
@@ -499,30 +499,30 @@ export default function LeadsKanbanPage() {
               {/* Financial Value Summary */}
               <div className="p-6 flex-1 flex flex-col justify-between">
                 <div>
-                  <h3 className="text-[15px] font-bold text-gray-900 mb-4">Deal Value Breakdown</h3>
-                  <div className="space-y-4">
+                  <h3 className="text-[15px] font-bold text-gray-900 dark:text-[#F8FAFC] mb-4">Deal Value Breakdown</h3>
+                  <div className="space-y-1">
                     {[
                       { label: "Pipeline Value (Active)", value: leads.filter(l => l.status !== "won" && l.status !== "lost").reduce((sum, l) => sum + (Number(l.value) || 0), 0) },
                       { label: "Won Deals Value", value: leads.filter(l => l.status === "won").reduce((sum, l) => sum + (Number(l.value) || 0), 0) },
                       { label: "Lost Deals Value", value: leads.filter(l => l.status === "lost").reduce((sum, l) => sum + (Number(l.value) || 0), 0) }
                     ].map((stat, i) => (
-                      <div key={i} className="flex justify-between py-2.5 border-b border-[#E5E7EB] last:border-0">
-                        <span className="text-sm text-gray-500 font-medium">{stat.label}</span>
-                        <span className="text-sm font-bold text-gray-900">{formatCurrency(stat.value, workspace.default_currency)}</span>
+                      <div key={i} className="flex justify-between py-3 border-b border-gray-100 dark:border-[#2A2E36] last:border-0">
+                        <span className="text-sm text-gray-500 dark:text-[#9CA3AF] font-medium">{stat.label}</span>
+                        <span className="text-sm font-bold text-gray-900 dark:text-[#F8FAFC]">{formatCurrency(stat.value, workspace.default_currency)}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 mt-6">
-                  <p className="text-xs text-gray-500 font-medium mb-1">Win/Loss Ratio</p>
+                <div className="bg-gray-50 dark:bg-[#1D1F25] border border-gray-200 dark:border-[#2A2E36] rounded-lg p-4 mt-6">
+                  <p className="text-xs text-gray-500 dark:text-[#9CA3AF] font-medium mb-1">Win/Loss Ratio</p>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-extrabold text-[#10B981]">
+                    <span className="text-2xl font-extrabold text-emerald-600 dark:text-[#22C55E]">
                       {leads.filter(l => l.status === "won" || l.status === "lost").length 
                         ? ((wonLeads / leads.filter(l => l.status === "won" || l.status === "lost").length) * 100).toFixed(0) + "%" 
                         : "0%"}
                     </span>
-                    <span className="text-xs text-gray-500">win rate for closed deals</span>
+                    <span className="text-xs text-gray-500 dark:text-[#9CA3AF]">win rate for closed deals</span>
                   </div>
                 </div>
               </div>
@@ -534,10 +534,10 @@ export default function LeadsKanbanPage() {
       {/* Add Lead Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white w-[400px] rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between p-4 border-b">
-              <h2 className="text-lg font-bold">Add New Lead</h2>
-              <button onClick={() => setIsAddModalOpen(false)} className="p-1 hover:bg-gray-100 rounded-full"><X className="h-5 w-5 text-gray-500" /></button>
+          <div className="bg-white dark:bg-[#1D1F25] w-[400px] rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-4 border-b dark:border-[#2A2E36]">
+              <h2 className="text-lg font-bold dark:text-[#F8FAFC]">Add New Lead</h2>
+              <button onClick={() => setIsAddModalOpen(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-[#2A2E36] rounded-full transition-colors"><X className="h-5 w-5 text-gray-500 dark:text-[#9CA3AF]" /></button>
             </div>
             <form onSubmit={handleSaveAdd} className="p-4 space-y-4 max-h-[80vh] overflow-y-auto">
               <div>
@@ -604,8 +604,8 @@ export default function LeadsKanbanPage() {
               </div>
 
               <div className="pt-2 flex justify-end gap-2">
-                <button type="button" onClick={() => setIsAddModalOpen(false)} className="px-4 py-2 border rounded-lg text-sm font-medium hover:bg-gray-50">Cancel</button>
-                <button type="submit" disabled={addLeadMutation.isPending} className="px-4 py-2 bg-foreground text-white rounded-lg text-sm font-medium hover:bg-foreground/90 transition-colors">
+                <button type="button" onClick={() => setIsAddModalOpen(false)} className="px-4 py-2 border dark:border-[#2A2E36] rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-[#2A2E36] dark:text-[#F8FAFC] transition-colors">Cancel</button>
+                <button type="submit" disabled={addLeadMutation.isPending} className="px-4 py-2 bg-primary dark:bg-[#22C55E] text-white rounded-lg text-sm font-medium hover:bg-primary/90 dark:hover:bg-[#16A34A] transition-colors">
                   {addLeadMutation.isPending ? "Saving..." : "Save Lead"}
                 </button>
               </div>
@@ -617,10 +617,10 @@ export default function LeadsKanbanPage() {
       {/* Edit Lead Modal */}
       {isEditModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white w-[400px] rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between p-4 border-b">
-              <h2 className="text-lg font-bold">Edit Lead</h2>
-              <button onClick={() => setIsEditModalOpen(false)} className="p-1 hover:bg-gray-100 rounded-full"><X className="h-5 w-5 text-gray-500" /></button>
+          <div className="bg-white dark:bg-[#1D1F25] w-[400px] rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-4 border-b dark:border-[#2A2E36]">
+              <h2 className="text-lg font-bold dark:text-[#F8FAFC]">Edit Lead</h2>
+              <button onClick={() => setIsEditModalOpen(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-[#2A2E36] rounded-full transition-colors"><X className="h-5 w-5 text-gray-500 dark:text-[#9CA3AF]" /></button>
             </div>
             <form onSubmit={handleSaveEdit} className="p-4 space-y-4 max-h-[80vh] overflow-y-auto">
               <div>
@@ -687,8 +687,8 @@ export default function LeadsKanbanPage() {
               </div>
 
               <div className="pt-2 flex justify-end gap-2">
-                <button type="button" onClick={() => setIsEditModalOpen(false)} className="px-4 py-2 border rounded-lg text-sm font-medium hover:bg-gray-50">Cancel</button>
-                <button type="submit" disabled={editLeadMutation.isPending} className="px-4 py-2 bg-foreground text-white rounded-lg text-sm font-medium hover:bg-foreground/90">
+                <button type="button" onClick={() => setIsEditModalOpen(false)} className="px-4 py-2 border dark:border-[#2A2E36] rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-[#2A2E36] dark:text-[#F8FAFC] transition-colors">Cancel</button>
+                <button type="submit" disabled={editLeadMutation.isPending} className="px-4 py-2 bg-primary dark:bg-[#22C55E] text-white rounded-lg text-sm font-medium hover:bg-primary/90 dark:hover:bg-[#16A34A] transition-colors">
                   {editLeadMutation.isPending ? "Saving..." : "Update Lead"}
                 </button>
               </div>
@@ -700,10 +700,10 @@ export default function LeadsKanbanPage() {
       {/* Import Leads Modal */}
       {isImportModalOpen && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-          <div className="bg-white w-[500px] rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between p-4 border-b">
-              <h2 className="text-lg font-bold">Import Leads</h2>
-              <button onClick={() => setIsImportModalOpen(false)} className="p-1 hover:bg-gray-100 rounded-full"><X className="h-5 w-5 text-gray-500" /></button>
+          <div className="bg-white dark:bg-[#1D1F25] w-[500px] rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-4 border-b dark:border-[#2A2E36]">
+              <h2 className="text-lg font-bold dark:text-[#F8FAFC]">Import Leads</h2>
+              <button onClick={() => setIsImportModalOpen(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-[#2A2E36] rounded-full transition-colors"><X className="h-5 w-5 text-gray-500 dark:text-[#9CA3AF]" /></button>
             </div>
             <div className="p-4 space-y-4">
               <p className="text-xs text-gray-500">
@@ -745,12 +745,12 @@ export default function LeadsKanbanPage() {
               </div>
 
               <div className="pt-2 flex justify-end gap-2">
-                <button type="button" onClick={() => setIsImportModalOpen(false)} className="px-4 py-2 border rounded-lg text-sm font-medium hover:bg-gray-50">Cancel</button>
+                <button type="button" onClick={() => setIsImportModalOpen(false)} className="px-4 py-2 border dark:border-[#2A2E36] rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-[#2A2E36] dark:text-[#F8FAFC] transition-colors">Cancel</button>
                 <button 
                   type="button" 
                   onClick={handlePasteImport}
                   disabled={importLeadsMutation.isPending || !pasteData.trim()}
-                  className="px-4 py-2 bg-foreground text-white rounded-lg text-sm font-medium hover:bg-foreground/90 disabled:opacity-50"
+                  className="px-4 py-2 bg-primary dark:bg-[#22C55E] text-white rounded-lg text-sm font-medium hover:bg-primary/90 dark:hover:bg-[#16A34A] disabled:opacity-50 transition-colors"
                 >
                   {importLeadsMutation.isPending ? "Importing..." : "Import Pasted"}
                 </button>
