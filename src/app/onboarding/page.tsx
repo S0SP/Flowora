@@ -184,7 +184,7 @@ export default function OnboardingPage() {
         <motion.div
           className="h-full bg-primary"
           initial={{ width: 0 }}
-          animate={{ width: \`\${progress}%\` }}
+          animate={{ width: `${progress}%` }}
           transition={{ duration: 0.4 }}
         />
       </div>
@@ -198,16 +198,16 @@ export default function OnboardingPage() {
             const done = step > s.id
             const active = step === s.id
             return (
-              <div key={s.id} className={\`flex items-start gap-3 p-3 rounded-xl transition-all \${active ? "bg-white/10" : ""}\`}>
-                <div className={\`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all
-                  \${done ? "bg-primary" : active ? "bg-primary text-primary-foreground" : "bg-white/10"}\`}>
+              <div key={s.id} className={`flex items-start gap-3 p-3 rounded-xl transition-all ${active ? "bg-white/10" : ""}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all
+                  ${done ? "bg-primary" : active ? "bg-primary text-primary-foreground" : "bg-white/10"}`}>
                   {done
                     ? <Check className="w-4 h-4 text-white" />
-                    : <Icon className={\`w-4 h-4 \${active ? "text-primary-foreground" : "text-white/50"}\`} />
+                    : <Icon className={`w-4 h-4 ${active ? "text-primary-foreground" : "text-white/50"}`} />
                   }
                 </div>
                 <div>
-                  <p className={\`text-sm font-semibold \${active ? "text-white" : done ? "text-white/80" : "text-white/50"}\`}>{s.label}</p>
+                  <p className={`text-sm font-semibold ${active ? "text-white" : done ? "text-white/80" : "text-white/50"}`}>{s.label}</p>
                   <p className="text-xs text-white/55 mt-0.5">{s.description}</p>
                 </div>
               </div>
@@ -254,7 +254,7 @@ export default function OnboardingPage() {
                           className="w-full flex items-center justify-between px-4 py-2.5 border border-border rounded-xl text-sm bg-card hover:border-primary transition-colors"
                         >
                           <span className={industry ? "text-foreground" : "text-muted-foreground"}>{industry || "Select your industry"}</span>
-                          <ChevronDown className={\`w-4 h-4 text-muted-foreground transition-transform \${industryOpen ? "rotate-180" : ""}\`} />
+                          <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${industryOpen ? "rotate-180" : ""}`} />
                         </button>
                         {industryOpen && (
                           <div className="absolute z-10 w-full mt-1 bg-card border border-border rounded-xl shadow-lg max-h-52 overflow-y-auto">
@@ -263,7 +263,7 @@ export default function OnboardingPage() {
                                 key={ind}
                                 type="button"
                                 onClick={() => { setIndustry(ind); setIndustryOpen(false) }}
-                                className={\`w-full text-left px-4 py-2.5 text-sm hover:bg-muted transition-colors \${industry === ind ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground"}\`}
+                                className={`w-full text-left px-4 py-2.5 text-sm hover:bg-muted transition-colors ${industry === ind ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground"}`}
                               >
                                 {ind}
                               </button>
@@ -351,11 +351,11 @@ export default function OnboardingPage() {
                         <button
                           key={opt.id}
                           onClick={() => setImportMethod(opt.id)}
-                          className={\`flex items-center gap-4 p-4 border-2 rounded-xl text-left transition-all
-                            \${importMethod === opt.id ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/50"}\`}
+                          className={`flex items-center gap-4 p-4 border-2 rounded-xl text-left transition-all
+                            ${importMethod === opt.id ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/50"}`}
                         >
-                          <div className={\`w-10 h-10 rounded-lg flex items-center justify-center
-                            \${importMethod === opt.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}\`}>
+                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center
+                            ${importMethod === opt.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
                             <opt.icon className="w-5 h-5" />
                           </div>
                           <div>
@@ -394,8 +394,8 @@ export default function OnboardingPage() {
                         <button
                           key={t.id}
                           onClick={() => setSelectedTemplate(t.id)}
-                          className={\`flex items-start gap-4 p-4 border-2 rounded-xl text-left transition-all
-                            \${selectedTemplate === t.id ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/50"}\`}
+                          className={`flex items-start gap-4 p-4 border-2 rounded-xl text-left transition-all
+                            ${selectedTemplate === t.id ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/50"}`}
                         >
                           <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: t.color + "1A" }}>
                             <t.icon className="w-5 h-5" style={{ color: t.color }} />
