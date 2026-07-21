@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/server";
 import { sendWhatsAppTemplate } from "./meta";
+import { buildWhatsAppTemplateComponents } from "@/lib/whatsapp-variables";
 import { Campaign, ParsedContact } from "@/types";
 import { syncActiveSheets, sendPendingLeads } from "./lead-capture";
 
@@ -73,10 +74,19 @@ export async function processScheduledCampaigns() {
         const { data: upsertedContacts, error: upsertError } = await supabase
           .from("contacts")
           .upsert(
-            contacts.map((c) => ({ phone: c.phone, name: c.name ?? null, email: c.email ?? null })),
-            { onConflict: "phone", ignoreDuplicates: false }
+            contacts.map((c) => {
+              const { phone, name, email, ...customFields } = c;
+              return {
+                workspace_id: campaign.workspace_id,
+                phone: c.phone,
+                name: c.name ?? null,
+                email: c.email ?? null,
+                custom_fields: Object.keys(customFields).length > 0 ? customFields : null
+              };
+            }),
+            { onConflict: "workspace_id, phone", ignoreDuplicates: false }
           )
-          .select("id, phone");
+          .select("id, phone, custom_fields");
 
         if (upsertError || !upsertedContacts || upsertedContacts.length === 0) {
           throw new Error(upsertError?.message ?? "Failed to upsert campaign contacts");
@@ -85,13 +95,15 @@ export async function processScheduledCampaigns() {
         let sentCount = 0;
         let failedCount = 0;
 
-        // 2. Loop and send messages
         for (const contact of upsertedContacts) {
+          const components = buildWhatsAppTemplateComponents(contact.custom_fields);
+
           const { ok, wamid, error } = await sendWhatsAppTemplate(
             campaign.workspace_id,
             contact.phone,
             campaign.template_name,
-            campaign.template_language
+            campaign.template_language,
+            components
           );
 
           // Log in campaign logs

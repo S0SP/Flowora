@@ -1048,14 +1048,10 @@ export function LeadCaptureClient() {
                       <span className="text-xs font-semibold text-gray-900">Send Branded SMTP Email</span>
                       <span className="text-[10px] text-gray-500">Auto send customized emails to leads</span>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        {...register("email_enabled")}
-                        className="sr-only peer"
-                      />
-                      <div className="w-9 h-5 bg-gray-200 dark:bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
-                    </label>
+                    <Toggle
+                      checked={watch("email_enabled")}
+                      onChange={(val) => setValue("email_enabled", val, { shouldDirty: true })}
+                    />
                   </div>
 
                   {emailEnabled && (
@@ -1199,14 +1195,10 @@ export function LeadCaptureClient() {
                       <span className="text-xs font-semibold text-gray-900">Trigger AI Voice Call</span>
                       <span className="text-[10px] text-gray-500">Automatically call the lead with AI</span>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        {...register("voice_enabled")}
-                        className="sr-only peer"
-                      />
-                      <div className="w-9 h-5 bg-gray-200 dark:bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
-                    </label>
+                    <Toggle
+                      checked={watch("voice_enabled")}
+                      onChange={(val) => setValue("voice_enabled", val, { shouldDirty: true })}
+                    />
                   </div>
 
                   {voiceEnabled && (

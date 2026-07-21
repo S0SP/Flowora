@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { sendWhatsAppTemplate } from "@/services/meta";
+import { buildWhatsAppTemplateComponents } from "@/lib/whatsapp-variables";
 import { SendCampaignPayload } from "@/types";
 import { getTenant } from "@/lib/tenant";
 
@@ -50,10 +51,19 @@ export async function POST(req: NextRequest) {
     const { data: upsertedContacts } = await supabase
       .from("contacts")
       .upsert(
-        contacts.map((c) => ({ workspace_id: workspaceId, phone: c.phone, name: c.name ?? null, email: c.email ?? null })),
+        contacts.map((c) => {
+          const { phone, name, email, ...customFields } = c;
+          return {
+            workspace_id: workspaceId,
+            phone: c.phone,
+            name: c.name ?? null,
+            email: c.email ?? null,
+            custom_fields: Object.keys(customFields).length > 0 ? customFields : null
+          };
+        }),
         { onConflict: "workspace_id, phone", ignoreDuplicates: false }
       )
-      .select("id, phone");
+      .select("id, phone, custom_fields");
 
     if (!upsertedContacts?.length) {
       throw new Error("Failed to upsert contacts");
@@ -63,11 +73,14 @@ export async function POST(req: NextRequest) {
     let failedCount = 0;
 
     for (const contact of upsertedContacts) {
+      const components = buildWhatsAppTemplateComponents(contact.custom_fields);
+
       const { ok, wamid, error } = await sendWhatsAppTemplate(
         workspaceId,
         contact.phone,
         template_name,
-        template_language
+        template_language,
+        components
       );
 
       await supabase.from("campaign_logs").insert({
