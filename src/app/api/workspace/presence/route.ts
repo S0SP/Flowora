@@ -12,7 +12,7 @@ export async function POST(req: Request) {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const body = await req.json().catch(() => ({}));
-    const status = body.status === "away" ? "away" : "online";
+    const status = ["away", "offline"].includes(body.status) ? body.status : "online";
 
     // Use the RPC which handles workspace_id resolution internally
     const { error } = await supabase.rpc("touch_presence", { p_status: status });

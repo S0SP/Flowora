@@ -196,6 +196,7 @@ export function usePresence(enabled = true): UsePresenceResult {
     };
   }).sort((a, b) => {
     const score = (r: PresenceRowEnriched) => {
+      if (r.status === "offline") return 2; // explicit offline
       const diff = now - new Date(r.last_seen_at).getTime();
       if (diff < 90_000) return 0; // online
       if (diff < 300_000) return 1; // away

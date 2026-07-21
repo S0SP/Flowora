@@ -80,6 +80,17 @@ export function PresenceHeartbeat() {
     document.addEventListener("visibilitychange", onReturn);
     window.addEventListener("focus", onReturn);
 
+    // Reliable "offline" event when the user closes the tab or navigates away
+    const onUnload = () => {
+      fetch("/api/workspace/presence", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "offline" }),
+        keepalive: true,
+      }).catch(() => {});
+    };
+    window.addEventListener("pagehide", onUnload);
+
     void beat();
     const interval = setInterval(() => void beat(), HEARTBEAT_MS);
 
@@ -91,6 +102,7 @@ export function PresenceHeartbeat() {
       );
       document.removeEventListener("visibilitychange", onReturn);
       window.removeEventListener("focus", onReturn);
+      window.removeEventListener("pagehide", onUnload);
     };
   }, [profile?.id]);
 

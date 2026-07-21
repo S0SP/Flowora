@@ -34,8 +34,9 @@ export default function DashboardPage() {
   const { rows, now } = usePresence()
   const { workspace, member } = useWorkspace()
 
-  // Derive per-member status from last_seen_at
+  // Derive per-member status from last_seen_at and explicit status
   const onlineRows = rows.filter(r => {
+    if (r.status === "offline") return false;
     const diff = now - new Date(r.last_seen_at).getTime()
     return diff < 90_000
   })
@@ -203,7 +204,12 @@ export default function DashboardPage() {
             <div className="flex-1 overflow-y-auto space-y-0.5 -mx-2 px-2 no-scrollbar">
               {rows.map(r => {
                 const diff = now - new Date(r.last_seen_at).getTime()
-                const status = diff < 90_000 ? "online" as const : diff < 300_000 ? "away" as const : "offline" as const
+                const isStale = diff > 90_000;
+                const status = r.status === "offline" || isStale 
+                  ? "offline" 
+                  : r.status === "away" || diff > 300_000 
+                    ? "away" 
+                    : "online";
                 const initials = (r.full_name || r.email || "?").charAt(0).toUpperCase()
                 const hue = (r.user_id || "").split("").reduce((a, c) => a + c.charCodeAt(0), 0) % 360
 
