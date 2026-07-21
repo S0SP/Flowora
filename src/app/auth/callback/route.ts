@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 import { NextRequest, NextResponse } from "next/server"
+import { createAdminClient } from "@/lib/supabase/server"
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
@@ -36,6 +37,17 @@ export async function GET(request: NextRequest) {
 
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
+      // Auto-activate any pending email invites for this user
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const admin = await createAdminClient()
+        await admin
+          .from("workspace_members")
+          .update({ status: "active", updated_at: new Date().toISOString() })
+          .eq("user_id", user.id)
+          .eq("status", "invited")
+      }
+
       return response
     } else {
       console.error("Exchange code error:", error)
