@@ -395,31 +395,26 @@ async function sendWhatsAppReply(
     return
   }
 
-  const metaRes = await fetch(
-    `https://graph.facebook.com/v18.0/${phoneNumId}/messages`,
-    {
-      method: "POST",
-      headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        messaging_product: "whatsapp",
-        recipient_type: "individual",
-        to: opts.toPhone,
-        type: "text",
-        text: { body: reply, preview_url: false },
-      }),
-    }
-  )
-
-  const metaData = await metaRes.json()
-  if (!metaRes.ok) {
-    console.error("[WhatsApp Reply] Meta API error:", metaData)
-    return
+  let waMessageId: string | null = null;
+  const { sendTextMessage } = await import("@/lib/whatsapp/meta-api");
+  
+  try {
+    const result = await sendTextMessage({
+      phoneNumberId: phoneNumId,
+      accessToken: token,
+      to: opts.toPhone,
+      text: reply,
+    });
+    waMessageId = result.messageId;
+  } catch (err: any) {
+    console.error("[WhatsApp Reply] Meta API error:", err.message);
+    return;
   }
 
   await admin.from("messages").insert({
     workspace_id: opts.workspaceId,
     thread_id: opts.threadId,
-    wa_message_id: metaData.messages?.[0]?.id ?? null,
+    wa_message_id: waMessageId,
     content: reply,
     type: "text",
     sender_type: "bot",

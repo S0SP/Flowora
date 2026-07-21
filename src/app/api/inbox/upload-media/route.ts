@@ -48,28 +48,23 @@ export async function POST(req: NextRequest) {
     }
 
     // Upload to Meta Media API
-    const uploadForm = new FormData()
-    uploadForm.append("file", file, file.name)
-    uploadForm.append("type", mimeType)
-    uploadForm.append("messaging_product", "whatsapp")
+    const { uploadMedia } = await import("@/lib/whatsapp/meta-api");
+    let uploadData: { id: string };
 
-    const uploadRes = await fetch(
-      `https://graph.facebook.com/v18.0/${phoneNumId}/media`,
-      {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: uploadForm,
-      }
-    )
-
-    const uploadData = await uploadRes.json()
-
-    if (!uploadRes.ok || !uploadData.id) {
-      console.error("[upload-media] Meta upload failed:", uploadData)
+    try {
+      uploadData = await uploadMedia({
+        phoneNumberId: phoneNumId,
+        accessToken: token,
+        file: file,
+        filename: file.name,
+        mimeType: mimeType,
+      });
+    } catch (err: any) {
+      console.error("[upload-media] Meta upload failed:", err.message);
       return NextResponse.json(
-        { error: uploadData?.error?.message ?? "Upload failed" },
+        { error: err.message ?? "Upload failed" },
         { status: 500 }
-      )
+      );
     }
 
     return NextResponse.json({

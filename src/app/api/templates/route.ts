@@ -37,20 +37,21 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    const url = `https://graph.facebook.com/v19.0/${wabaId}/message_templates?limit=100&fields=name,status,language,category,components`
-    const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${token}` },
-      next: { revalidate: 300 }, // cache 5 min
-    })
-
-    if (!res.ok) {
-      const err = await res.json()
-      console.error("[templates GET] Meta API error:", err)
-      return NextResponse.json({ error: "Meta API error", detail: err }, { status: 502 })
+    const { getTemplates } = await import("@/lib/whatsapp/meta-api")
+    let templatesData: any[] = []
+    
+    try {
+      templatesData = await getTemplates({
+        wabaId,
+        accessToken: token,
+        limit: 100,
+      })
+    } catch (err: any) {
+      console.error("[templates GET] Meta API error:", err.message)
+      return NextResponse.json({ error: "Meta API error", detail: err.message }, { status: 502 })
     }
 
-    const raw = await res.json()
-    const templates = (raw.data ?? [])
+    const templates = templatesData
       .filter((t: any) => t.status === "APPROVED")
       .map((t: any) => {
         // Parse button components for branch auto-generation

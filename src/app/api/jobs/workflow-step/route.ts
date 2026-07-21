@@ -266,16 +266,24 @@ async function executeNode(node: any, triggerData: any, workspaceId: string, adm
       const template = data.templateName ?? data.template
       const msgText  = sub(data.message ?? data.body ?? "")
 
-      const body = template
-        ? { messaging_product: "whatsapp", to: phone, type: "template", template: { name: template, language: { code: data.templateLanguage ?? "en" } } }
-        : { messaging_product: "whatsapp", to: phone, type: "text", text: { body: msgText } }
+      const { sendTemplateMessage, sendTextMessage } = await import("@/lib/whatsapp/meta-api")
 
-      const res = await fetch(`https://graph.facebook.com/v18.0/${phoneNumId}/messages`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      })
-      if (!res.ok) throw new Error(`WhatsApp send failed: ${res.status}`)
+      if (template) {
+        await sendTemplateMessage({
+          phoneNumberId: phoneNumId,
+          accessToken: token,
+          to: phone,
+          templateName: template,
+          language: data.templateLanguage ?? "en",
+        })
+      } else {
+        await sendTextMessage({
+          phoneNumberId: phoneNumId,
+          accessToken: token,
+          to: phone,
+          text: msgText,
+        })
+      }
       return { sent: true, phone }
     }
 

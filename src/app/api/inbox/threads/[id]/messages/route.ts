@@ -88,50 +88,50 @@ export async function POST(
 
       if (phoneNumId && token) {
         const to = contactPhone.replace(/\D/g, "")
-        let waPayload: Record<string, any> = {
-          messaging_product: "whatsapp",
-          recipient_type: "individual",
-          to,
-        }
+        const { sendTextMessage, sendMediaMessage, sendTemplateMessage } = await import("@/lib/whatsapp/meta-api")
 
-        if (type === "text") {
-          waPayload.type = "text"
-          waPayload.text = { body: content.trim(), preview_url: false }
-        } else if (type === "image" && mediaId) {
-          waPayload.type = "image"
-          waPayload.image = { id: mediaId, ...(content.trim() ? { caption: content.trim() } : {}) }
-        } else if (type === "document" && mediaId) {
-          waPayload.type = "document"
-          waPayload.document = { id: mediaId, filename: fileName ?? "file", ...(content.trim() ? { caption: content.trim() } : {}) }
-        } else if (type === "audio" && mediaId) {
-          waPayload.type = "audio"
-          waPayload.audio = { id: mediaId }
-        } else if (type === "video" && mediaId) {
-          waPayload.type = "video"
-          waPayload.video = { id: mediaId, ...(content.trim() ? { caption: content.trim() } : {}) }
-        } else if (type === "template" && templateName) {
-          waPayload.type = "template"
-          waPayload.template = {
-            name: templateName,
-            language: { code: templateLanguage ?? "en" },
-            ...(components ? { components } : {}),
+        try {
+          if (type === "text") {
+            const result = await sendTextMessage({
+              phoneNumberId: phoneNumId,
+              accessToken: token,
+              to,
+              text: content.trim(),
+            })
+            waMessageId = result.messageId
+          } else if (type === "template" && templateName) {
+            const result = await sendTemplateMessage({
+              phoneNumberId: phoneNumId,
+              accessToken: token,
+              to,
+              templateName: templateName,
+              language: templateLanguage ?? "en",
+              params: components?.[0]?.parameters?.map((p: any) => p.text) || undefined,
+            })
+            waMessageId = result.messageId
+          } else if (["image", "document", "audio", "video"].includes(type) && mediaId) {
+            const result = await sendMediaMessage({
+              phoneNumberId: phoneNumId,
+              accessToken: token,
+              to,
+              kind: type as any,
+              id: mediaId,
+              caption: content.trim() ? content.trim() : undefined,
+              filename: type === "document" ? (fileName ?? "file") : undefined,
+            })
+            waMessageId = result.messageId
+          } else {
+            // fallback: text
+            const result = await sendTextMessage({
+              phoneNumberId: phoneNumId,
+              accessToken: token,
+              to,
+              text: content.trim(),
+            })
+            waMessageId = result.messageId
           }
-        } else {
-          // fallback: text
-          waPayload.type = "text"
-          waPayload.text = { body: content.trim(), preview_url: false }
-        }
-
-        const metaRes = await fetch(`https://graph.facebook.com/v18.0/${phoneNumId}/messages`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-          body: JSON.stringify(waPayload),
-        })
-        const metaData = await metaRes.json()
-        if (metaRes.ok) {
-          waMessageId = metaData.messages?.[0]?.id ?? null
-        } else {
-          console.error("[inbox/messages] Meta error:", metaData)
+        } catch (err: any) {
+          console.error("[inbox/messages] Meta error:", err.message)
         }
       }
     }

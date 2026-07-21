@@ -118,32 +118,26 @@ async function sendWhatsAppReminder(
   const templateName = nodeData.reminderTemplate ?? nodeData.template ?? "";
   const phone = lead.phone.replace(/\D/g, "");
 
-  const body = templateName
-    ? {
-        messaging_product: "whatsapp",
-        to: phone,
-        type: "template",
-        template: {
-          name: templateName,
-          language: { code: nodeData.templateLanguage ?? "en" },
-          components: [],
-        },
-      }
-    : {
-        messaging_product: "whatsapp",
-        to: phone,
-        type: "text",
-        text: {
-          body: `Hi ${lead.name ?? "there"}! This is a reminder from us. 📅`,
-        },
-      };
+  const { sendTemplateMessage, sendTextMessage } = await import("@/lib/whatsapp/meta-api");
 
-  await fetch(`https://graph.facebook.com/v18.0/${phoneNumId}/messages`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  try {
+    if (templateName) {
+      await sendTemplateMessage({
+        phoneNumberId: phoneNumId,
+        accessToken: token,
+        to: phone,
+        templateName: templateName,
+        language: nodeData.templateLanguage ?? "en",
+      });
+    } else {
+      await sendTextMessage({
+        phoneNumberId: phoneNumId,
+        accessToken: token,
+        to: phone,
+        text: `Hi ${lead.name ?? "there"}! This is a reminder from us. 📅`,
+      });
+    }
+  } catch (err: any) {
+    console.error("[sendWhatsAppReminder] Meta API error:", err.message);
+  }
 }

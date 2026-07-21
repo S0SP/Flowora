@@ -1,5 +1,6 @@
 "use client"
 
+import { Toggle } from "@/components/ui/toggle";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import DatePicker from "react-datepicker"
@@ -1506,23 +1507,14 @@ export default function InboxPage() {
                       <p className="text-[12px] font-bold text-gray-900">AI Auto-Reply</p>
                     </div>
                     {/* Toggle */}
-                    <button
-                      onClick={() => {
-                        const newActive = !selectedThread.ai_active;
-                        // Optimistic update
-                        setSelectedThread(prev => prev ? { ...prev, ai_active: newActive } : null);
-                        setThreads(prev => prev.map(t => t.id === selectedThread.id ? { ...t, ai_active: newActive } : t));
-                        handleAssign(null, newActive ? "enable_ai" : "disable_ai");
-                      }}
-                      className={cn(
-                        "relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-300 focus:outline-none shadow-inner",
-                        selectedThread.ai_active ? "bg-green-500" : "bg-gray-200 dark:bg-gray-700"
-                      )}>
-                      <span className={cn(
-                        "inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-all duration-300 ease-in-out",
-                        selectedThread.ai_active ? "translate-x-5" : "translate-x-0.5"
-                      )} />
-                    </button>
+                    <Toggle
+                        checked={selectedThread.ai_active}
+                        onChange={(newActive) => {
+                          setSelectedThread(prev => prev ? { ...prev, ai_active: newActive } : null);
+                          setThreads(prev => prev.map(t => t.id === selectedThread.id ? { ...t, ai_active: newActive } : t));
+                          handleAssign(null, newActive ? "enable_ai" : "disable_ai");
+                        }}
+                      />
                   </div>
                   <p className="text-[10px] text-gray-500 mt-2 ml-6">
                     {selectedThread.ai_active ? "AI is handling replies." : "Human agent in control."}

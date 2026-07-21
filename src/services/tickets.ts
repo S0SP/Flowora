@@ -396,20 +396,13 @@ async function _sendWhatsAppViaWorkspace(
   const phoneNumId = credentials.phoneNumberId;
   const token = credentials.accessToken;
 
-  const metaRes = await fetch(`https://graph.facebook.com/v18.0/${phoneNumId}/messages`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      messaging_product: "whatsapp",
-      recipient_type: "individual",
-      to: contact.phone,
-      type: "text",
-      text: { body: message, preview_url: false },
-    }),
+  const { sendTextMessage } = await import("@/lib/whatsapp/meta-api");
+  const result = await sendTextMessage({
+    phoneNumberId: phoneNumId,
+    accessToken: token,
+    to: contact.phone,
+    text: message,
   });
-
-  const metaData = await metaRes.json();
-  if (!metaRes.ok) throw new Error(metaData?.error?.message ?? "Meta API error");
 
   const { data: saved } = await supabase
     .from("messages")
@@ -417,7 +410,7 @@ async function _sendWhatsAppViaWorkspace(
       workspace_id: workspaceId,
       thread_id: threadId,
       ticket_id: ticketId,
-      wa_message_id: metaData.messages?.[0]?.id ?? null,
+      wa_message_id: result.messageId ?? null,
       content: message,
       type: "text",
       sender_type: senderUserId ? "agent" : "system",

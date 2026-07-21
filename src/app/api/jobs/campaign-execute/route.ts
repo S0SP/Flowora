@@ -75,44 +75,21 @@ export async function POST(req: NextRequest) {
             const phone = contact.phone?.replace(/\D/g, "");
             if (!phone || phone.length < 10) return;
 
-            const res = await fetch(
-              `https://graph.facebook.com/v18.0/${phoneNumId}/messages`,
-              {
-                method: "POST",
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  messaging_product: "whatsapp",
-                  recipient_type: "individual",
-                  to: phone,
-                  type: "template",
-                  template: {
-                    name: templateName,
-                    language: { code: templateLanguage ?? "en" },
-                    components: [
-                      {
-                        type: "body",
-                        parameters: [
-                          {
-                            type: "text",
-                            text: contact.full_name ?? "there",
-                          },
-                        ],
-                      },
-                    ],
-                  },
-                }),
-              }
-            );
-
-            if (res.ok) {
+            const { sendTemplateMessage } = await import("@/lib/whatsapp/meta-api");
+            
+            try {
+              await sendTemplateMessage({
+                phoneNumberId: phoneNumId,
+                accessToken: token,
+                to: phone,
+                templateName: templateName,
+                language: templateLanguage ?? "en",
+                params: [contact.full_name ?? "there"],
+              });
               sentCount++;
-            } else {
+            } catch (err: any) {
               failedCount++;
-              const errData = await res.json().catch(() => ({}));
-              console.warn(`[campaign-execute] Send failed for ${phone}:`, errData?.error?.message);
+              console.warn(`[campaign-execute] Send failed for ${phone}:`, err.message);
             }
           } catch {
             failedCount++;

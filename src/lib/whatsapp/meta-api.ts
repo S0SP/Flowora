@@ -180,7 +180,8 @@ export interface SendMediaMessageArgs {
   accessToken: string;
   to: string;
   kind: MediaKind;
-  link: string;
+  link?: string;
+  id?: string;
   caption?: string;
   filename?: string;
   contextMessageId?: string;
@@ -189,11 +190,13 @@ export interface SendMediaMessageArgs {
 export async function sendMediaMessage(
   args: SendMediaMessageArgs,
 ): Promise<MetaSendResult> {
-  const { phoneNumberId, accessToken, to, kind, link, caption, filename, contextMessageId } = args;
-  if (!link) throw new Error('sendMediaMessage requires a link.');
+  const { phoneNumberId, accessToken, to, kind, link, id, caption, filename, contextMessageId } = args;
+  if (!link && !id) throw new Error('sendMediaMessage requires a link or an id.');
   const url = `${META_API_BASE}/${phoneNumberId}/messages`;
 
-  const media: Record<string, unknown> = { link };
+  const media: Record<string, unknown> = {};
+  if (link) media.link = link;
+  if (id) media.id = id;
   if (caption && kind !== 'audio') media.caption = caption;
   if (kind === 'document' && filename) media.filename = filename;
 
@@ -757,4 +760,62 @@ export async function downloadMedia(
     response.headers.get('content-type') || 'application/octet-stream';
   const buffer = Buffer.from(await response.arrayBuffer());
   return { buffer, contentType };
+}
+
+export interface UploadMediaArgs {
+  phoneNumberId: string;
+  accessToken: string;
+  file: File | Blob;
+  filename: string;
+  mimeType: string;
+}
+
+export async function uploadMedia(
+  args: UploadMediaArgs,
+): Promise<{ id: string }> {
+  const { phoneNumberId, accessToken, file, filename, mimeType } = args;
+  const url = `${META_API_BASE}/${phoneNumberId}/media`;
+
+  const uploadForm = new FormData();
+  uploadForm.append("file", file, filename);
+  uploadForm.append("type", mimeType);
+  uploadForm.append("messaging_product", "whatsapp");
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${accessToken}` },
+    body: uploadForm,
+  });
+
+  const data = await response.json();
+  if (!response.ok || !data.id) {
+    throw new Error(data?.error?.message ?? 'Failed to upload media');
+  }
+
+  return { id: data.id };
+}
+
+export interface GetTemplatesArgs {
+  wabaId: string;
+  accessToken: string;
+  limit?: number;
+}
+
+export async function getTemplates(
+  args: GetTemplatesArgs,
+): Promise<any[]> {
+  const { wabaId, accessToken, limit = 100 } = args;
+  const url = `${META_API_BASE}/${wabaId}/message_templates?limit=${limit}&fields=name,status,language,category,components`;
+
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+    next: { revalidate: 300 },
+  });
+
+  if (!response.ok) {
+    await throwMetaError(response, `Failed to get templates: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.data ?? [];
 }

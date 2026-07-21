@@ -12,31 +12,31 @@ interface ToggleProps {
 
 /**
  * Consistent toggle switch used across all pages.
- * Replaces the 8+ hand-coded toggle implementations.
+ * Matches the 'AI Chatbot' inbox toggle styling perfectly for light/dark mode.
  */
-export function Toggle({ checked, onChange, disabled, size = "md", className }: ToggleProps) {
-  const dims = size === "sm" 
-    ? { track: "w-8 h-4", thumb: "w-3 h-3 left-[2px] top-[2px]", move: "peer-checked:translate-x-[16px]" } 
-    : { track: "w-10 h-5.5", thumb: "w-4 h-4 left-[3px] top-[3px]", move: "peer-checked:translate-x-[18px]" };
-
+export function Toggle({ checked, onChange, disabled, className }: ToggleProps) {
   return (
-    <label className={cn("relative inline-flex items-center cursor-pointer", disabled && "opacity-50 cursor-not-allowed", className)}>
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        disabled={disabled}
-        className="sr-only peer"
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => {
+        if (!disabled) onChange(!checked);
+      }}
+      disabled={disabled}
+      className={cn(
+        "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-all duration-300 focus:outline-none shadow-inner",
+        disabled && "opacity-50 cursor-not-allowed",
+        checked ? "bg-green-500" : "bg-gray-200 dark:bg-gray-700",
+        className
+      )}
+    >
+      <span
+        className={cn(
+          "inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-transform duration-300 ease-in-out",
+          checked ? "translate-x-5" : "translate-x-1"
+        )}
       />
-      <div className={cn(
-        dims.track,
-        "bg-gray-200 dark:bg-gray-700 rounded-full peer peer-focus:outline-none peer-checked:bg-[#00E676] transition-colors"
-      )} />
-      <div className={cn(
-        "absolute bg-white rounded-full transition-transform",
-        dims.thumb,
-        dims.move
-      )} />
-    </label>
+    </button>
   );
 }

@@ -166,28 +166,13 @@ function Toggle({
 }) {
   return (
     <label className="flex items-center gap-2 cursor-pointer group">
-      <div className="relative flex-shrink-0">
-        <div
-          onClick={() => onChange(!checked)}
-          className={cn(
-            "w-9 h-5 rounded-full transition-colors duration-200",
-            checked ? "bg-primary" : "bg-border"
-          )}
-        />
-        <div
-          onClick={() => onChange(!checked)}
-          className={cn(
-            "absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200",
-            checked ? "translate-x-4" : "translate-x-0"
-          )}
-        />
+      <UIToggle checked={checked} onChange={onChange} />
+      <div className="flex flex-col">
+        <span className="text-[12px] text-gray-900 font-medium">{label}</span>
+        {hint && (
+          <span className="text-[11px] text-gray-500">{hint}</span>
+        )}
       </div>
-      <span className="text-[12px] text-gray-900 font-medium">{label}</span>
-      {hint && (
-        <span title={hint} className="text-gray-500 cursor-help">
-          <Info className="h-3 w-3" />
-        </span>
-      )}
     </label>
   )
 }

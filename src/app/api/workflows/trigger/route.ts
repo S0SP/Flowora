@@ -345,7 +345,7 @@ async function executeNode(opts: {
     // ── WhatsApp ────────────────────────────────────────────────────────────
     case "whatsapp":
     case "whatsapp_message": {
-      const phone = sub(data.toPhone ?? triggerData.phone ?? "").replace(/\D/g, "")
+      const phone = sub(triggerData.phone ?? data.phone ?? "").replace(/\D/g, "")
       if (!phone) return { skipped: "no phone number" }
 
       const { phoneNumId, token } = await getWAConn()
@@ -353,70 +353,43 @@ async function executeNode(opts: {
 
       const template    = data.templateName ?? data.template_name ?? ""
       const messageText = sub(data.message ?? data.body ?? "")
+      
+      const { sendTemplateMessage, sendTextMessage } = await import("@/lib/whatsapp/meta-api")
 
-      let body: any
       if (template) {
-        // Build components with variable substitution
-        const components: any[] = []
+        let paramsArray: string[] | undefined = undefined
         if (data.variables && Object.keys(data.variables).length > 0) {
-          const params = Object.entries(data.variables)
+          paramsArray = Object.entries(data.variables)
             .sort((a, b) => parseInt(a[0]) - parseInt(b[0]))
-            .map(([_, val]) => ({
-              type: "text",
-              text: sub(String(val)),
-            }))
-          
-          if (params.length > 0) {
-            components.push({
-              type: "body",
-              parameters: params,
-            })
-          }
+            .map(([_, val]) => sub(String(val)))
         } else if (data.components) {
           for (const comp of data.components) {
             if (comp.type === "BODY" && comp.example?.body_text) {
-              components.push({
-                type:       "body",
-                parameters: comp.example.body_text[0].map((v: string) => ({
-                  type: "text",
-                  text: sub(v),
-                })),
-              })
+              paramsArray = comp.example.body_text[0].map((v: string) => sub(v))
             }
           }
         }
-        body = {
-          messaging_product: "whatsapp",
-          to:                phone,
-          type:              "template",
-          template: {
-            name:       template,
-            language:   { code: data.templateLanguage ?? "en" },
-            components: components.length > 0 ? components : undefined,
-          },
-        }
+
+        const result = await sendTemplateMessage({
+          phoneNumberId: phoneNumId,
+          accessToken: token,
+          to: phone,
+          templateName: template,
+          language: data.templateLanguage ?? "en",
+          params: paramsArray,
+        })
+        return { sent: true, messageId: result.messageId, phone }
       } else if (messageText) {
-        body = {
-          messaging_product: "whatsapp",
-          to:                phone,
-          type:              "text",
-          text:              { body: messageText },
-        }
+        const result = await sendTextMessage({
+          phoneNumberId: phoneNumId,
+          accessToken: token,
+          to: phone,
+          text: messageText,
+        })
+        return { sent: true, messageId: result.messageId, phone }
       } else {
         return { skipped: "no template or message body" }
       }
-
-      const res = await fetch(`https://graph.facebook.com/v18.0/${phoneNumId}/messages`, {
-        method:  "POST",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body:    JSON.stringify(body),
-      })
-      const result = await res.json()
-      if (!res.ok) {
-        console.error("[executeNode] WhatsApp send failed:", result)
-        throw new Error(result?.error?.message ?? "WhatsApp send failed")
-      }
-      return { sent: true, messageId: result.messages?.[0]?.id, phone }
     }
 
     // ── Email ───────────────────────────────────────────────────────────────

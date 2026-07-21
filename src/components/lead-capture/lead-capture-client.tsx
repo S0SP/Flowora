@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
+import { Toggle } from "@/components/ui/toggle";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -1004,14 +1005,10 @@ export function LeadCaptureClient() {
                       <span className="text-xs font-semibold text-gray-900">Send WhatsApp Message</span>
                       <span className="text-[10px] text-gray-500">Auto send templates on new lead</span>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        {...register("whatsapp_enabled")}
-                        className="sr-only peer"
-                      />
-                      <div className="w-9 h-5 bg-gray-200 dark:bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
-                    </label>
+                    <Toggle
+                      checked={watch("whatsapp_enabled")}
+                      onChange={(val) => setValue("whatsapp_enabled", val, { shouldDirty: true })}
+                    />
                   </div>
 
                   {whatsappEnabled !== false && (
@@ -1290,14 +1287,7 @@ export function LeadCaptureClient() {
                   <span className="text-xs font-semibold text-gray-900">Automation Status</span>
                   <span className="text-[10px] text-gray-500 font-normal">Toggle to start sync polling</span>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    {...register("is_active")}
-                    className="sr-only peer"
-                  />
-                  <div className="w-9 h-5 bg-gray-200 dark:bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
-                </label>
+                <Toggle checked={watch("is_active")} onChange={(val) => setValue("is_active", val, { shouldDirty: true })} />
               </div>
 
               {/* Action Footer */}
