@@ -23,7 +23,7 @@ export async function GET() {
 
     const admin = await createAdminClient();
 
-    // Fetch members + join profiles
+    // Fetch members (direct columns now per 013 migration)
     const { data: members, error } = await admin
       .from("workspace_members")
       .select(`
@@ -32,7 +32,9 @@ export async function GET() {
         role,
         status,
         created_at,
-        profiles ( full_name, email, avatar_url, phone )
+        full_name,
+        email,
+        avatar_url
       `)
       .eq("workspace_id", myMember.workspace_id)
       .in("status", ["active", "pending", "invited"])
@@ -42,20 +44,23 @@ export async function GET() {
 
     // Fetch presence for all member user_ids
     const userIds = (members ?? []).map((m: any) => m.user_id).filter(Boolean);
-    const { data: presenceRows } = await admin
-      .from("member_presence")
-      .select("user_id, status, last_seen_at")
-      .eq("workspace_id", myMember.workspace_id)
-      .in("user_id", userIds);
+    let presenceRows: any[] = [];
+    if (userIds.length > 0) {
+      const { data } = await admin
+        .from("member_presence")
+        .select("user_id, status, last_seen_at")
+        .eq("workspace_id", myMember.workspace_id)
+        .in("user_id", userIds);
+      presenceRows = data || [];
+    }
 
     const presenceMap = new Map<string, { status: string; last_seen_at: string }>();
-    for (const p of presenceRows ?? []) {
+    for (const p of presenceRows) {
       presenceMap.set(p.user_id, { status: p.status, last_seen_at: p.last_seen_at });
     }
 
     const result = (members ?? []).map((m: any) => {
-      const profile = m.profiles as { full_name: string | null; email: string; avatar_url: string | null; phone: string | null } | null;
-      const presence = presenceMap.get(m.user_id);
+      const presence = m.user_id ? presenceMap.get(m.user_id) : undefined;
       return {
         id: m.id,
         user_id: m.user_id,
@@ -63,10 +68,10 @@ export async function GET() {
         status: m.status,
         joined_at: m.joined_at,
         created_at: m.created_at,
-        full_name: profile?.full_name ?? null,
-        email: profile?.email ?? "",
-        avatar_url: profile?.avatar_url ?? null,
-        phone: profile?.phone ?? null,
+        full_name: m.full_name ?? null,
+        email: m.email ?? "",
+        avatar_url: m.avatar_url ?? null,
+        phone: null, // Phone is no longer fetched here since it's not on workspace_members, but UI might need it? Set null.
         presence_status: presence?.status ?? "offline",
         last_seen_at: presence?.last_seen_at ?? null,
       };
