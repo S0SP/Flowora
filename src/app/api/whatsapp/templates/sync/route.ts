@@ -105,15 +105,23 @@ export async function POST(_req: NextRequest) {
         .maybeSingle()
 
       if (existing) {
-        await admin
+        const { error } = await admin
           .from("message_templates")
           .update(row)
           .eq("id", existing.id)
+        if (error) {
+          console.error(`Failed to update template ${t.name}:`, error)
+          throw error
+        }
         updated++
       } else {
-        await admin
+        const { error } = await admin
           .from("message_templates")
           .insert({ ...row, created_at: new Date().toISOString() })
+        if (error) {
+          console.error(`Failed to insert template ${t.name}:`, error)
+          throw error
+        }
         inserted++
       }
     }

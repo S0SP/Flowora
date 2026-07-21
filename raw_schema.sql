@@ -499,7 +499,7 @@ CREATE TABLE public.message_templates (
     footer_text text,
     buttons jsonb,
     sample_values jsonb,
-    status text,
+    status text DEFAULT 'DRAFT'::text,
     meta_template_id text,
     quality_score text,
     header_media_url text,
