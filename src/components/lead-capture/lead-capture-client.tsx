@@ -1010,7 +1010,7 @@ export function LeadCaptureClient() {
                         {...register("whatsapp_enabled")}
                         className="sr-only peer"
                       />
-                      <div className="w-9 h-5 bg-gray-100 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                      <div className="w-9 h-5 bg-gray-200 dark:bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
                     </label>
                   </div>
 
@@ -1057,7 +1057,7 @@ export function LeadCaptureClient() {
                         {...register("email_enabled")}
                         className="sr-only peer"
                       />
-                      <div className="w-9 h-5 bg-gray-100 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                      <div className="w-9 h-5 bg-gray-200 dark:bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
                     </label>
                   </div>
 
@@ -1126,9 +1126,14 @@ export function LeadCaptureClient() {
                         <div className="space-y-1">
                           <div className="flex justify-between items-center">
                             <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider block">Email Body Message</label>
-                            <div className="flex gap-1.5">
-                              <span className="text-[8px] bg-gray-100 px-1 py-0.5 rounded text-gray-500 hover:bg-gray-100-foreground hover:text-white cursor-pointer" title="Inserts name dynamically" onClick={() => setValue("email_body", (previewBody || "") + " {{lead_name}}")}>{"{{lead_name}}"}</span>
-                              <span className="text-[8px] bg-gray-100 px-1 py-0.5 rounded text-gray-500 hover:bg-gray-100-foreground hover:text-white cursor-pointer" title="Inserts email dynamically" onClick={() => setValue("email_body", (previewBody || "") + " {{lead_email}}")}>{"{{lead_email}}"}</span>
+                            <div className="flex flex-wrap justify-end gap-1.5 max-w-[65%]">
+                              <span className="text-[8px] bg-gray-100 px-1 py-0.5 rounded text-gray-500 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 cursor-pointer" title="Inserts name dynamically" onClick={() => setValue("email_body", (previewBody || "") + " {{lead_name}}")}>{"{{lead_name}}"}</span>
+                              <span className="text-[8px] bg-gray-100 px-1 py-0.5 rounded text-gray-500 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 cursor-pointer" title="Inserts email dynamically" onClick={() => setValue("email_body", (previewBody || "") + " {{lead_email}}")}>{"{{lead_email}}"}</span>
+                              {Array.isArray(customColumns) && customColumns.map(col => (
+                                <span key={col} className="text-[8px] bg-emerald-50 text-emerald-600 border border-emerald-100 dark:bg-emerald-900/30 dark:border-emerald-800/50 dark:text-emerald-400 px-1 py-0.5 rounded cursor-pointer hover:bg-emerald-100" title={`Insert ${col}`} onClick={() => setValue("email_body", (previewBody || "") + ` {{${col}}}`)}>
+                                  {`{{${col}}}`}
+                                </span>
+                              ))}
                             </div>
                           </div>
                           <textarea
@@ -1203,7 +1208,7 @@ export function LeadCaptureClient() {
                         {...register("voice_enabled")}
                         className="sr-only peer"
                       />
-                      <div className="w-9 h-5 bg-gray-100 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                      <div className="w-9 h-5 bg-gray-200 dark:bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
                     </label>
                   </div>
 
@@ -1262,9 +1267,17 @@ export function LeadCaptureClient() {
                           placeholder="You are an AI assistant calling {{lead_name}}. Remind them about..."
                           className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-[6px] text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary"
                         />
-                        <p className="text-[10px] text-gray-500 mt-1">
-                          Available variables: <code className="font-mono bg-gray-100 text-gray-900 px-1.5 py-0.5 rounded-[4px]">{"{{lead_name}}"}</code>, <code className="font-mono bg-gray-100 text-gray-900 px-1.5 py-0.5 rounded-[4px]">{"{{brand_name}}"}</code>, <code className="font-mono bg-gray-100 text-gray-900 px-1.5 py-0.5 rounded-[4px]">{"{{lead_phone}}"}</code>
-                        </p>
+                        <div className="text-[10px] text-gray-500 mt-1 flex flex-wrap gap-1.5 items-center">
+                          <span>Available variables:</span>
+                          <span className="font-mono bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-300 px-1.5 py-0.5 rounded-[4px] cursor-pointer hover:bg-gray-200" onClick={() => setValue("voice_prompt", (watch("voice_prompt") || "") + " {{lead_name}}")}>{"{{lead_name}}"}</span>
+                          <span className="font-mono bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-300 px-1.5 py-0.5 rounded-[4px] cursor-pointer hover:bg-gray-200" onClick={() => setValue("voice_prompt", (watch("voice_prompt") || "") + " {{brand_name}}")}>{"{{brand_name}}"}</span>
+                          <span className="font-mono bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-300 px-1.5 py-0.5 rounded-[4px] cursor-pointer hover:bg-gray-200" onClick={() => setValue("voice_prompt", (watch("voice_prompt") || "") + " {{lead_phone}}")}>{"{{lead_phone}}"}</span>
+                          {Array.isArray(customColumns) && customColumns.map(col => (
+                            <span key={col} className="font-mono bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:border-emerald-800/50 dark:text-emerald-400 px-1.5 py-0.5 rounded-[4px] cursor-pointer hover:bg-emerald-100" onClick={() => setValue("voice_prompt", (watch("voice_prompt") || "") + ` {{${col}}}`)}>
+                              {`{{${col}}}`}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   )}
@@ -1283,7 +1296,7 @@ export function LeadCaptureClient() {
                     {...register("is_active")}
                     className="sr-only peer"
                   />
-                  <div className="w-9 h-5 bg-gray-100 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                  <div className="w-9 h-5 bg-gray-200 dark:bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
                 </label>
               </div>
 
