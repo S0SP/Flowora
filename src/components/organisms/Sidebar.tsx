@@ -38,6 +38,7 @@ import {
 const navGroups = [
   {
     label: "Core",
+    roles: ["owner", "admin", "manager", "agent"],
     items: [
       { name: "Dashboard",    href: "/dashboard",               icon: LayoutDashboard },
       { name: "Shared Inbox", href: "/dashboard/inbox",         icon: Inbox },
@@ -48,6 +49,7 @@ const navGroups = [
   },
   {
     label: "Automation",
+    roles: ["owner", "admin", "manager"],
     items: [
       { name: "Workflows",    href: "/dashboard/workflows",     icon: Workflow },
       { name: "Campaigns",    href: "/dashboard/campaigns",     icon: Megaphone },
@@ -57,6 +59,7 @@ const navGroups = [
   },
   {
     label: "Intelligence",
+    roles: ["owner", "admin", "manager"],
     items: [
       { name: "AI Chatbot",   href: "/dashboard/chatbot",       icon: Bot },
       { name: "Voice Agent",  href: "/dashboard/voice-agent",   icon: Mic },
@@ -66,6 +69,7 @@ const navGroups = [
   },
   {
     label: "Workspace",
+    roles: ["owner", "admin", "manager"],
     items: [
       { name: "Team",         href: "/dashboard/team",          icon: UsersRound },
       { name: "Settings",     href: "/dashboard/settings",      icon: Settings },
@@ -162,7 +166,7 @@ export function Sidebar() {
 
         {/* Nav */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden py-4 no-scrollbar">
-          {navGroups.map((group, i) => (
+          {navGroups.filter(g => g.roles.includes(member.role)).map((group, i) => (
             <div key={group.label} className={cn("mb-5", !isSidebarOpen && "mb-3")}>
               {isSidebarOpen && (
                 <div className="px-5 mb-1.5">

@@ -9,6 +9,7 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { useWorkspace } from "@/context/WorkspaceContext";
 
 type Role = "owner" | "admin" | "manager" | "agent";
 type Status = "active" | "inactive" | "invited" | "suspended";
@@ -65,7 +66,7 @@ function MemberAvatar({ member }: { member: Member }) {
   );
 }
 
-function InviteModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
+function InviteModal({ onClose, onSuccess, myRole }: { onClose: () => void; onSuccess: () => void; myRole: Role }) {
   const [role, setRole] = useState<Role>("agent");
   const [label, setLabel] = useState("");
   const [expiresInDays, setExpiresInDays] = useState(7);
@@ -74,6 +75,8 @@ function InviteModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: (
   const [generatedInviteExpiry, setGeneratedInviteExpiry] = useState<Date | null>(null);
   const [copiedInvite, setCopiedInvite] = useState(false);
   const [token, setToken] = useState<string | null>(null);
+
+  const allowedRoles = myRole === "manager" ? (["agent"] as const) : (["agent", "manager", "admin"] as const);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -181,7 +184,7 @@ function InviteModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: (
             <div>
               <label className="block text-[13px] font-medium mb-1.5 dark:text-gray-200">Role</label>
               <div className="grid grid-cols-3 gap-2">
-                {(["agent", "manager", "admin"] as const).map(r => {
+                {allowedRoles.map(r => {
                   const cfg = ROLE_CONFIG[r];
                   const Icon = cfg.icon;
                   return (
@@ -224,6 +227,10 @@ function InviteModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: (
 }
 
 export default function TeamAgentsPage() {
+  const { member: myMember } = useWorkspace();
+  const myRole = myMember?.role || "agent";
+  const canInvite = ["owner", "admin", "manager"].includes(myRole);
+
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -347,10 +354,12 @@ export default function TeamAgentsPage() {
               {r === "All" ? "All" : ROLE_CONFIG[r as Role].label}
             </button>
           ))}
-          <button onClick={() => setShowInvite(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl font-bold text-[14px] hover:bg-primary/90 shadow-sm">
-            <UserPlus className="h-4 w-4" /> Invite Member
-          </button>
+          {canInvite && (
+            <button onClick={() => setShowInvite(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl font-bold text-[14px] hover:bg-primary/90 shadow-sm">
+              <UserPlus className="h-4 w-4" /> Invite Member
+            </button>
+          )}
         </div>
       </div>
 
@@ -370,8 +379,8 @@ export default function TeamAgentsPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-white dark:bg-[#111114] border border-border dark:border-[#27272A] rounded-2xl overflow-hidden shadow-sm">
-        <div className="flex items-center justify-between px-5 py-3 border-b border-border dark:border-[#27272A]">
+      <div className="bg-white dark:bg-[#111114] border border-border dark:border-[#27272A] rounded-2xl shadow-sm">
+        <div className="flex items-center justify-between px-5 py-3 border-b border-border dark:border-[#27272A] rounded-t-2xl">
           <span className="text-[13px] text-gray-500 dark:text-gray-400">{filtered.length} members</span>
           <button onClick={fetchMembers} className="flex items-center gap-1 text-[13px] text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
             <RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin")} /> Refresh
@@ -395,12 +404,12 @@ export default function TeamAgentsPage() {
                 <Users className="h-8 w-8 mx-auto mb-2 opacity-40" />
                 <p className="text-[13px]">No members — <button onClick={() => setShowInvite(true)} className="text-primary hover:underline">invite someone</button></p>
               </td></tr>
-            ) : filtered.map(member => {
+            ) : filtered.map((member, i) => {
               const rc = ROLE_CONFIG[member.role];
               const RIcon = rc.icon;
               const isUpdating = updatingId === member.id;
               return (
-                <tr key={member.id} className="hover:bg-gray-100/20 dark:hover:bg-white/5 transition-colors">
+                <tr key={member.id} className={cn("hover:bg-gray-100/20 dark:hover:bg-white/5 transition-colors", i === filtered.length - 1 && "rounded-b-2xl")}>
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
                       <MemberAvatar member={member} />
@@ -581,7 +590,7 @@ export default function TeamAgentsPage() {
         </table>
       </div>
 
-      {showInvite && <InviteModal onClose={() => setShowInvite(false)} onSuccess={loadData} />}
+      {showInvite && <InviteModal onClose={() => setShowInvite(false)} onSuccess={loadData} myRole={myRole} />}
       {actionMemberId && <div className="fixed inset-0 z-10" onClick={() => setActionMemberId(null)} />}
     </div>
   );

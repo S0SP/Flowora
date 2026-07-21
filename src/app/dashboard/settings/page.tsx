@@ -15,6 +15,7 @@ import { DealsSettingsPanel } from "@/components/settings/DealsSettingsPanel"
 const navGroups = [
   {
     group_label: "WORKSPACE",
+    roles: ["owner", "admin", "manager"],
     items: [
       { icon: Building2, label: "General" },
       { icon: SlidersHorizontal, label: "Fields & Tags" },
@@ -23,12 +24,14 @@ const navGroups = [
   },
   {
     group_label: "TEAM",
+    roles: ["owner", "admin", "manager"],
     items: [
       { icon: Users, label: "Members" },
     ]
   },
   {
     group_label: "CHANNELS",
+    roles: ["owner", "admin", "manager"],
     items: [
       { icon: MessageCircle, label: "WhatsApp Business" },
       { icon: FileText, label: "Message Templates" },
@@ -38,6 +41,7 @@ const navGroups = [
   },
   {
     group_label: "DEVELOPER",
+    roles: ["owner", "admin"],
     items: [
       { icon: Key, label: "API Keys" },
     ]
@@ -1197,7 +1201,7 @@ export default function SettingsPage() {
         <h2 className="text-[16px] font-bold text-gray-900 px-5 mb-4">Settings</h2>
         
         <div className="space-y-6">
-          {navGroups.map(group => (
+          {navGroups.filter(g => g.roles.includes(myMember?.role || "")).map(group => (
             <div key={group.group_label}>
               <h3 className="text-[10px] font-semibold text-gray-500 uppercase px-5 mb-2 tracking-wider">
                 {group.group_label}

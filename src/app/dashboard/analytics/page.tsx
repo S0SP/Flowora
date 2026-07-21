@@ -1,7 +1,7 @@
 "use client"
 
-import React, { useState } from "react"
-import { Calendar, Download, Clock, MessageCircle, Bot, User, Star, Mail } from "lucide-react"
+import React, { useState, useEffect } from "react"
+import { Calendar, Download, Clock, MessageCircle, Bot, User, Star, Loader2, AlertCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
   AreaChart,
@@ -18,80 +18,76 @@ import {
 
 const tabs = ["Overview", "Campaigns", "Voice Calls", "AI Performance", "Revenue", "Funnel"]
 
-const mockDataRange1 = {
-  area: [
-    { name: "Jan 7", total: 1200, ai: 600, human: 600 },
-    { name: "Jan 8", total: 1800, ai: 1000, human: 800 },
-    { name: "Jan 9", total: 2200, ai: 1300, human: 900 },
-    { name: "Jan 10", total: 1900, ai: 1100, human: 800 },
-    { name: "Jan 11", total: 2400, ai: 1500, human: 900 },
-    { name: "Jan 12", total: 2100, ai: 1200, human: 900 },
-    { name: "Jan 13", total: 2500, ai: 1400, human: 1100 },
-    { name: "Jan 14", total: 2354, ai: 1282, human: 1072 },
-  ],
-  kpis: [
-    { label: "Total Conversations", value: "23,548", change: "+16.3%", color: "text-[#22C55E]", icon: MessageCircle },
-    { label: "Resolved by AI", value: "12,820", subtext: "54.4%", icon: Bot, iconColor: "text-[#C4B1F9]", bg: "bg-[#F5F3FF]" },
-    { label: "Human Handled", value: "10,720", subtext: "45.6%", icon: User },
-    { label: "Avg. Response Time", value: "38s", change: "-12.5%", color: "text-[#22C55E]", icon: Clock },
-    { label: "Customer Satisfaction", value: "4.7 / 5.0", change: "+0.3", color: "text-[#22C55E]", icon: Star }
-  ],
-  donut: [
-    { name: "WhatsApp", value: 68, color: "#22C55E" },
-    { name: "Email", value: 18, color: "#3B82F6" },
-    { name: "Voice", value: 9, color: "#C4B1F9" },
-    { name: "Web", value: 5, color: "#FFE27C" },
-  ]
-}
-
-const mockDataRange2 = {
-  area: [
-    { name: "Jan 1", total: 800, ai: 300, human: 500 },
-    { name: "Jan 2", total: 950, ai: 400, human: 550 },
-    { name: "Jan 3", total: 1100, ai: 500, human: 600 },
-    { name: "Jan 4", total: 1050, ai: 480, human: 570 },
-    { name: "Jan 5", total: 1200, ai: 600, human: 600 },
-    { name: "Jan 6", total: 1150, ai: 580, human: 570 },
-    { name: "Jan 7", total: 1200, ai: 600, human: 600 },
-  ],
-  kpis: [
-    { label: "Total Conversations", value: "18,240", change: "+5.1%", color: "text-[#22C55E]", icon: MessageCircle },
-    { label: "Resolved by AI", value: "8,100", subtext: "44.4%", icon: Bot, iconColor: "text-[#C4B1F9]", bg: "bg-[#F5F3FF]" },
-    { label: "Human Handled", value: "10,140", subtext: "55.6%", icon: User },
-    { label: "Avg. Response Time", value: "42s", change: "-2.5%", color: "text-[#22C55E]", icon: Clock },
-    { label: "Customer Satisfaction", value: "4.4 / 5.0", change: "+0.1", color: "text-[#22C55E]", icon: Star }
-  ],
-  donut: [
-    { name: "WhatsApp", value: 55, color: "#22C55E" },
-    { name: "Email", value: 25, color: "#3B82F6" },
-    { name: "Voice", value: 15, color: "#C4B1F9" },
-    { name: "Web", value: 5, color: "#FFE27C" },
-  ]
-}
-
-
-const campaigns = [
-  { name: "Webinar Jan 20", type: "WhatsApp", typeBg: "bg-[#22C55E]/10", typeColor: "text-[#22C55E]", sent: "4,200", open: "68%", conv: "12%", status: "Active", statusBg: "bg-[#22C55E]/10", statusColor: "text-[#22C55E]" },
-  { name: "Q1 Newsletter", type: "Email", typeBg: "bg-[#3B82F6]/10", typeColor: "text-[#3B82F6]", sent: "12,500", open: "24%", conv: "3%", status: "Completed", statusBg: "bg-gray-100", statusColor: "text-gray-500" },
-  { name: "Voice Outreach", type: "Voice", typeBg: "bg-[#C4B1F9]/10", typeColor: "text-[#C4B1F9]", sent: "850", open: "42%", conv: "8%", status: "Active", statusBg: "bg-[#22C55E]/10", statusColor: "text-[#22C55E]" },
-  { name: "Abandoned Cart", type: "WhatsApp", typeBg: "bg-[#22C55E]/10", typeColor: "text-[#22C55E]", sent: "1,120", open: "82%", conv: "24%", status: "Paused", statusBg: "bg-[#F59E0B]/10", statusColor: "text-[#F59E0B]" }
-]
-
-const aiMetrics = [
-  { label: "Intent Recognition", value: "94.2%", bar: 94, color: "bg-[#22C55E]" },
-  { label: "Sentiment Analysis Accuracy", value: "88.5%", bar: 88, color: "bg-[#3B82F6]" },
-  { label: "Goal Completion Rate", value: "76.4%", bar: 76, color: "bg-[#C4B1F9]" },
-  { label: "Fallback to Human", value: "12.8%", bar: 12, color: "bg-[#F59E0B]" }
-]
-
 export default function AnalyticsPage() {
   const [activeTab, setActiveTab] = useState("Overview")
-  const [dateRange, setDateRange] = useState<"current" | "previous">("current")
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [data, setData] = useState<any>(null)
   
-  const currentData = dateRange === "current" ? mockDataRange1 : mockDataRange2
+  useEffect(() => {
+    async function fetchAnalytics() {
+      try {
+        const res = await fetch("/api/analytics")
+        if (!res.ok) throw new Error("Failed to load analytics")
+        const json = await res.json()
+        setData(json)
+      } catch (err: any) {
+        setError(err.message || "Failed to load data")
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchAnalytics()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex flex-col h-full bg-white items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      </div>
+    )
+  }
+
+  if (error || !data) {
+    return (
+      <div className="flex flex-col h-full bg-white items-center justify-center text-center">
+        <AlertCircle className="h-10 w-10 text-red-500 mb-3" />
+        <h2 className="text-[18px] font-bold text-gray-900">Failed to load analytics</h2>
+        <p className="text-[14px] text-gray-500">{error}</p>
+      </div>
+    )
+  }
+
+  const kpis = [
+    { label: "Total Conversations", value: data.messages.total_week + data.inbox.total_threads, icon: MessageCircle, color: "text-[#22C55E]" },
+    { label: "Resolved by AI", value: data.inbox.ai_resolved_today, subtext: "Today", icon: Bot, iconColor: "text-[#C4B1F9]", bg: "bg-[#F5F3FF]" },
+    { label: "Total Contacts", value: data.contacts.total, subtext: `+${data.contacts.new_today} today`, icon: User },
+    { label: "Active Campaigns", value: data.campaigns.active, subtext: `${data.campaigns.total} total`, icon: Star },
+    { label: "Voice Calls", value: data.voice.total_calls_month, subtext: "This month", color: "text-[#22C55E]", icon: Clock }
+  ]
+
+  const areaData = data.messages.daily_trend.map((d: any) => ({
+    name: d.name,
+    total: d.total,
+    ai: d.ai,
+    human: d.human
+  }))
+
+  const donutData = [
+    { name: "WhatsApp", value: 90, color: "#22C55E" },
+    { name: "Email", value: 10, color: "#3B82F6" },
+  ]
+
+  const campaigns = data.campaigns.list || []
+  
+  const aiMetrics = [
+    { label: "Messages Delivered", value: `${data.messages.delivery_rate}%`, bar: data.messages.delivery_rate, color: "bg-[#22C55E]" },
+    { label: "Messages Read", value: `${data.messages.read_rate}%`, bar: data.messages.read_rate, color: "bg-[#3B82F6]" },
+    { label: "AI Resolved Today", value: `${data.inbox.ai_resolved_today}`, bar: data.inbox.ai_resolved_today > 0 ? 100 : 0, color: "bg-[#C4B1F9]" },
+  ]
 
   return (
-    <div className="flex flex-col h-full  bg-white">
+    <div className="flex flex-col h-full bg-white">
       
       {/* Header */}
       <div className="bg-white px-8 pt-8 pb-4 border-b border-border">
@@ -99,11 +95,10 @@ export default function AnalyticsPage() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Analytics & Reports</h1>
             <div className="flex items-center gap-3">
-              <button onClick={() => setDateRange(r => r === "current" ? "previous" : "current")} className="flex items-center gap-2 border border-border rounded-lg px-3 py-1.5 bg-white text-[13px] font-medium text-gray-900 hover:bg-gray-100 transition-colors">
+              <button className="flex items-center gap-2 border border-border rounded-lg px-3 py-1.5 bg-white text-[13px] font-medium text-gray-900 hover:bg-gray-100 transition-colors">
                 <Calendar className="h-4 w-4 text-gray-500" />
-                {dateRange === "current" ? "Jan 7 – Jan 14, 2026" : "Jan 1 – Jan 7, 2026"}
+                Last 7 Days
               </button>
-              <span className="text-[12px] text-gray-500">vs {dateRange === "current" ? "Jan 1–7" : "Dec 25-31"}</span>
             </div>
           </div>
           
@@ -142,7 +137,7 @@ export default function AnalyticsPage() {
           
           {/* KPI Strip */}
           <div className="grid grid-cols-5 gap-4">
-            {currentData.kpis.map((kpi, idx) => (
+            {kpis.map((kpi, idx) => (
               <div key={idx} className="bg-white rounded-xl border border-border p-5 shadow-sm">
                 <div className="flex items-center gap-3 mb-3">
                   <div className={cn("w-8 h-8 rounded-full flex items-center justify-center shrink-0", kpi.bg || "bg-gray-100")}>
@@ -151,7 +146,7 @@ export default function AnalyticsPage() {
                   <span className="text-[13px] font-medium text-gray-500 truncate">{kpi.label}</span>
                 </div>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold text-gray-900">{kpi.value}</span>
+                  <span className="text-2xl font-bold text-gray-900">{kpi.value.toLocaleString()}</span>
                   {kpi.change && <span className={cn("text-[12px] font-medium", kpi.color)}>{kpi.change}</span>}
                   {kpi.subtext && <span className="text-[12px] text-gray-500">{kpi.subtext}</span>}
                 </div>
@@ -170,7 +165,7 @@ export default function AnalyticsPage() {
               <h2 className="text-[16px] font-bold text-gray-900 mb-6">Conversations Over Time</h2>
               <div className="h-[220px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={currentData.area} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                  <AreaChart data={areaData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#B1D8FC" stopOpacity={0.3}/>
@@ -213,14 +208,14 @@ export default function AnalyticsPage() {
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={currentData.donut}
+                        data={donutData}
                         innerRadius={65}
                         outerRadius={80}
                         paddingAngle={5}
                         dataKey="value"
                         stroke="none"
                       >
-                        {currentData.donut.map((entry, index) => (
+                        {donutData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
@@ -228,12 +223,12 @@ export default function AnalyticsPage() {
                   </ResponsiveContainer>
                   <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
                     <span className="text-[12px] text-gray-500 font-medium">Total</span>
-                    <span className="text-[18px] font-bold text-gray-900">23k</span>
+                    <span className="text-[18px] font-bold text-gray-900">{data.messages.total_week + data.inbox.total_threads}</span>
                   </div>
                 </div>
                 
                 <div className="w-full mt-4 space-y-2">
-                  {currentData.donut.map(item => (
+                  {donutData.map(item => (
                     <div key={item.name} className="flex items-center justify-between text-[13px]">
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
@@ -253,49 +248,55 @@ export default function AnalyticsPage() {
             {/* Campaign Performance Table */}
             <div className="col-span-2 bg-white rounded-xl border border-border p-6 shadow-sm">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-[16px] font-bold text-gray-900">Campaign Performance</h2>
+                <h2 className="text-[16px] font-bold text-gray-900">Recent Campaigns</h2>
                 <button className="text-[13px] font-medium text-gray-900 border border-border px-3 py-1.5 rounded hover:bg-gray-100 transition-colors">
                   Download CSV
                 </button>
               </div>
 
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-border">
-                      <th className="pb-3 text-[12px] font-medium text-gray-500">Campaign</th>
-                      <th className="pb-3 text-[12px] font-medium text-gray-500">Type</th>
-                      <th className="pb-3 text-[12px] font-medium text-gray-500">Sent</th>
-                      <th className="pb-3 text-[12px] font-medium text-gray-500">Open Rate</th>
-                      <th className="pb-3 text-[12px] font-medium text-gray-500">Conversion</th>
-                      <th className="pb-3 text-[12px] font-medium text-gray-500">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {campaigns.map((camp, i) => (
-                      <tr key={i} className="border-b border-[#F4F4F2] last:border-0">
-                        <td className="py-3 text-[13px] font-medium text-gray-900">{camp.name}</td>
-                        <td className="py-3">
-                          <div className={cn("inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium", camp.typeBg, camp.typeColor)}>
-                            {camp.type}
-                          </div>
-                        </td>
-                        <td className="py-3 text-[13px] text-gray-500">{camp.sent}</td>
-                        <td className="py-3 text-[13px] text-gray-500">{camp.open}</td>
-                        <td className="py-3 text-[13px] text-gray-500">{camp.conv}</td>
-                        <td className="py-3">
-                          <span className={cn("text-[11px] font-bold px-2 py-0.5 rounded", camp.statusBg, camp.statusColor)}>{camp.status}</span>
-                        </td>
+                {campaigns.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500 text-[13px]">
+                    No campaigns found
+                  </div>
+                ) : (
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="pb-3 text-[12px] font-medium text-gray-500">Campaign</th>
+                        <th className="pb-3 text-[12px] font-medium text-gray-500">Type</th>
+                        <th className="pb-3 text-[12px] font-medium text-gray-500">Sent</th>
+                        <th className="pb-3 text-[12px] font-medium text-gray-500">Open Rate</th>
+                        <th className="pb-3 text-[12px] font-medium text-gray-500">Conversion</th>
+                        <th className="pb-3 text-[12px] font-medium text-gray-500">Status</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {campaigns.map((camp: any, i: number) => (
+                        <tr key={i} className="border-b border-[#F4F4F2] last:border-0">
+                          <td className="py-3 text-[13px] font-medium text-gray-900">{camp.name}</td>
+                          <td className="py-3">
+                            <div className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-[#22C55E]/10 text-[#22C55E]">
+                              {camp.type}
+                            </div>
+                          </td>
+                          <td className="py-3 text-[13px] text-gray-500">{camp.sent}</td>
+                          <td className="py-3 text-[13px] text-gray-500">{camp.open}</td>
+                          <td className="py-3 text-[13px] text-gray-500">{camp.conv}</td>
+                          <td className="py-3">
+                            <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-gray-100 text-gray-600">{camp.status}</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </div>
             </div>
 
             {/* AI Performance */}
             <div className="col-span-1 bg-white rounded-xl border border-border p-6 shadow-sm">
-              <h2 className="text-[16px] font-bold text-gray-900 mb-6">AI Performance</h2>
+              <h2 className="text-[16px] font-bold text-gray-900 mb-6">Messaging Performance</h2>
               
               <div className="space-y-5">
                 {aiMetrics.map((metric, i) => (

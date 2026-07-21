@@ -17,6 +17,7 @@ export async function GET() {
       { count: newContactsToday },
       { count: totalCampaigns },
       { count: activeCampaigns },
+      { data: campaignsList },
       { data: messages },
       { data: todayMessages },
       { count: openThreads },
@@ -29,6 +30,7 @@ export async function GET() {
       admin.from("contacts").select("*", { count: "exact", head: true }).eq("workspace_id", workspaceId).gte("created_at", todayStart.toISOString()),
       admin.from("campaigns").select("*", { count: "exact", head: true }).eq("workspace_id", workspaceId),
       admin.from("campaigns").select("*", { count: "exact", head: true }).eq("workspace_id", workspaceId).eq("status", "active"),
+      admin.from("campaigns").select("*").eq("workspace_id", workspaceId).order("created_at", { ascending: false }).limit(5),
       admin.from("messages").select("status, sender_type, created_at").eq("workspace_id", workspaceId).gte("created_at", weekStart.toISOString()),
       admin.from("messages").select("status, sender_type").eq("workspace_id", workspaceId).gte("created_at", todayStart.toISOString()),
       admin.from("threads").select("*", { count: "exact", head: true }).eq("workspace_id", workspaceId).eq("status", "open"),
@@ -41,6 +43,7 @@ export async function GET() {
     const msgList = messages ?? [];
     const todayMsgList = todayMessages ?? [];
     const callList = voiceCalls ?? [];
+    const campList = campaignsList ?? [];
 
     // Message stats
     const totalMessages = msgList.length;
@@ -50,15 +53,21 @@ export async function GET() {
     const agentMessages = todayMsgList.filter(m => m.sender_type === "agent").length;
 
     // Daily message trend (last 7 days)
-    const dailyTrend: Record<string, number> = {};
+    const dailyTrend: Record<string, { total: number, ai: number, human: number }> = {};
     for (let i = 6; i >= 0; i--) {
       const d = new Date(now);
       d.setDate(d.getDate() - i);
-      dailyTrend[d.toISOString().slice(0, 10)] = 0;
+      const day = d.toISOString().slice(0, 10);
+      const shortDay = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      dailyTrend[day] = { total: 0, ai: 0, human: 0 };
     }
     msgList.forEach(m => {
       const day = m.created_at?.slice(0, 10);
-      if (day && dailyTrend[day] !== undefined) dailyTrend[day]++;
+      if (day && dailyTrend[day] !== undefined) {
+        dailyTrend[day].total++;
+        if (m.sender_type === "bot") dailyTrend[day].ai++;
+        if (m.sender_type === "agent") dailyTrend[day].human++;
+      }
     });
 
     // Voice stats
@@ -74,6 +83,14 @@ export async function GET() {
       campaigns: {
         total: totalCampaigns ?? 0,
         active: activeCampaigns ?? 0,
+        list: campList.map(c => ({
+          name: c.name,
+          type: c.type,
+          sent: c.sent_count,
+          open: c.total_recipients > 0 ? Math.round((c.read_count / c.total_recipients) * 100) + "%" : "0%",
+          conv: "N/A", // Not tracked yet
+          status: c.status
+        }))
       },
       messages: {
         total_week: totalMessages,
@@ -83,7 +100,12 @@ export async function GET() {
         read_rate: totalMessages > 0 ? Math.round((readMessages / totalMessages) * 100) : 0,
         bot_today: botMessages,
         agent_today: agentMessages,
-        daily_trend: Object.entries(dailyTrend).map(([date, count]) => ({ date, count })),
+        daily_trend: Object.entries(dailyTrend).map(([date, stats]) => ({
+          name: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          total: stats.total,
+          ai: stats.ai,
+          human: stats.human
+        })),
       },
       inbox: {
         open_threads: openThreads ?? 0,

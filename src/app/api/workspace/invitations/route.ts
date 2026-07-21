@@ -23,8 +23,8 @@ export async function GET() {
       .single();
 
     if (!member) return NextResponse.json({ error: "No workspace" }, { status: 403 });
-    if (!["owner", "admin"].includes(member.role)) {
-      return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+    if (!["owner", "admin", "manager"].includes(member.role)) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
     const { data: invitations, error } = await supabase
@@ -88,8 +88,8 @@ export async function POST(req: Request) {
       .single();
 
     if (!member) return NextResponse.json({ error: "No workspace" }, { status: 403 });
-    if (!["owner", "admin"].includes(member.role)) {
-      return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+    if (!["owner", "admin", "manager"].includes(member.role)) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
     const body = await req.json();
@@ -99,6 +99,10 @@ export async function POST(req: Request) {
 
     if (!["admin", "manager", "agent", "viewer"].includes(role)) {
       return NextResponse.json({ error: "Invalid role" }, { status: 400 });
+    }
+    
+    if (member.role === "manager" && role !== "agent") {
+      return NextResponse.json({ error: "Managers can only invite agents" }, { status: 403 });
     }
 
     // Generate a cryptographically random token

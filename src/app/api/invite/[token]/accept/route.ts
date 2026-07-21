@@ -64,6 +64,7 @@ export async function POST(_req: Request, ctx: RouteContext) {
           workspace_id: invite.workspace_id,
           user_id: user.id,
           role: invite.role,
+          status: "active",
           created_at: new Date().toISOString(),
           invited_by: null,
           email: user.email || "",

@@ -1,7 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import type { WorkspaceContextValue } from "@/context/WorkspaceContext";
+import { WORKSPACE_COOKIE } from "@/lib/tenant";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -22,15 +24,22 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (!profile) redirect("/onboarding");
   if (!profile.onboarding_completed) redirect("/onboarding");
 
-  // First active workspace membership
-  const { data: membership, error: membershipError } = await supabase
+  const cookieStore = await cookies();
+  const activeWorkspaceId = cookieStore.get(WORKSPACE_COOKIE)?.value;
+
+  let membershipQuery = supabase
     .from("workspace_members")
     .select("workspace_id, role, credits_used, credit_limit, workspaces(*)")
     .eq("user_id", user.id)
-    .eq("status", "active")
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .single();
+    .eq("status", "active");
+
+  if (activeWorkspaceId) {
+    membershipQuery = membershipQuery.eq("workspace_id", activeWorkspaceId);
+  } else {
+    membershipQuery = membershipQuery.order("created_at", { ascending: true }).limit(1);
+  }
+
+  const { data: membership, error: membershipError } = await membershipQuery.single();
 
   if (membershipError && membershipError.code !== "PGRST116") {
     throw new Error(`Database error (membership): ${(membershipError as any).message}`);

@@ -54,7 +54,7 @@ export async function getTenant(): Promise<TenantContext> {
   }
 
   // Verify membership (RLS will double-enforce, but we need role/permissions)
-  const { data: member } = await supabase
+  const { data: member, error: memberError } = await supabase
     .from('workspace_members')
     .select('role, permissions')
     .eq('workspace_id', workspaceId)
@@ -62,7 +62,12 @@ export async function getTenant(): Promise<TenantContext> {
     .eq('status', 'active')
     .single()
 
+  if (memberError && memberError.code !== 'PGRST116') {
+    console.error('getTenant member fetch error:', memberError)
+  }
+
   if (!member) {
+    console.error('getTenant NO MEMBER FOUND:', { workspaceId, userId: user.id })
     throw new TenantError('Not a member of this workspace', 403)
   }
 
@@ -126,12 +131,24 @@ export async function resolveWorkspaceForMiddleware(
   userId: string,
   response: NextResponse
 ): Promise<NextResponse> {
-  const workspaceId = request.cookies.get(WORKSPACE_COOKIE)?.value
+  let workspaceId = request.cookies.get(WORKSPACE_COOKIE)?.value
 
   // Use admin client to query workspace membership (bypasses RLS in middleware)
   const admin = await createAdminClient()
 
-  if (!workspaceId) {
+  let validMembership = false;
+  if (workspaceId) {
+    const { data: check } = await admin
+      .from('workspace_members')
+      .select('id')
+      .eq('workspace_id', workspaceId)
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .single()
+    if (check) validMembership = true;
+  }
+
+  if (!workspaceId || !validMembership) {
     // Find first active workspace for this user
     const { data: membership } = await admin
       .from('workspace_members')

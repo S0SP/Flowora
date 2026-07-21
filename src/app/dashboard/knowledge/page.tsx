@@ -615,7 +615,7 @@ export default function KnowledgeHubPage() {
               attributionPosition="bottom-right"
             >
               <Background color="#E2E8F0" gap={16} />
-              <Controls className="!bg-white !border-border !rounded-lg !shadow-sm" />
+              <Controls className="!bg-white dark:!bg-[#18181B] !border-border dark:!border-[#27272A] !rounded-lg !shadow-sm overflow-hidden [&>button]:dark:!bg-[#18181B] [&>button]:dark:!border-[#27272A] [&_svg]:dark:!fill-gray-300" />
             </ReactFlow>
           )}
 
