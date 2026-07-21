@@ -37,14 +37,28 @@ export async function GET() {
 
     if (error) throw error;
 
-    // Don't expose token_hash — only expose a derived display prefix
-    const safe = (invitations ?? []).map(inv => ({
-      id: inv.id,
-      role: inv.role,
-      label: inv.label,
-      expires_at: inv.expires_at,
-      created_at: inv.created_at,
-    }));
+    const safe = (invitations ?? []).map(inv => {
+      let parsedLabel = inv.label;
+      let token = null;
+      try {
+        if (inv.label && inv.label.startsWith('{')) {
+          const parsed = JSON.parse(inv.label);
+          if (parsed.name !== undefined && parsed.token !== undefined) {
+            parsedLabel = parsed.name;
+            token = parsed.token;
+          }
+        }
+      } catch(e) {}
+
+      return {
+        id: inv.id,
+        role: inv.role,
+        label: parsedLabel,
+        token,
+        expires_at: inv.expires_at,
+        created_at: inv.created_at,
+      };
+    });
 
     return NextResponse.json({ invitations: safe });
   } catch (err: any) {
@@ -94,13 +108,15 @@ export async function POST(req: Request) {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + expiresInDays);
 
+    const labelData = JSON.stringify({ name: label, token: plaintoken });
+
     const { data: inv, error } = await admin
       .from("workspace_invitations")
       .insert({
         workspace_id: member.workspace_id,
         token_hash,
         role,
-        label,
+        label: labelData,
         created_by: user.id,
         expires_at: expiresAt.toISOString(),
       })
@@ -109,9 +125,15 @@ export async function POST(req: Request) {
 
     if (error) throw error;
 
+    let parsedLabel = inv.label;
+    try {
+      const parsed = JSON.parse(inv.label);
+      parsedLabel = parsed.name;
+    } catch(e) {}
+
     return NextResponse.json({
-      invitation: inv,
-      token: plaintoken, // returned ONCE — never stored in plaintext
+      invitation: { ...inv, label: parsedLabel },
+      token: plaintoken,
     });
   } catch (err: any) {
     console.error("[invitations POST]", err);
