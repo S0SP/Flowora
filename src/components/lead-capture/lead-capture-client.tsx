@@ -975,7 +975,7 @@ export function LeadCaptureClient() {
 
                     <div className="border-t border-border/40 pt-2.5 mt-2">
                       <span className="text-[10px] text-gray-500 leading-relaxed block font-semibold">
-                        💡 Auto Custom Fields: All other spreadsheet columns (e.g. Interest, Budget, Location) are automatically captured. Use them in WhatsApp templates, Email templates or Voice prompts using variables like {"{Interest}"} or {"{{Budget}}"}.
+                        💡 Auto Custom Fields: All other spreadsheet columns {Array.isArray(customColumns) && customColumns.length > 0 ? `(like ${customColumns.slice(0, 2).join(", ")})` : "(e.g. Interest, Budget)"} are automatically captured. Use them in Email or Voice prompts via {Array.isArray(customColumns) && customColumns.length > 0 ? `{{${customColumns[0]}}}` : '{"{{Interest}}"}'}, or in WhatsApp via positional variables {"{{1}}"}, {"{{2}}"} based on their order.
                       </span>
                     </div>
                   </div>
@@ -1023,16 +1023,26 @@ export function LeadCaptureClient() {
                             <span className="text-xs text-gray-500">Loading templates...</span>
                           </div>
                         ) : (
-                          <CustomSelect
-                            value={watch("template_name") || ""}
-                            onValueChange={(val: string) => {
-                              const t = templates.find((t) => t.name === val);
-                              setValue("template_name", val);
-                              if (t) setValue("template_language", t.language);
-                            }}
-                            placeholder="Select a template"
-                            options={templates.map((t) => ({ label: `${t.display_name} (${t.language})`, value: t.name }))}
-                          />
+                          <>
+                            <CustomSelect
+                              value={watch("template_name") || ""}
+                              onValueChange={(val: string) => {
+                                const t = templates.find((t) => t.name === val);
+                                setValue("template_name", val);
+                                if (t) setValue("template_language", t.language);
+                              }}
+                              placeholder="Select a template"
+                              options={templates.map((t) => ({ label: `${t.display_name} (${t.language})`, value: t.name }))}
+                            />
+                            <div className="mt-2.5 bg-gray-50/80 dark:bg-white/5 border border-gray-200/60 dark:border-[#27272A] rounded-lg p-2.5 flex gap-2">
+                              <Info className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                              <p className="text-[10px] text-gray-500 leading-relaxed font-medium">
+                                <span className="text-gray-900 dark:text-white font-semibold">WhatsApp Variables:</span> Meta templates strictly use positional variables (e.g., <code className="bg-gray-100 dark:bg-black px-1 py-0.5 rounded text-primary">{"{{1}}"}</code>, <code className="bg-gray-100 dark:bg-black px-1 py-0.5 rounded text-primary">{"{{2}}"}</code>). 
+                                Your "extra" spreadsheet columns map directly to these in left-to-right order. 
+                                <br/><span className="text-gray-400 dark:text-gray-500 italic mt-0.5 block">Note: System columns (Name, Phone, Email) are extracted for sending but are skipped in variable mapping.</span>
+                              </p>
+                            </div>
+                          </>
                         )}
                       </div>
                     </div>
