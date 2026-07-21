@@ -1,23 +1,23 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import {
-  Building2, Smartphone, Users, Workflow, Rocket,
+  Building2, Smartphone, Users, Rocket,
   ArrowRight, ArrowLeft, Check, Upload, Plus, ChevronDown,
   MessageSquare, Mail, Globe, FileSpreadsheet, Zap
 } from "lucide-react"
 import { toast } from "sonner"
 import { createClient } from "@/lib/supabase/client"
 import { cn } from "@/lib/utils"
+import Papa from "papaparse"
 
 const STEPS = [
   { id: 1, label: "Workspace", icon: Building2, description: "Tell us about your company" },
   { id: 2, label: "WhatsApp", icon: Smartphone, description: "Connect your WhatsApp" },
   { id: 3, label: "Contacts", icon: Users, description: "Import your leads" },
-  { id: 4, label: "Workflow", icon: Workflow, description: "Automate your first flow" },
-  { id: 5, label: "Go Live", icon: Rocket, description: "Launch your AI agent" },
+  { id: 4, label: "Go Live", icon: Rocket, description: "Launch your AI agent" },
 ]
 
 const INDUSTRIES = [
@@ -26,40 +26,7 @@ const INDUSTRIES = [
   "Marketing Agency", "HR & Recruitment", "Other"
 ]
 
-const WORKFLOW_TEMPLATES = [
-  {
-    id: "lead_qualify",
-    name: "Lead Qualification",
-    description: "Automatically qualify inbound WhatsApp leads with AI",
-    icon: MessageSquare,
-    color: "#10B981", // Emerald
-    tags: ["WhatsApp", "AI", "Popular"],
-  },
-  {
-    id: "demo_book",
-    name: "Demo Booking",
-    description: "Let AI schedule demos via WhatsApp — no agent needed",
-    icon: Workflow,
-    color: "#6366F1", // Indigo
-    tags: ["Automation", "WhatsApp"],
-  },
-  {
-    id: "followup_seq",
-    name: "Follow-up Sequence",
-    description: "5-day nurture sequence for warm leads via WhatsApp + Email",
-    icon: Mail,
-    color: "#3B82F6", // Blue
-    tags: ["Email", "WhatsApp", "Nurture"],
-  },
-  {
-    id: "sheet_ingest",
-    name: "Google Sheet → WhatsApp",
-    description: "Auto-message new rows added to your Google Sheet",
-    icon: FileSpreadsheet,
-    color: "#059669", // Emerald darker
-    tags: ["Sheets", "WhatsApp"],
-  },
-]
+
 
 export default function OnboardingPage() {
   const router = useRouter()
@@ -87,9 +54,9 @@ export default function OnboardingPage() {
 
   // Step 3 state
   const [importMethod, setImportMethod] = useState<"csv" | "sheet" | "skip">("skip")
-
-  // Step 4 state
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
+  const [csvFile, setCsvFile] = useState<File | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [isImporting, setIsImporting] = useState(false)
 
   const [saving, setSaving] = useState(false)
 
@@ -136,6 +103,55 @@ export default function OnboardingPage() {
       setSaving(false)
     }
     setStep(3)
+  }
+
+  const handleContactsContinue = () => {
+    if (importMethod === 'csv' && csvFile) {
+      setIsImporting(true)
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        Papa.parse(e.target?.result as string, {
+          header: true,
+          skipEmptyLines: true,
+          complete: async (results) => {
+            const parsed = results.data.map((row: any) => {
+              const name = row.name || row.Name || row.full_name || row["Contact Name"] || "";
+              const phone = row.phone || row.Phone || row["Phone Number"] || "";
+              const email = row.email || row.Email || "";
+              const company = row.company || row.Company || "";
+              const status = row.status || row.Status || "Lead";
+              const tags = row.tags || row.Tags ? String(row.tags || row.Tags).split(";").map((t: string) => t.trim()) : [];
+              return { name, phone, email, company, status, tags };
+            }).filter((x: any) => x.phone && x.name)
+
+            if (parsed.length === 0) {
+              toast.error("No valid contacts found in CSV. Make sure you have 'name' and 'phone' columns.")
+              setIsImporting(false)
+              return
+            }
+
+            try {
+              const res = await fetch("/api/contacts", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(parsed)
+              })
+              const data = await res.json()
+              if (!res.ok) throw new Error(data.error ?? "Failed to save imported contacts")
+              toast.success(`Imported ${data.contacts?.length ?? 0} contacts successfully!`)
+              setStep(4)
+            } catch (err: any) {
+              toast.error(err.message)
+            } finally {
+              setIsImporting(false)
+            }
+          }
+        })
+      }
+      reader.readAsText(csvFile)
+    } else {
+      setStep(4)
+    }
   }
 
   const handleComplete = async () => {
@@ -348,22 +364,45 @@ export default function OnboardingPage() {
                         { id: "sheet" as const, icon: FileSpreadsheet, title: "Google Sheet", desc: "Sync contacts from a Google Sheet" },
                         { id: "skip" as const, icon: Plus, title: "Add manually later", desc: "Start fresh and add contacts one by one" },
                       ].map(opt => (
-                        <button
-                          key={opt.id}
-                          onClick={() => setImportMethod(opt.id)}
-                          className={`flex items-center gap-4 p-4 border-2 rounded-xl text-left transition-all
-                            ${importMethod === opt.id ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/50"}`}
-                        >
-                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center
-                            ${importMethod === opt.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
-                            <opt.icon className="w-5 h-5" />
-                          </div>
-                          <div>
-                            <p className="font-semibold text-sm text-foreground">{opt.title}</p>
-                            <p className="text-xs text-muted-foreground mt-0.5">{opt.desc}</p>
-                          </div>
-                          {importMethod === opt.id && <Check className="w-5 h-5 text-primary ml-auto" />}
-                        </button>
+                        <div key={opt.id}>
+                          <button
+                            onClick={() => setImportMethod(opt.id)}
+                            className={`w-full flex items-center gap-4 p-4 border-2 rounded-xl text-left transition-all
+                              ${importMethod === opt.id ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/50"}`}
+                          >
+                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center
+                              ${importMethod === opt.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+                              <opt.icon className="w-5 h-5" />
+                            </div>
+                            <div>
+                              <p className="font-semibold text-sm text-foreground">{opt.title}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">{opt.desc}</p>
+                            </div>
+                            {importMethod === opt.id && <Check className="w-5 h-5 text-primary ml-auto" />}
+                          </button>
+                          {importMethod === 'csv' && opt.id === 'csv' && (
+                            <div className="mt-3 p-4 border border-border rounded-xl bg-card">
+                              <input
+                                type="file"
+                                accept=".csv"
+                                className="hidden"
+                                ref={fileInputRef}
+                                onChange={(e) => setCsvFile(e.target.files?.[0] || null)}
+                              />
+                              <div className="flex items-center gap-3">
+                                <button
+                                  onClick={() => fileInputRef.current?.click()}
+                                  className="px-4 py-2 bg-muted hover:bg-muted/80 text-foreground font-medium rounded-lg text-sm transition-colors border border-border"
+                                >
+                                  Choose File
+                                </button>
+                                <span className="text-sm text-muted-foreground truncate">
+                                  {csvFile ? csvFile.name : "No file chosen"}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       ))}
                     </div>
 
@@ -372,64 +411,18 @@ export default function OnboardingPage() {
                         <ArrowLeft className="w-4 h-4" /> Back
                       </button>
                       <button
-                        onClick={() => setStep(4)}
-                        className="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 rounded-xl transition-all shadow-[0_2px_8px_rgba(16,185,129,0.3)]"
+                        onClick={handleContactsContinue}
+                        disabled={isImporting || (importMethod === 'csv' && !csvFile)}
+                        className="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 rounded-xl transition-all shadow-[0_2px_8px_rgba(16,185,129,0.3)] disabled:opacity-60"
                       >
-                        Continue <ArrowRight className="w-4 h-4" />
+                        {isImporting ? "Importing..." : "Continue"} <ArrowRight className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
                 )}
 
-                {/* Step 4: Workflow Template */}
+                {/* Step 4: Go Live */}
                 {step === 4 && (
-                  <div className="space-y-6">
-                    <div>
-                      <h2 className="text-2xl font-bold text-foreground">Pick your first workflow</h2>
-                      <p className="text-muted-foreground mt-1.5 text-sm">Start with a proven template. You can customize everything later.</p>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-3">
-                      {WORKFLOW_TEMPLATES.map(t => (
-                        <button
-                          key={t.id}
-                          onClick={() => setSelectedTemplate(t.id)}
-                          className={`flex items-start gap-4 p-4 border-2 rounded-xl text-left transition-all
-                            ${selectedTemplate === t.id ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/50"}`}
-                        >
-                          <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: t.color + "1A" }}>
-                            <t.icon className="w-5 h-5" style={{ color: t.color }} />
-                          </div>
-                          <div className="flex-1">
-                            <p className="font-semibold text-sm text-foreground">{t.name}</p>
-                            <p className="text-xs text-muted-foreground mt-0.5">{t.description}</p>
-                            <div className="flex gap-1.5 mt-2">
-                              {t.tags.map(tag => (
-                                <span key={tag} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{tag}</span>
-                              ))}
-                            </div>
-                          </div>
-                          {selectedTemplate === t.id && <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />}
-                        </button>
-                      ))}
-                    </div>
-
-                    <div className="flex gap-3">
-                      <button onClick={() => setStep(3)} className="px-6 py-3 border border-border rounded-xl text-sm font-semibold text-muted-foreground hover:bg-muted transition-colors flex items-center gap-1.5">
-                        <ArrowLeft className="w-4 h-4" /> Back
-                      </button>
-                      <button
-                        onClick={() => setStep(5)}
-                        className="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 rounded-xl transition-all shadow-[0_2px_8px_rgba(16,185,129,0.3)]"
-                      >
-                        {selectedTemplate ? "Use this template" : "Skip"} <ArrowRight className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Step 5: Go Live */}
-                {step === 5 && (
                   <div className="space-y-8 text-center">
                     <div>
                       <div className="w-20 h-20 bg-primary/10 border-2 border-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -445,7 +438,7 @@ export default function OnboardingPage() {
                       {[
                         { label: "Trial Credits", value: "1,000", color: "#10B981" },
                         { label: "Channels", value: skipWA ? "0" : "1", color: "#6366F1" },
-                        { label: "Workflows", value: selectedTemplate ? "1" : "0", color: "#3B82F6" },
+                        { label: "Workflows", value: "0", color: "#3B82F6" },
                       ].map(s => (
                         <div key={s.label} className="bg-card border border-border rounded-xl p-4">
                           <div className="text-2xl font-bold" style={{ color: s.color }}>{s.value}</div>
