@@ -78,7 +78,7 @@ const inputCls = "w-full bg-[var(--node-bg)] border border-[var(--node-border)] 
 const selectCls = "w-full bg-[var(--node-bg)] border border-[var(--node-border)] rounded-md px-3 py-2 text-[13px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all cursor-pointer shadow-sm appearance-none text-[var(--text-primary)]"
 
 // Variable Token Picker 
-const COMMON_VARS = ["{{phone}}", "{{name}}", "{{email}}", "{{order.id}}", "{{company}}", "{{city}}"]
+const COMMON_VARS: string[] = []
 
 function getJsonKeys(obj: any, prefix = ""): string[] {
   if (!obj || typeof obj !== "object") return []

@@ -67,7 +67,8 @@ export async function POST(req: NextRequest) {
       voice_enabled,
       voice_agent_type,
       voice_id,
-      voice_prompt
+      voice_prompt,
+      custom_columns
     } = body;
 
     if (!sheet_url || !phone_column) {
@@ -119,6 +120,7 @@ export async function POST(req: NextRequest) {
       voice_agent_type: voice_agent_type || "livekit",
       voice_id: voice_id || "anushka",
       voice_prompt: voice_prompt || null,
+      custom_columns: custom_columns || [],
       updated_at: new Date().toISOString(),
     };
 

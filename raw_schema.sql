@@ -459,6 +459,7 @@ CREATE TABLE public.lead_capture_settings (
     voice_agent_type USER-DEFINED,
     voice_id text,
     voice_prompt text,
+    custom_columns jsonb DEFAULT '[]'::jsonb,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL
 );
@@ -501,6 +502,7 @@ CREATE TABLE public.message_templates (
     status text,
     meta_template_id text,
     quality_score text,
+    header_media_url text,
     created_at timestamp with time zone,
     updated_at timestamp with time zone
 );

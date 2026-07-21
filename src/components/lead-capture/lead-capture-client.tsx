@@ -67,6 +67,7 @@ const schema = z.object({
   voice_agent_type: z.string().default("livekit"),
   voice_id: z.string().default("anushka"),
   voice_prompt: z.string().optional().nullable(),
+  custom_columns: z.any().optional().nullable(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -429,6 +430,39 @@ export function LeadCaptureClient() {
   const selectedEmailTemplateId = watch("email_template_id");
   const delayMinutes = watch("delay_minutes");
   const sheetUrl = watch("sheet_url");
+  const customColumns = watch("custom_columns");
+  const [fetchingHeaders, setFetchingHeaders] = useState(false);
+
+  const fetchHeaders = async () => {
+    if (!sheetUrl) {
+      toast.error("Please enter a Google Sheet URL first");
+      return;
+    }
+    setFetchingHeaders(true);
+    try {
+      const res = await fetch(`/api/workflows/fetch-sheet-headers?url=${encodeURIComponent(sheetUrl)}`);
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error || "Failed to fetch columns");
+      
+      const cols = d.headers ?? [];
+      setValue("custom_columns", cols, { shouldDirty: true });
+      
+      const lowerCols = cols.map((c: string) => c.toLowerCase());
+      const phoneIdx = lowerCols.findIndex((c: string) => c.includes("phone") || c.includes("mobile") || c.includes("whatsapp") || c.includes("number"));
+      const nameIdx = lowerCols.findIndex((c: string) => c.includes("name") || c.includes("full") || c.includes("lead"));
+      const emailIdx = lowerCols.findIndex((c: string) => c.includes("email") || c.includes("mail"));
+      
+      if (phoneIdx !== -1) setValue("phone_column", cols[phoneIdx], { shouldDirty: true });
+      if (nameIdx !== -1) setValue("name_column", cols[nameIdx], { shouldDirty: true });
+      if (emailIdx !== -1) setValue("email_column", cols[emailIdx], { shouldDirty: true });
+      
+      toast.success(`Successfully fetched ${cols.length} column headers!`);
+    } catch (err: any) {
+      toast.error(err.message || "An error occurred while fetching sheet headers");
+    } finally {
+      setFetchingHeaders(false);
+    }
+  };
   const templateName = watch("template_name");
 
   // Watch email preview values
@@ -493,10 +527,11 @@ export function LeadCaptureClient() {
             email_button_text: settings.email_button_text,
             email_button_url: settings.email_button_url,
             email_footer: settings.email_footer,
-            voice_enabled: !!settings.voice_enabled,
-            voice_agent_type: settings.voice_agent_type || "livekit",
-            voice_id: settings.voice_id || "anushka",
-            voice_prompt: settings.voice_prompt,
+            voice_enabled: settings.voice_enabled ?? false,
+            voice_agent_type: settings.voice_agent_type ?? "livekit",
+            voice_id: settings.voice_id ?? "anushka",
+            voice_prompt: settings.voice_prompt ?? "",
+            custom_columns: settings.custom_columns ?? [],
           });
         }
       }
@@ -869,15 +904,38 @@ export function LeadCaptureClient() {
                     <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
                       Google Sheet URL
                     </label>
-                    <input
-                      {...register("sheet_url")}
-                      placeholder="https://docs.google.com/spreadsheets/d/..."
-                      className="w-full px-3 py-2.5 bg-white border border-input rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                    />
+                    <div className="flex gap-2">
+                      <input
+                        {...register("sheet_url")}
+                        placeholder="https://docs.google.com/spreadsheets/d/..."
+                        className="flex-1 px-3 py-2.5 bg-white border border-input rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      />
+                      <button 
+                        type="button" 
+                        onClick={fetchHeaders} 
+                        disabled={fetchingHeaders} 
+                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold shrink-0 flex items-center gap-1.5 transition-colors"
+                      >
+                        {fetchingHeaders ? <Loader2 className="h-4 w-4 animate-spin" /> : "Fetch Columns"}
+                      </button>
+                    </div>
                     {errors.sheet_url && (
                       <p className="text-xs text-destructive">{errors.sheet_url.message}</p>
                     )}
                   </div>
+                  
+                  {customColumns && Array.isArray(customColumns) && customColumns.length > 0 && (
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Detected Column Variables</label>
+                      <div className="flex flex-wrap gap-1.5 bg-gray-100/40 border border-border rounded-lg p-2.5 max-h-32 overflow-y-auto">
+                        {customColumns.map((h: string) => (
+                          <span key={h} className="px-2 py-1 bg-white border border-border rounded text-[11px] font-medium text-gray-600 shadow-sm">
+                            {h}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="bg-gray-100/30 rounded-xl p-3 border border-border/50 space-y-3">
                     <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider block">
