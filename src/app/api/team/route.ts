@@ -121,9 +121,23 @@ export async function POST(req: NextRequest) {
 
     if (existingUser) {
       invitedUserId = existingUser.id;
+    } else {
+      // Send invite email and create auth user in Supabase FIRST to get their ID
+      try {
+        const { data: inviteData, error: inviteErr } = await admin.auth.admin.inviteUserByEmail(email, {
+          data: { full_name, workspace_id: workspaceId, role },
+          redirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/auth/callback?workspace=${workspaceId}`,
+        });
+        if (inviteErr) throw inviteErr;
+        
+        invitedUserId = inviteData?.user?.id ?? null;
+      } catch (inviteErr) {
+        console.warn("[team invite] Email invite failed:", inviteErr);
+        // If it fails, we fall back to creating the record with null so custom invite links can still work
+      }
     }
 
-    // Create member record
+    // Create member record with the proper user_id
     const { data: member, error: memberErr } = await admin
       .from("workspace_members")
       .insert({
@@ -141,19 +155,6 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (memberErr) throw memberErr;
-
-    // Send invite email (if Supabase email configured)
-    if (!invitedUserId) {
-      try {
-        await admin.auth.admin.inviteUserByEmail(email, {
-          data: { full_name, workspace_id: workspaceId, role },
-          redirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/auth/callback?workspace=${workspaceId}`,
-        });
-      } catch (inviteErr) {
-        console.warn("[team invite] Email invite failed:", inviteErr);
-        // Don't fail the request — member record is created
-      }
-    }
 
     return NextResponse.json({ member }, { status: 201 });
   } catch (err) {
