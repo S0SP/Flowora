@@ -939,9 +939,17 @@ export function LeadCaptureClient() {
                   )}
 
                   <div className="bg-gray-100/30 rounded-xl p-3 border border-border/50 space-y-3">
-                    <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider block">
-                      Column Headers mapping
-                    </span>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider block">
+                        Column Headers mapping
+                      </span>
+                    </div>
+                    <div className="bg-white/60 dark:bg-black/20 border border-gray-200/50 dark:border-white/5 rounded-lg p-2.5 flex gap-2">
+                      <Info className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <p className="text-[10px] text-gray-500 leading-relaxed font-medium">
+                        Type the <strong>exact column header name</strong> from your sheet (e.g. <code className="bg-white dark:bg-black px-1 py-0.5 rounded border border-gray-100 dark:border-gray-800">Phone Number</code>) that contains the phone, name, and email data. The system uses these to send the messages.
+                      </p>
+                    </div>
 
                     <div className="grid grid-cols-3 items-center gap-2">
                       <span className="text-xs text-gray-900 font-medium">Phone Header:</span>
