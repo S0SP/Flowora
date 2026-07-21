@@ -3,6 +3,25 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { encrypt, decrypt } from "@/lib/whatsapp/encryption";
 import { verifyPhoneNumber, registerPhoneNumber, subscribeWabaToApp } from "@/lib/whatsapp/meta-api";
 
+// ──────────────────────────────────────────────────────────────────────────────
+// Schema reference (raw_schema.sql):
+//
+//   channel_connections (
+//     id uuid, workspace_id uuid, type, label text, is_active boolean,
+//     config jsonb NOT NULL,          ← we store all non-secret config here
+//     secrets_enc bytea,              ← raw bytes; we DON'T use this for our
+//                                        hex-string token — we embed it in config
+//     registered_at timestamp,        ← TOP-LEVEL column (not inside config)
+//     subscribed_apps_at timestamp,   ← TOP-LEVEL column
+//     last_registration_error text,   ← TOP-LEVEL column
+//     created_at, updated_at
+//   )
+//
+// We keep the access token encrypted string inside config.access_token_enc so
+// it lives in the jsonb column we can query easily, while secrets_enc (bytea)
+// is left null for now (it would need raw bytes, not a hex string).
+// ──────────────────────────────────────────────────────────────────────────────
+
 export async function GET() {
   try {
     const supabase = await createClient();
@@ -23,13 +42,14 @@ export async function GET() {
 
     const { data: connection } = await admin
       .from("channel_connections")
-      .select("id, config, secrets_enc, is_active, last_registration_error")
+      .select("id, config, is_active, registered_at, last_registration_error")
       .eq("workspace_id", member.workspace_id)
       .eq("type", "whatsapp")
       .limit(1)
       .single();
 
-    if (!connection || !connection.secrets_enc?.access_token) {
+    // No config saved yet
+    if (!connection || !connection.config?.access_token_enc) {
       return NextResponse.json({
         reason: "no_config",
         connected: false
@@ -38,18 +58,25 @@ export async function GET() {
 
     let accessToken = "";
     try {
-      accessToken = decrypt(connection.secrets_enc.access_token);
+      accessToken = decrypt(connection.config.access_token_enc);
     } catch (e) {
       return NextResponse.json({
         reason: "token_corrupted",
         connected: false,
         needs_reset: true,
-        message: "The stored access token is corrupted or invalid."
+        message: "The stored access token is corrupted or invalid.",
+        config: {
+          phone_number_id: connection.config.phone_number_id,
+          waba_id: connection.config.waba_id,
+          verify_token: connection.config.verify_token,
+          registered_at: connection.registered_at,
+          last_registration_error: connection.last_registration_error
+        }
       });
     }
 
+    // Attempt live verify with Meta
     try {
-      // Verify with Meta API
       const phoneInfo = await verifyPhoneNumber({
         accessToken,
         phoneNumberId: connection.config.phone_number_id
@@ -62,8 +89,8 @@ export async function GET() {
           phone_number_id: connection.config.phone_number_id,
           waba_id: connection.config.waba_id,
           verify_token: connection.config.verify_token,
-          registered_at: connection.config.registered_at,
-          last_registration_error: connection.config.last_registration_error
+          registered_at: connection.registered_at,
+          last_registration_error: connection.last_registration_error
         }
       });
     } catch (e: any) {
@@ -75,8 +102,8 @@ export async function GET() {
           phone_number_id: connection.config.phone_number_id,
           waba_id: connection.config.waba_id,
           verify_token: connection.config.verify_token,
-          registered_at: connection.config.registered_at,
-          last_registration_error: connection.config.last_registration_error
+          registered_at: connection.registered_at,
+          last_registration_error: connection.last_registration_error
         }
       });
     }
@@ -114,24 +141,27 @@ export async function POST(req: Request) {
 
     const admin = await createAdminClient();
 
-    // Check existing
+    // Check existing row
     const { data: existing } = await admin
       .from("channel_connections")
-      .select("id, secrets_enc, config")
+      .select("id, config, registered_at, last_registration_error")
       .eq("workspace_id", member.workspace_id)
       .eq("type", "whatsapp")
       .limit(1)
       .single();
 
+    // Resolve the decrypted access token
     let decryptedAccessToken = "";
-    let finalAccessTokenEncrypted = existing?.secrets_enc?.access_token;
+    let newEncryptedToken: string | undefined;
 
-    if (access_token) {
-      decryptedAccessToken = access_token;
-      finalAccessTokenEncrypted = encrypt(access_token);
-    } else if (existing?.secrets_enc?.access_token) {
+    if (access_token && access_token.trim()) {
+      // User provided a new token
+      decryptedAccessToken = access_token.trim();
+      newEncryptedToken = encrypt(decryptedAccessToken);
+    } else if (existing?.config?.access_token_enc) {
+      // Reuse existing encrypted token
       try {
-        decryptedAccessToken = decrypt(existing.secrets_enc.access_token);
+        decryptedAccessToken = decrypt(existing.config.access_token_enc);
       } catch (e) {
         return NextResponse.json({ error: "Cannot reuse corrupted token. Please enter a new one." }, { status: 400 });
       }
@@ -154,8 +184,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Phone number not verified by Meta API" }, { status: 400 });
     }
 
-    let registeredAt = existing?.config?.registered_at;
-    let lastRegistrationError = null;
+    // Handle registration
+    let registeredAt: string | null = existing?.registered_at ?? null;
+    let lastRegistrationError: string | null = null;
     let registrationSkipped = true;
     let registered = !!registeredAt;
 
@@ -167,12 +198,12 @@ export async function POST(req: Request) {
           phoneNumberId: phone_number_id,
           pin
         });
-        
+
         await subscribeWabaToApp({
           accessToken: decryptedAccessToken,
           wabaId: waba_id
         });
-        
+
         registeredAt = new Date().toISOString();
         registered = true;
       } catch (e: any) {
@@ -182,22 +213,31 @@ export async function POST(req: Request) {
       }
     }
 
-    const configPayload = {
+    // Build the config jsonb — access_token_enc lives here
+    const configPayload: Record<string, any> = {
       phone_number_id,
       waba_id: waba_id || null,
       verify_token: verify_token || null,
-      registered_at: registeredAt,
-      last_registration_error: lastRegistrationError
+      // Carry forward existing encrypted token unless user gave a new one
+      access_token_enc: newEncryptedToken ?? existing?.config?.access_token_enc
     };
 
     if (existing) {
-      const { error } = await admin.from("channel_connections").update({
+      const updatePayload: Record<string, any> = {
         config: configPayload,
-        secrets_enc: { access_token: finalAccessTokenEncrypted },
         is_active: true,
-        last_registration_error: null
-      }).eq("id", existing.id);
-      
+        last_registration_error: lastRegistrationError,
+        updated_at: new Date().toISOString()
+      };
+      if (registeredAt) {
+        updatePayload.registered_at = registeredAt;
+      }
+
+      const { error } = await admin
+        .from("channel_connections")
+        .update(updatePayload)
+        .eq("id", existing.id);
+
       if (error) {
         return NextResponse.json({ error: `Database update error: ${error.message}` }, { status: 500 });
       }
@@ -207,10 +247,11 @@ export async function POST(req: Request) {
         type: "whatsapp",
         label: "WhatsApp",
         config: configPayload,
-        secrets_enc: { access_token: finalAccessTokenEncrypted },
-        is_active: true
+        is_active: true,
+        registered_at: registeredAt,
+        last_registration_error: lastRegistrationError
       });
-      
+
       if (error) {
         return NextResponse.json({ error: `Database insert error: ${error.message}` }, { status: 500 });
       }
@@ -221,7 +262,7 @@ export async function POST(req: Request) {
       registered,
       registration_skipped: registrationSkipped,
       registration_error: lastRegistrationError,
-      phone_info: { verified_name: "WhatsApp Account" }
+      phone_info: verified
     });
   } catch (error: any) {
     console.error("[whatsapp config POST]", error);

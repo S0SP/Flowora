@@ -75,6 +75,7 @@ export function WhatsAppConnectPanel() {
       const payload = await res.json();
 
       if (payload.reason === "no_config") {
+        // No credentials saved yet — clear everything
         setConfig(null);
         setPhoneNumberId("");
         setWabaId("");
@@ -85,28 +86,31 @@ export function WhatsAppConnectPanel() {
         setConnectionStatus("disconnected");
         setResetReason(null);
         setStatusMessage("");
-      } else if (payload.connected) {
-        setConfig(payload.config);
-        setPhoneNumberId(payload.config?.phone_number_id || "");
-        setWabaId(payload.config?.waba_id || "");
-        setAccessToken(MASKED_TOKEN);
-        setVerifyToken(payload.config?.verify_token || "");
-        setPin("");
-        setTokenEdited(false);
-        setConnectionStatus("connected");
-        setResetReason(null);
-        setStatusMessage("");
       } else {
-        setConfig(payload.config);
-        setPhoneNumberId(payload.config?.phone_number_id || "");
-        setWabaId(payload.config?.waba_id || "");
-        setAccessToken(MASKED_TOKEN);
-        setVerifyToken(payload.config?.verify_token || "");
+        // Credentials exist (connected OR meta_api_error OR token_corrupted)
+        // Always populate the form fields so the user can see what's saved
+        const cfg = payload.config ?? {};
+        setConfig(cfg);
+        setPhoneNumberId(cfg.phone_number_id || "");
+        setWabaId(cfg.waba_id || "");
+        setAccessToken(MASKED_TOKEN); // token is always masked for safety
+        setVerifyToken(cfg.verify_token || "");
         setPin("");
         setTokenEdited(false);
-        setConnectionStatus("disconnected");
-        setResetReason(payload.needs_reset ? "token_corrupted" : payload.reason === "meta_api_error" ? "meta_api_error" : null);
-        setStatusMessage(payload.message || "");
+
+        if (payload.connected) {
+          setConnectionStatus("connected");
+          setResetReason(null);
+          setStatusMessage("");
+        } else {
+          setConnectionStatus("disconnected");
+          setResetReason(
+            payload.needs_reset ? "token_corrupted"
+            : payload.reason === "meta_api_error" ? "meta_api_error"
+            : null
+          );
+          setStatusMessage(payload.message || "");
+        }
       }
       setRegistrationProbe(null);
     } catch (err) {
@@ -129,7 +133,9 @@ export function WhatsAppConnectPanel() {
       toast.error("Phone Number ID is required");
       return;
     }
-    if (!config && (!accessToken.trim() || accessToken === MASKED_TOKEN)) {
+    // Require token for initial setup OR if stored token is missing (old/broken row)
+    const noStoredToken = !config || !config.phone_number_id;
+    if (noStoredToken && (!accessToken.trim() || accessToken === MASKED_TOKEN)) {
       toast.error("Access Token is required for initial setup");
       return;
     }
@@ -144,12 +150,11 @@ export function WhatsAppConnectPanel() {
         pin: pin.trim() || null,
       };
 
+      // Only send the token if user explicitly edited it
+      // If config exists and token is still masked, the server will reuse
+      // the stored encrypted token — no need to block saving
       if (tokenEdited && accessToken !== MASKED_TOKEN && accessToken.trim()) {
         payload.access_token = accessToken.trim();
-      } else if (config) {
-        toast.error("Please re-enter or edit the Access Token to save changes");
-        setSaving(false);
-        return;
       }
 
       const res = await fetch("/api/whatsapp/config", {
@@ -551,7 +556,7 @@ export function WhatsAppConnectPanel() {
             )}
             <button
               onClick={handleTestConnection}
-              disabled={testing || !config}
+              disabled={testing || !config?.phone_number_id}
               className="flex items-center gap-1.5 px-4 py-2.5 border border-border bg-white hover:bg-gray-100 text-[13px] font-semibold text-gray-900 rounded-lg shadow-sm disabled:opacity-50"
             >
               {testing ? (

@@ -23,19 +23,19 @@ export async function GET() {
 
     const { data: connection } = await admin
       .from("channel_connections")
-      .select("id, config, secrets_enc")
+      .select("id, config")
       .eq("workspace_id", member.workspace_id)
       .eq("type", "whatsapp")
       .limit(1)
       .single();
 
-    if (!connection || !connection.secrets_enc?.access_token) {
+    if (!connection || !connection.config?.access_token_enc) {
       return NextResponse.json({ error: "No WhatsApp configuration found." }, { status: 400 });
     }
 
     let accessToken = "";
     try {
-      accessToken = decrypt(connection.secrets_enc.access_token);
+      accessToken = decrypt(connection.config.access_token_enc);
     } catch (e) {
       return NextResponse.json({ error: "Stored token is corrupted or invalid." }, { status: 400 });
     }
