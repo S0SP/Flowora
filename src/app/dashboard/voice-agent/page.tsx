@@ -147,6 +147,7 @@ function VoiceAgentPageContent({ initialVoice }: { initialVoice: string }) {
   const [currentCallId, setCurrentCallId] = useState<string | null>(null);
   const [playingVoice, setPlayingVoice] = useState<string | null>(null);
   const [systemPrompt, setSystemPrompt] = useState(DEFAULT_PROMPT);
+  const [callObjective, setCallObjective] = useState("");
   const [promptOpen, setPromptOpen] = useState(false);
   const [cleaning, setCleaning] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -209,6 +210,7 @@ function VoiceAgentPageContent({ initialVoice }: { initialVoice: string }) {
             if (s.voice_id) setSelectedVoice(s.voice_id);
             if (s.language_preset) setSelectedLang(s.language_preset);
             if (s.system_prompt?.trim()) setSystemPrompt(s.system_prompt.trim());
+            if (s.call_objective?.trim()) setCallObjective(s.call_objective.trim());
           }
         }
       } catch (e) {
@@ -244,6 +246,7 @@ function VoiceAgentPageContent({ initialVoice }: { initialVoice: string }) {
           sarvamLanguage: langPreset?.sarvamLang ?? "hi-IN",
           deepgramLanguage: langPreset?.deepgramLang ?? "hi",
           systemPrompt: systemPrompt.trim(),
+          callObjective: callObjective.trim(),
         }),
       });
       if (!res.ok) throw new Error("Save failed");
@@ -265,6 +268,7 @@ function VoiceAgentPageContent({ initialVoice }: { initialVoice: string }) {
       if (preset.agent_type) setAgentType(preset.agent_type);
       if (preset.voice_id) setSelectedVoice(preset.voice_id);
       if (preset.system_prompt) setSystemPrompt(preset.system_prompt);
+      if (preset.call_objective) setCallObjective(preset.call_objective);
       const cfg = preset.config || {};
       if (cfg.language_preset) setSelectedLang(cfg.language_preset);
       toast.success(`Loaded preset: ${preset.name} ✓`);
@@ -287,6 +291,7 @@ function VoiceAgentPageContent({ initialVoice }: { initialVoice: string }) {
           agentType,
           voiceId: selectedVoice,
           systemPrompt: systemPrompt.trim(),
+          callObjective: callObjective.trim(),
           languagePreset: selectedLang,
           sarvamLanguage: langPreset?.sarvamLang ?? "hi-IN",
           deepgramLanguage: langPreset?.deepgramLang ?? "hi",
@@ -320,6 +325,7 @@ function VoiceAgentPageContent({ initialVoice }: { initialVoice: string }) {
           agentType,
           voiceId: selectedVoice,
           systemPrompt: systemPrompt.trim(),
+          callObjective: callObjective.trim(),
           languagePreset: selectedLang,
           sarvamLanguage: langPreset?.sarvamLang ?? "hi-IN",
           deepgramLanguage: langPreset?.deepgramLang ?? "hi",
@@ -393,6 +399,7 @@ function VoiceAgentPageContent({ initialVoice }: { initialVoice: string }) {
           agentType,
           voiceId: selectedVoice,
           systemPrompt: finalPrompt,
+          voiceIntent: callObjective.trim(),
           languagePreset: selectedLang,
           sarvamLanguage: langPreset?.sarvamLang ?? "hi-IN",
           deepgramLanguage: langPreset?.deepgramLang ?? "hi",
@@ -814,10 +821,23 @@ function VoiceAgentPageContent({ initialVoice }: { initialVoice: string }) {
                   <textarea
                     value={systemPrompt}
                     onChange={e => setSystemPrompt(e.target.value)}
-                    rows={12}
+                    rows={8}
                     disabled={isInCall}
                     className="w-full px-3 py-3 rounded-xl bg-background border border-input text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-y font-mono leading-relaxed disabled:opacity-50"
                     placeholder="Enter your AI agent system prompt here…"
+                  />
+
+                  <div className="flex items-center gap-1.5 pt-3 text-xs text-muted-foreground">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Call Objective / Intent
+                  </div>
+                  <textarea
+                    value={callObjective}
+                    onChange={e => setCallObjective(e.target.value)}
+                    rows={3}
+                    disabled={isInCall}
+                    className="w-full px-3 py-3 rounded-xl bg-background border border-input text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-y font-mono leading-relaxed disabled:opacity-50"
+                    placeholder="E.g., Book a demo, qualify lead..."
                   />
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>{systemPrompt.length} characters</span>

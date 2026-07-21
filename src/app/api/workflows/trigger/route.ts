@@ -467,6 +467,39 @@ async function executeNode(opts: {
       const dograhUrl = process.env.DOGRAH_API_URL || "http://localhost:8000"
       const flowraSecret = process.env.DOGRAH_SECRET || process.env.DOGRAH_API_SECRET || "change-me-in-production"
 
+      const systemPrompt = sub(data.systemPrompt ?? "")
+      const callObjective = sub(data.callObjective ?? "")
+
+      const modelOverrides = agentType === "gemini"
+        ? {
+          is_realtime: true,
+          realtime: {
+            provider: "google_realtime",
+            model: "gemini-3.1-flash-live-preview",
+            voice: voiceId,
+            language: "en-US",
+          },
+        }
+        : {
+          is_realtime: false,
+          tts: {
+            provider: "sarvam",
+            voice: voiceId,
+            language: "hi-IN",
+          },
+          llm: {
+            provider: "groq",
+            model: "llama-3.3-70b-versatile",
+          },
+        }
+
+      const initialContext = {
+        system_prompt: systemPrompt,
+        first_message: "",
+        call_objective: callObjective,
+        model_overrides: modelOverrides,
+      }
+
       // 3. Initiate call via Dograh
       try {
         const dograhRes = await fetch(`${dograhUrl}/api/v1/telephony/initiate-call`, {
@@ -479,6 +512,7 @@ async function executeNode(opts: {
             telephony_provider: "voicelink",
             workflow_id: dograhWorkflowId,
             to_number: phone,
+            initial_context: initialContext,
           }),
         })
 

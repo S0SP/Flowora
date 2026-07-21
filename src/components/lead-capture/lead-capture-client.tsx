@@ -68,6 +68,7 @@ const schema = z.object({
   voice_agent_type: z.string().default("livekit"),
   voice_id: z.string().default("anushka"),
   voice_prompt: z.string().optional().nullable(),
+  voice_intent: z.string().optional().nullable(),
   custom_columns: z.any().optional().nullable(),
 });
 
@@ -352,8 +353,9 @@ export function LeadCaptureClient() {
     const preset = presets.find(p => p.id === presetId);
     if (preset) {
       setValue("voice_agent_type", preset.agent_type);
-      setValue("voice_id", preset.voice_id);
+      setValue("voice_id", preset.voice_id || "anushka");
       setValue("voice_prompt", preset.system_prompt);
+      setValue("voice_intent", preset.intent || "");
       toast.success(`Loaded voice preset: ${preset.name} ✓`);
     }
   };
@@ -420,6 +422,7 @@ export function LeadCaptureClient() {
       voice_agent_type: "livekit",
       voice_id: "anushka",
       voice_prompt: "You are an AI assistant for {{brand_name}}. You are calling a new lead named {{lead_name}}. Be helpful, keep it short, and remind them to check their email/whatsapp.",
+      voice_intent: "",
     },
   });
 
@@ -532,6 +535,7 @@ export function LeadCaptureClient() {
             voice_agent_type: settings.voice_agent_type ?? "livekit",
             voice_id: settings.voice_id ?? "anushka",
             voice_prompt: settings.voice_prompt ?? "",
+            voice_intent: settings.voice_intent ?? "",
             custom_columns: settings.custom_columns ?? [],
           });
         }
@@ -664,13 +668,15 @@ export function LeadCaptureClient() {
       const sheetFields = ["sheet_url", "phone_column", "name_column", "email_column", "delay_minutes"];
       const whatsappFields = ["template_name", "template_language"];
       const emailFields = ["email_subject", "email_logo_url", "email_brand_name", "email_title", "email_body", "email_button_text", "email_button_url", "email_footer"];
-      const voiceFields = ["voice_agent_type", "voice_id", "voice_prompt"];
-
+      
       const firstError = errorFields[0];
       if (sheetFields.includes(firstError)) setActiveTab("sheet");
       else if (whatsappFields.includes(firstError)) setActiveTab("whatsapp");
       else if (emailFields.includes(firstError)) setActiveTab("email_template");
-      else if (voiceFields.includes(firstError)) setActiveTab("voice");
+      else {
+        const voiceFields = ["voice_agent_type", "voice_id", "voice_prompt", "voice_intent"];
+        if (voiceFields.includes(firstError)) setActiveTab("voice");
+      }
     }
   };
 
@@ -814,7 +820,6 @@ export function LeadCaptureClient() {
             </div>
 
             {/* Tab navigation buttons */}
-            {/* Tab navigation buttons */}
             <div className="flex flex-wrap bg-gray-100/40 dark:bg-white/5 p-1 rounded-xl mb-4 border border-border/50 dark:border-[#27272A] text-[11px] font-medium gap-1">
               <button
                 onClick={() => setActiveTab("sheet")}
@@ -869,7 +874,7 @@ export function LeadCaptureClient() {
               >
                 <Headphones className="w-3.5 h-3.5 text-purple-500" />
                 Voice Agent
-                {hasError(["voice_agent_type", "voice_id", "voice_prompt"]) && (
+                {hasError(["voice_agent_type", "voice_id", "voice_prompt", "voice_intent"]) && (
                   <div className="w-1.5 h-1.5 rounded-full bg-destructive absolute top-1.5 right-1.5" />
                 )}
               </button>
@@ -1285,6 +1290,18 @@ export function LeadCaptureClient() {
                             </span>
                           ))}
                         </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-semibold text-gray-500 uppercase">
+                          Intent / Call Objective
+                        </label>
+                        <textarea
+                          {...register("voice_intent")}
+                          rows={3}
+                          placeholder="What is the goal of this call? (e.g. Schedule a demo, Qualify lead)"
+                          className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-[6px] text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary"
+                        />
                       </div>
                     </div>
                   )}

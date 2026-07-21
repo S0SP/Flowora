@@ -94,12 +94,14 @@ export async function POST(req: NextRequest) {
         const workspaceId: string = conn.workspace_id
 
         // Find or create contact
-        let { data: contact } = await admin
+        let { data: contactRows } = await admin
           .from("contacts")
           .select("id, full_name")
           .eq("workspace_id", workspaceId)
           .eq("phone", waId)
-          .single()
+          .limit(1)
+        
+        let contact = contactRows?.[0]
 
         if (!contact) {
           const { data: newContact } = await admin.from("contacts").insert({

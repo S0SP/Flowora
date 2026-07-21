@@ -39,16 +39,40 @@ export interface CreateNotificationParams {
 export async function createNotification(params: CreateNotificationParams): Promise<void> {
   try {
     const admin = await createAdminClient()
-    await admin.from('notifications').insert({
-      workspace_id: params.workspaceId,
-      user_id: params.userId ?? null,
-      type: params.type,
-      title: params.title,
-      body: params.body ?? null,
-      link: params.link ?? null,
-      metadata: params.metadata ?? {},
-      read: false,
+    
+    let userIds = [params.userId]
+    if (!params.userId) {
+      // fetch all active members
+      const { data: members } = await admin
+        .from('workspace_members')
+        .select('user_id')
+        .eq('workspace_id', params.workspaceId)
+      
+      if (members) {
+        userIds = members.map((m: any) => m.user_id)
+      }
+    }
+
+    const inserts = userIds.filter(Boolean).map(uid => {
+      const dataPayload = { ...(params.metadata || {}) }
+      if (params.link) {
+        dataPayload.link = params.link
+      }
+      
+      return {
+        workspace_id: params.workspaceId,
+        user_id: uid,
+        type: params.type,
+        title: params.title,
+        body: params.body ?? null,
+        data: dataPayload,
+      }
     })
+
+    if (inserts.length > 0) {
+      const { error } = await admin.from('notifications').insert(inserts)
+      if (error) console.error('[notifications] insert error', error)
+    }
   } catch (err) {
     console.error('[notifications] failed to create notification', err)
   }
@@ -61,10 +85,10 @@ export async function markAllRead(workspaceId: string, userId: string): Promise<
   const admin = await createAdminClient()
   await admin
     .from('notifications')
-    .update({ read: true })
+    .update({ read_at: new Date().toISOString() })
     .eq('workspace_id', workspaceId)
     .eq('user_id', userId)
-    .eq('read', false)
+    .is('read_at', null)
 }
 
 // Predefined notification helpers -------------------------------------------
@@ -135,6 +159,16 @@ export const Notify = {
       link: '/dashboard/inbox',
     }),
 
+  conversationAssignedToOther: (workspaceId: string, assignerId: string, assigneeName: string) =>
+    createNotification({
+      workspaceId,
+      userId: assignerId,
+      type: 'conversation_assigned',
+      title: 'Conversation Assigned',
+      body: `You assigned a conversation to ${assigneeName}.`,
+      link: '/dashboard/inbox',
+    }),
+
   ticketAssigned: (workspaceId: string, userId: string, assignerName: string, ticketSubject: string, ticketId: string) =>
     createNotification({
       workspaceId,
@@ -142,6 +176,16 @@ export const Notify = {
       type: 'ticket_assigned',
       title: 'Ticket Assigned',
       body: `${assignerName} assigned ticket "${ticketSubject}" to you.`,
+      link: `/dashboard/tickets/${ticketId}`,
+    }),
+
+  ticketAssignedToOther: (workspaceId: string, assignerId: string, assigneeName: string, ticketSubject: string, ticketId: string) =>
+    createNotification({
+      workspaceId,
+      userId: assignerId,
+      type: 'ticket_assigned',
+      title: 'Ticket Assigned',
+      body: `You assigned ticket "${ticketSubject}" to ${assigneeName}.`,
       link: `/dashboard/tickets/${ticketId}`,
     }),
 }

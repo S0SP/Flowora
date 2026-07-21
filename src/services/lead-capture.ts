@@ -487,6 +487,7 @@ export async function sendPendingLeads() {
             const initialContext = {
               system_prompt: systemPrompt || "",
               first_message: "",
+              call_objective: setting.voice_intent || "",
               model_overrides: modelOverrides,
             };
 

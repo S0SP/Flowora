@@ -20,6 +20,7 @@ export async function POST(req: NextRequest) {
       agentType = "livekit",
       voiceId = "anushka",
       systemPrompt,
+      voiceIntent,
       deepgramLanguage,
       sarvamLanguage,
       languagePreset,
@@ -104,11 +105,15 @@ export async function POST(req: NextRequest) {
           },
         };
 
-    const initialContext = {
+    const initialContext: Record<string, any> = {
       system_prompt: systemPrompt || "",
       first_message: "",
       model_overrides: modelOverrides,
     };
+    
+    if (voiceIntent) {
+      initialContext.call_objective = voiceIntent;
+    }
 
     const dograhRes = await fetch(`${dograhUrl}/api/v1/telephony/initiate-call`, {
       method: "POST",

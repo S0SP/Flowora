@@ -108,12 +108,13 @@ export async function POST(req: NextRequest) {
             const workspaceId = conn?.workspace_id;
             if (workspaceId) {
               // Find or create contact
-              let { data: contact } = await supabase
+              let { data: contactRows } = await supabase
                 .from("contacts")
                 .select("id")
                 .eq("workspace_id", workspaceId)
                 .eq("phone", phone)
-                .maybeSingle();
+                .limit(1);
+              let contact = contactRows?.[0];
 
               if (!contact) {
                 const { data: newContact } = await supabase.from("contacts").insert({
