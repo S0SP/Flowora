@@ -66,6 +66,8 @@ export async function POST(_req: Request, ctx: RouteContext) {
           role: invite.role,
           created_at: new Date().toISOString(),
           invited_by: null,
+          email: user.email || "",
+          full_name: user.user_metadata?.full_name || user.email?.split("@")[0] || "User",
         });
       if (memberErr) throw memberErr;
     }

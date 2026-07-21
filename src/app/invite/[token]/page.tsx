@@ -82,26 +82,26 @@ export default function InvitePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#FFFDF5] to-[#FFF8E1] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo / Brand */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 mb-2">
             <div className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center">
-              <span className="text-[18px] font-black text-foreground">F</span>
+              <span className="text-[18px] font-black text-primary-foreground">F</span>
             </div>
             <span className="text-[22px] font-black text-foreground">Flowra</span>
           </div>
         </div>
 
         {loading ? (
-          <div className="bg-white rounded-3xl shadow-xl border border-border/60 p-10 flex flex-col items-center gap-4">
+          <div className="bg-card text-card-foreground rounded-3xl shadow-xl border border-border/60 p-10 flex flex-col items-center gap-4">
             <Loader2 className="h-10 w-10 animate-spin text-primary" />
             <p className="text-[14px] text-muted-foreground">Loading invitation…</p>
           </div>
         ) : error ? (
-          <div className="bg-white rounded-3xl shadow-xl border border-border/60 p-10 flex flex-col items-center gap-4 text-center">
-            <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
+          <div className="bg-card text-card-foreground rounded-3xl shadow-xl border border-border/60 p-10 flex flex-col items-center gap-4 text-center">
+            <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
               <AlertTriangle className="h-8 w-8 text-red-500" />
             </div>
             <div>
@@ -110,14 +110,14 @@ export default function InvitePage() {
             </div>
             <button
               onClick={() => router.push("/")}
-              className="mt-2 px-6 py-2.5 bg-foreground text-white rounded-lg text-[14px] font-semibold hover:bg-foreground/90 transition-all"
+              className="mt-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-lg text-[14px] font-semibold hover:bg-primary/90 transition-all"
             >
               Go Home
             </button>
           </div>
         ) : success ? (
-          <div className="bg-white rounded-3xl shadow-xl border border-border/60 p-10 flex flex-col items-center gap-4 text-center">
-            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
+          <div className="bg-card text-card-foreground rounded-3xl shadow-xl border border-border/60 p-10 flex flex-col items-center gap-4 text-center">
+            <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
               <Check className="h-8 w-8 text-green-600" />
             </div>
             <div>
@@ -126,9 +126,9 @@ export default function InvitePage() {
             </div>
           </div>
         ) : info ? (
-          <div className="bg-white rounded-3xl shadow-xl border border-border/60 overflow-hidden">
+          <div className="bg-card text-card-foreground rounded-3xl shadow-xl border border-border/60 overflow-hidden">
             {/* Header band */}
-            <div className="bg-primary/10 border-b border-primary/20 px-7 py-6 text-center">
+            <div className="bg-primary/10 border-b border-border/60 px-7 py-6 text-center">
               <div className="w-14 h-14 rounded-2xl bg-primary/20 flex items-center justify-center mx-auto mb-3">
                 <Users className="h-7 w-7 text-primary" />
               </div>
@@ -141,7 +141,7 @@ export default function InvitePage() {
             {/* Details */}
             <div className="px-7 py-6 space-y-4">
               {info.alreadyMember && (
-                <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-[13px] text-amber-700">
+                <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-900/50 rounded-xl px-4 py-3 text-[13px] text-amber-700 dark:text-amber-400">
                   You&apos;re already a member of this workspace.
                 </div>
               )}
@@ -170,7 +170,7 @@ export default function InvitePage() {
               )}
 
               {!user && (
-                <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-[13px] text-blue-700">
+                <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-900/50 rounded-xl px-4 py-3 text-[13px] text-blue-700 dark:text-blue-400">
                   You&apos;ll need to sign in or create an account before joining.
                 </div>
               )}
@@ -178,7 +178,7 @@ export default function InvitePage() {
               <button
                 onClick={handleAccept}
                 disabled={accepting || info.alreadyMember}
-                className="w-full py-3 bg-foreground text-white rounded-xl text-[15px] font-bold hover:bg-foreground/90 disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-sm"
+                className="w-full py-3 bg-primary text-primary-foreground rounded-xl text-[15px] font-bold hover:bg-primary/90 disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-sm"
               >
                 {accepting ? (
                   <><Loader2 className="h-4 w-4 animate-spin" /> Joining…</>
