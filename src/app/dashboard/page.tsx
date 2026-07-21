@@ -32,7 +32,7 @@ export default function DashboardPage() {
   const [analytics, setAnalytics] = useState<Analytics | null>(null)
   const [loading, setLoading] = useState(true)
   const { rows, now } = usePresence()
-  const { workspace } = useWorkspace()
+  const { workspace, member } = useWorkspace()
 
   // Derive per-member status from last_seen_at
   const onlineRows = rows.filter(r => {
@@ -64,14 +64,18 @@ export default function DashboardPage() {
     messages: d.count,
   }))
 
+  const role = member?.role || "agent"
+  const isManagerOrAbove = ["owner", "admin", "manager"].includes(role)
+  const isAdminOrAbove = ["owner", "admin"].includes(role)
+
   const quickActions = [
-    { href: "/dashboard/workflows/builder", icon: Zap, label: "Create Workflow" },
-    { href: "/dashboard/broadcasts", icon: Megaphone, label: "New Broadcast" },
-    { href: "/dashboard/contacts", icon: Users, label: "Import Contacts" },
-    { href: "/dashboard/voice-agent", icon: Phone, label: "Start Voice Call" },
-    { href: "/dashboard/knowledge", icon: FileText, label: "Update Knowledge" },
-    { href: "/dashboard/chatbot", icon: Bot, label: "Configure Chatbot" },
-  ]
+    { href: "/dashboard/workflows/builder", icon: Zap, label: "Create Workflow", allowed: isManagerOrAbove },
+    { href: "/dashboard/broadcasts", icon: Megaphone, label: "New Broadcast", allowed: isManagerOrAbove },
+    { href: "/dashboard/contacts", icon: Users, label: "Import Contacts", allowed: isManagerOrAbove },
+    { href: "/dashboard/voice-agent", icon: Phone, label: "Start Voice Call", allowed: isAdminOrAbove },
+    { href: "/dashboard/knowledge", icon: FileText, label: "Update Knowledge", allowed: isManagerOrAbove },
+    { href: "/dashboard/chatbot", icon: Bot, label: "Configure Chatbot", allowed: isAdminOrAbove },
+  ].filter(a => a.allowed)
 
   const metrics = [
     { 
