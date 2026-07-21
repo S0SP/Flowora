@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
+function geminiLiveLanguage(languagePreset?: string, sarvamLanguage?: string) {
+  if (languagePreset?.startsWith("en")) return "en";
+  if (languagePreset === "hinglish") return "hi";
+  if (languagePreset) return languagePreset;
+  return sarvamLanguage?.slice(0, 2) || "hi";
+}
+
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
@@ -42,23 +49,38 @@ export async function POST(req: NextRequest) {
 
     // Place outbound call via Dograh Backend API
     const dograhUrl = process.env.DOGRAH_API_URL || "http://localhost:8000";
-    const flowraSecret = process.env.DOGRAH_SECRET || "change-me-in-production";
+    const flowraSecret =
+      process.env.DOGRAH_SECRET ||
+      process.env.DOGRAH_API_SECRET ||
+      "change-me-in-production";
     const dograhWorkflowId = parseInt(process.env.DOGRAH_WORKFLOW_ID || "1", 10);
+    const modelOverrides = agentType === "gemini"
+      ? {
+          is_realtime: true,
+          realtime: {
+            provider: "google_realtime",
+            model: "gemini-3.1-flash-live-preview",
+            voice: voiceId,
+            language: geminiLiveLanguage(languagePreset, sarvamLanguage),
+          },
+        }
+      : {
+          is_realtime: false,
+          tts: {
+            provider: "sarvam",
+            voice: voiceId,
+            language: sarvamLanguage || "hi-IN",
+          },
+          llm: {
+            provider: "groq",
+            model: "llama-3.3-70b-versatile",
+          },
+        };
 
     const initialContext = {
       system_prompt: systemPrompt || "",
       first_message: "",
-      model_overrides: {
-        tts: {
-          provider: agentType === "gemini" ? "google" : "sarvam",
-          voice: voiceId,
-          language: sarvamLanguage || "hi-IN",
-        },
-        llm: {
-          provider: agentType === "gemini" ? "google" : "groq",
-          model: agentType === "gemini" ? "gemini-2.0-flash-exp" : "llama-3.3-70b-versatile",
-        },
-      },
+      model_overrides: modelOverrides,
     };
 
     const dograhRes = await fetch(`${dograhUrl}/api/v1/telephony/initiate-call`, {

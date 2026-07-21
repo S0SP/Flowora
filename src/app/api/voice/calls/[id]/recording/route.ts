@@ -66,7 +66,9 @@ export async function GET(
     const dograhUrl =
       process.env.DOGRAH_API_URL || "http://localhost:8000";
     const flowraSecret =
-      process.env.DOGRAH_SECRET || "change-me-in-production";
+      process.env.DOGRAH_SECRET ||
+      process.env.DOGRAH_API_SECRET ||
+      "change-me-in-production";
 
     const dograhRes = await fetch(
       `${dograhUrl}/api/v1/recordings/workflow-run/${workflowRunId}`,

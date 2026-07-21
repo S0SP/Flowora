@@ -3,7 +3,10 @@ import { createAdminClient } from "@/lib/supabase/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const flowraSecret = process.env.DOGRAH_SECRET || "change-me-in-production";
+    const flowraSecret =
+      process.env.DOGRAH_SECRET ||
+      process.env.DOGRAH_API_SECRET ||
+      "change-me-in-production";
     const requestSecret = req.headers.get("X-Flowra-Secret");
     if (requestSecret !== flowraSecret) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
