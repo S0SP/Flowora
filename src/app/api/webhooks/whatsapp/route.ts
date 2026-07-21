@@ -12,10 +12,30 @@ export async function GET(req: NextRequest) {
   const token = searchParams.get("hub.verify_token")
   const challenge = searchParams.get("hub.challenge")
 
-  if (mode === "subscribe" && token === VERIFY_TOKEN) {
-    console.log("[WhatsApp Webhook] Verified")
-    return new NextResponse(challenge, { status: 200 })
+  if (mode === "subscribe" && token) {
+    // 1. Check if it matches the global ENV fallback
+    if (token === VERIFY_TOKEN) {
+      console.log("[WhatsApp Webhook] Verified via ENV token")
+      return new NextResponse(challenge, { status: 200 })
+    }
+
+    // 2. Check if any client has saved this verify_token in the database
+    const admin = await createAdminClient()
+    const { data: connection } = await admin
+      .from("channel_connections")
+      .select("id")
+      .eq("type", "whatsapp")
+      .filter("config->>verify_token", "eq", token)
+      .limit(1)
+      .maybeSingle()
+
+    if (connection) {
+      console.log(`[WhatsApp Webhook] Verified via DB for connection ${connection.id}`)
+      return new NextResponse(challenge, { status: 200 })
+    }
   }
+  
+  console.warn("[WhatsApp Webhook] Verification failed for token:", token)
   return new NextResponse("Forbidden", { status: 403 })
 }
 

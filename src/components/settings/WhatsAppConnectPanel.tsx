@@ -65,7 +65,7 @@ export function WhatsAppConnectPanel() {
 
   const webhookUrl =
     typeof window !== "undefined"
-      ? `${window.location.origin}/api/whatsapp/webhook`
+      ? `${window.location.origin}/api/webhook`
       : "";
 
   const fetchConfig = useCallback(async (wsId: string) => {
