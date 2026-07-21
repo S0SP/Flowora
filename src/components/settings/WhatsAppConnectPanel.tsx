@@ -311,24 +311,24 @@ export function WhatsAppConnectPanel() {
     <div className="max-w-[1200px] animate-in fade-in-50 duration-200">
       <div className="flex items-center justify-between mb-7">
         <div>
-          <h1 className="text-[22px] font-bold text-gray-900 mb-1">WhatsApp Business API</h1>
-          <p className="text-[14px] text-gray-500">Connect your Meta developer account to send and receive WhatsApp messages.</p>
+          <h1 className="text-[22px] font-bold text-foreground mb-1">WhatsApp Business API</h1>
+          <p className="text-[14px] text-muted-foreground">Connect your Meta developer account to send and receive WhatsApp messages.</p>
         </div>
         {connectionStatus === "connected" ? (
-          <span className="bg-emerald-100 text-emerald-700 px-3 py-1 text-xs font-bold rounded-full border border-emerald-200">Connected</span>
+          <span className="bg-emerald-500/15 text-emerald-400 dark:text-emerald-300 px-3 py-1 text-xs font-bold rounded-full border border-emerald-500/30">Connected</span>
         ) : (
-          <span className="bg-amber-100 text-amber-700 px-3 py-1 text-xs font-bold rounded-full border border-amber-200">Not Connected</span>
+          <span className="bg-amber-500/15 text-amber-500 dark:text-amber-400 px-3 py-1 text-xs font-bold rounded-full border border-amber-500/30">Not Connected</span>
         )}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
         <div className="space-y-6">
           {showResetBanner && (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 flex items-start gap-3">
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-5 flex items-start gap-3">
               <AlertTriangle className="size-5 text-amber-500 mt-0.5 shrink-0" />
               <div className="flex-1">
-                <h4 className="font-bold text-amber-800 text-[14px] mb-1">Stored token can&apos;t be decrypted</h4>
-                <p className="text-[13px] text-amber-700 leading-relaxed">{statusMessage}</p>
+                <h4 className="font-bold text-amber-500 text-[14px] mb-1">Stored token can&apos;t be decrypted</h4>
+                <p className="text-[13px] text-amber-500/80 leading-relaxed">{statusMessage}</p>
                 <button
                   onClick={handleReset}
                   disabled={resetting}
@@ -351,15 +351,21 @@ export function WhatsAppConnectPanel() {
           )}
 
           {config && (
-            <div className={`border rounded-xl p-5 ${isRegistered ? "bg-emerald-50/50 border-emerald-200" : "bg-amber-50/50 border-amber-200"}`}>
+            <div className={`border rounded-xl p-5 ${
+              isRegistered
+                ? "bg-emerald-500/10 border-emerald-500/30"
+                : "bg-amber-500/10 border-amber-500/30"
+            }`}>
               <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
                 <div className="flex items-center gap-2">
                   {isRegistered ? (
-                    <CheckCircle2 className="size-4 text-emerald-600 shrink-0" />
+                    <CheckCircle2 className="size-4 text-emerald-400 shrink-0" />
                   ) : (
-                    <AlertTriangle className="size-4 text-amber-600 shrink-0" />
+                    <AlertTriangle className="size-4 text-amber-400 shrink-0" />
                   )}
-                  <h4 className={`font-bold text-[14px] ${isRegistered ? "text-emerald-800" : "text-amber-800"}`}>
+                  <h4 className={`font-bold text-[14px] ${
+                    isRegistered ? "text-emerald-400" : "text-amber-400"
+                  }`}>
                     {isRegistered
                       ? "Registered — Meta will deliver events to Flowra"
                       : "Not registered — Meta will not deliver events"}
@@ -368,7 +374,7 @@ export function WhatsAppConnectPanel() {
                 <button
                   onClick={handleVerifyRegistration}
                   disabled={verifyingRegistration}
-                  className="flex items-center gap-1 px-2.5 py-1 border border-border bg-white hover:bg-gray-100 text-[12px] font-semibold text-gray-900 rounded-lg shadow-sm h-7"
+                  className="flex items-center gap-1 px-2.5 py-1 border border-border bg-card hover:bg-muted text-[12px] font-semibold text-foreground rounded-lg shadow-sm h-7"
                 >
                   {verifyingRegistration ? (
                     <Loader2 className="size-3 animate-spin" />
@@ -378,7 +384,7 @@ export function WhatsAppConnectPanel() {
                   Verify with Meta
                 </button>
               </div>
-              <p className="text-gray-500 text-xs leading-relaxed">
+              <p className="text-muted-foreground text-xs leading-relaxed">
                 {isRegistered ? (
                   <>
                     Subscribed since{" "}
@@ -389,7 +395,7 @@ export function WhatsAppConnectPanel() {
                   </>
                 ) : lastRegistrationError ? (
                   <>
-                    Last attempt failed with: <span className="text-red-600 font-semibold">&quot;{lastRegistrationError}&quot;</span>.
+                    Last attempt failed with: <span className="text-destructive font-semibold">&quot;{lastRegistrationError}&quot;</span>.
                     Enter the 6-digit PIN below and save to retry.
                   </>
                 ) : (
@@ -400,29 +406,29 @@ export function WhatsAppConnectPanel() {
               </p>
 
               {registrationProbe && (
-                <div className="mt-3 rounded-lg border border-border bg-white p-3 space-y-2 text-[11px] shadow-sm">
-                  <p className="font-semibold text-gray-900">
+                <div className="mt-3 rounded-lg border border-border bg-card p-3 space-y-2 text-[11px] shadow-sm">
+                  <p className="font-semibold text-foreground">
                     Diagnostic check status:{" "}
-                    <span className={registrationProbe.live ? "text-emerald-600 font-bold" : "text-amber-600 font-bold"}>
+                    <span className={registrationProbe.live ? "text-emerald-400 font-bold" : "text-amber-400 font-bold"}>
                       {registrationProbe.live ? "LIVE" : "NOT LIVE"}
                     </span>
                   </p>
-                  <ul className="grid grid-cols-2 gap-1.5 text-gray-500">
+                  <ul className="grid grid-cols-2 gap-1.5 text-muted-foreground">
                     {Object.entries(registrationProbe.checks).map(([k, v]) => (
                       <li key={k} className="flex items-center gap-1.5">
                         {v === true ? (
-                          <CheckCircle2 className="size-3.5 text-emerald-500 shrink-0" />
+                          <CheckCircle2 className="size-3.5 text-emerald-400 shrink-0" />
                         ) : v === false ? (
-                          <XCircle className="size-3.5 text-red-500 shrink-0" />
+                          <XCircle className="size-3.5 text-destructive shrink-0" />
                         ) : (
                           <span className="size-3.5 rounded-full border border-border shrink-0" />
                         )}
-                        <span className="font-mono">{k}</span>
+                        <span className="font-mono">{k.replace(/_/g, " ")}</span>
                       </li>
                     ))}
                   </ul>
                   {(registrationProbe.errors ?? []).length > 0 && (
-                    <ul className="pt-1.5 border-t border-border space-y-0.5 text-red-600 font-medium">
+                    <ul className="pt-1.5 border-t border-border space-y-1 text-destructive font-medium">
                       {registrationProbe.errors?.map((e, i) => (
                         <li key={i}>• {e}</li>
                       ))}
@@ -433,35 +439,35 @@ export function WhatsAppConnectPanel() {
             </div>
           )}
 
-          <div className="bg-white border border-border rounded-xl p-6 shadow-sm space-y-5">
-            <h3 className="text-[15px] font-semibold text-gray-900 border-b border-border pb-3">API Credentials</h3>
+          <div className="bg-card border border-border rounded-xl p-6 shadow-sm space-y-5">
+            <h3 className="text-[15px] font-semibold text-foreground border-b border-border pb-3">API Credentials</h3>
             
             <div className="space-y-1.5">
-              <label className="text-[13px] font-semibold text-gray-900">Phone Number ID</label>
+              <label className="text-[13px] font-semibold text-foreground">Phone Number ID</label>
               <input
                 type="text"
                 placeholder="e.g. 100234567890123"
                 value={phoneNumberId}
                 onChange={(e) => setPhoneNumberId(e.target.value)}
                 disabled={!canEditSettings}
-                className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-gray-900 focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-60 disabled:cursor-not-allowed bg-white"
+                className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-60 disabled:cursor-not-allowed bg-background"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[13px] font-semibold text-gray-900">WhatsApp Business Account ID</label>
+              <label className="text-[13px] font-semibold text-foreground">WhatsApp Business Account ID</label>
               <input
                 type="text"
                 placeholder="e.g. 100234567890456"
                 value={wabaId}
                 onChange={(e) => setWabaId(e.target.value)}
                 disabled={!canEditSettings}
-                className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-gray-900 focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-60 disabled:cursor-not-allowed bg-white"
+                className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-60 disabled:cursor-not-allowed bg-background"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[13px] font-semibold text-gray-900">Permanent Access Token</label>
+              <label className="text-[13px] font-semibold text-foreground">Permanent Access Token</label>
               <div className="relative">
                 <input
                   type={showToken ? "text" : "password"}
@@ -478,36 +484,36 @@ export function WhatsAppConnectPanel() {
                     }
                   }}
                   disabled={!canEditSettings}
-                  className="w-full border border-border rounded-lg px-3.5 py-2.5 pr-10 text-[14px] text-gray-900 focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-60 disabled:cursor-not-allowed bg-white font-mono"
+                  className="w-full border border-border rounded-lg px-3.5 py-2.5 pr-10 text-[14px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-60 disabled:cursor-not-allowed bg-background font-mono"
                 />
                 <button
                   type="button"
                   onClick={() => setShowToken(!showToken)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {showToken ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>
               </div>
               {config && !tokenEdited && (
-                <p className="text-[11px] text-gray-500">Token is masked for safety. Edit this field to supply a new one.</p>
+                <p className="text-[11px] text-muted-foreground">Token is masked for safety. Edit this field to supply a new one.</p>
               )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-[13px] font-semibold text-gray-900">Webhook Verify Token</label>
+                <label className="text-[13px] font-semibold text-foreground">Webhook Verify Token</label>
                 <input
                   type="text"
                   placeholder="Create custom verify token"
                   value={verifyToken}
                   onChange={(e) => setVerifyToken(e.target.value)}
                   disabled={!canEditSettings}
-                  className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-gray-900 focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-60 disabled:cursor-not-allowed bg-white"
+                  className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-60 disabled:cursor-not-allowed bg-background"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[13px] font-semibold text-gray-900">6-Digit Registration PIN</label>
+                <label className="text-[13px] font-semibold text-foreground">6-Digit Registration PIN</label>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -516,27 +522,27 @@ export function WhatsAppConnectPanel() {
                   value={pin}
                   onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
                   disabled={!canEditSettings}
-                  className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-gray-900 focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-60 disabled:cursor-not-allowed bg-white tracking-widest"
+                  className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-60 disabled:cursor-not-allowed bg-background tracking-widest"
                 />
               </div>
             </div>
-            <p className="text-[11px] text-gray-500 leading-relaxed">
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
               * The 6-digit verification PIN is configured in <strong>Meta Business Manager → WhatsApp Accounts → Phone Numbers</strong>. It is mandatory to receive inbound events on production numbers. Leave blank for test numbers.
             </p>
           </div>
 
-          <div className="bg-white border border-border rounded-xl p-6 shadow-sm space-y-3">
-            <h3 className="text-[15px] font-semibold text-gray-900">Webhook Configuration</h3>
-            <p className="text-[13px] text-gray-500">Configure the callback URL in your Meta Developer Console under WhatsApp Webhooks.</p>
+          <div className="bg-card border border-border rounded-xl p-6 shadow-sm space-y-3">
+            <h3 className="text-[15px] font-semibold text-foreground">Webhook Configuration</h3>
+            <p className="text-[13px] text-muted-foreground">Configure the callback URL in your Meta Developer Console under WhatsApp Webhooks.</p>
             <div className="flex gap-2">
               <input
                 readOnly
                 value={webhookUrl}
-                className="w-full border border-border rounded-lg px-3.5 py-2 text-[13px] bg-gray-100 text-gray-500 font-mono"
+                className="w-full border border-border rounded-lg px-3.5 py-2 text-[13px] bg-muted text-muted-foreground font-mono"
               />
               <button
                 onClick={handleCopyWebhookUrl}
-                className="flex items-center justify-center p-2 border border-border rounded-lg bg-white hover:bg-gray-100 text-gray-500 hover:text-gray-900 shrink-0 shadow-sm"
+                className="flex items-center justify-center p-2 border border-border rounded-lg bg-card hover:bg-muted text-muted-foreground hover:text-foreground shrink-0 shadow-sm"
                 title="Copy Webhook URL"
               >
                 <Copy className="size-4" />
@@ -549,7 +555,7 @@ export function WhatsAppConnectPanel() {
               <button
                 onClick={handleSave}
                 disabled={saving || !canEditSettings}
-                className="px-6 py-2.5 bg-primary hover:bg-primary/95 text-gray-900 font-semibold text-[14px] rounded-lg shadow-sm shadow-primary/20 disabled:opacity-50 transition-all"
+                className="px-6 py-2.5 bg-primary hover:bg-primary/95 text-primary-foreground font-semibold text-[14px] rounded-lg shadow-sm shadow-primary/20 disabled:opacity-50 transition-all"
               >
                 {saving ? "Saving..." : "Save Configuration"}
               </button>
@@ -557,11 +563,11 @@ export function WhatsAppConnectPanel() {
             <button
               onClick={handleTestConnection}
               disabled={testing || !config?.phone_number_id}
-              className="flex items-center gap-1.5 px-4 py-2.5 border border-border bg-white hover:bg-gray-100 text-[13px] font-semibold text-gray-900 rounded-lg shadow-sm disabled:opacity-50"
+              className="flex items-center gap-1.5 px-4 py-2.5 border border-border bg-card hover:bg-muted text-[13px] font-semibold text-foreground rounded-lg shadow-sm disabled:opacity-50"
             >
               {testing ? (
                 <>
-                  <Loader2 className="size-4 animate-spin text-gray-500" /> Testing...
+                  <Loader2 className="size-4 animate-spin text-muted-foreground" /> Testing...
                 </>
               ) : (
                 <>
@@ -573,7 +579,7 @@ export function WhatsAppConnectPanel() {
               <button
                 onClick={handleReset}
                 disabled={resetting}
-                className="flex items-center gap-1.5 px-4 py-2.5 border border-red-200 text-red-500 hover:text-red-700 bg-white hover:bg-red-50/50 rounded-lg text-[13px] font-semibold transition-colors"
+                className="flex items-center gap-1.5 px-4 py-2.5 border border-destructive/30 text-destructive hover:bg-destructive/10 rounded-lg text-[13px] font-semibold transition-colors"
               >
                 {resetting ? (
                   <>
@@ -592,8 +598,8 @@ export function WhatsAppConnectPanel() {
         </div>
 
         <div className="space-y-6">
-          <div className="bg-white border border-border rounded-xl p-6 shadow-sm">
-            <h3 className="font-bold text-gray-900 text-[15px] border-b border-border pb-3 mb-4">Setup Guide</h3>
+          <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
+            <h3 className="font-bold text-foreground text-[15px] border-b border-border pb-3 mb-4">Setup Guide</h3>
             
             <div className="space-y-3">
               {[
@@ -620,10 +626,10 @@ export function WhatsAppConnectPanel() {
               ].map((step) => {
                 const isOpen = openAccordion === step.id;
                 return (
-                  <div key={step.id} className="border border-border rounded-lg overflow-hidden bg-gray-100/20">
+                  <div key={step.id} className="border border-border rounded-lg overflow-hidden bg-muted/30">
                     <button
                       onClick={() => setOpenAccordion(isOpen ? null : step.id)}
-                      className="w-full flex items-center justify-between p-3.5 text-left text-[13px] font-semibold text-gray-900 hover:bg-gray-100/40 transition-colors"
+                      className="w-full flex items-center justify-between p-3.5 text-left text-[13px] font-semibold text-foreground hover:bg-muted/60 transition-colors"
                     >
                       <span className="flex items-center gap-2">
                         <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/20 text-[11px] font-bold text-primary">
@@ -631,10 +637,10 @@ export function WhatsAppConnectPanel() {
                         </span>
                         {step.title}
                       </span>
-                      <ChevronDown className={`size-4 text-gray-500 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                      <ChevronDown className={`size-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
                     </button>
                     {isOpen && (
-                      <div className="p-3.5 pt-0 text-[12px] text-gray-500 leading-relaxed border-t border-border/40 bg-white">
+                      <div className="p-3.5 pt-0 text-[12px] text-muted-foreground leading-relaxed border-t border-border/40 bg-card">
                         {step.desc}
                       </div>
                     )}

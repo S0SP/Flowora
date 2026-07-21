@@ -14,6 +14,12 @@ export async function GET(req: NextRequest) {
     
     try {
       const creds = await getWhatsAppCredentials(workspaceId, await createAdminClient())
+      if (!creds) {
+        return NextResponse.json(
+          { error: "WhatsApp is not configured. Please set up credentials in Settings → WhatsApp." },
+          { status: 400 }
+        )
+      }
       wabaId = creds.wabaId
       token = creds.accessToken
     } catch (e: any) {
@@ -26,7 +32,7 @@ export async function GET(req: NextRequest) {
 
     if (!wabaId || !token) {
       return NextResponse.json(
-        { error: "WhatsApp not configured. Add META_WABA_ID and META_ACCESS_TOKEN." },
+        { error: "WhatsApp credentials are incomplete. Please check Settings → WhatsApp." },
         { status: 400 }
       )
     }
