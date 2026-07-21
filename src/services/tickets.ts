@@ -137,6 +137,17 @@ export async function assignTicket(
     from_value: prev?.assigned_to ?? null,
     to_value: assigneeUserId,
   });
+
+  if (assigneeUserId !== actorUserId) {
+    const [{ data: ticket }, { data: assigner }] = await Promise.all([
+      supabase.from("tickets").select("subject").eq("id", ticketId).single(),
+      supabase.from("workspace_members").select("full_name, email").eq("user_id", actorUserId).eq("workspace_id", workspaceId).single()
+    ]);
+    const assignerName = assigner?.full_name ?? assigner?.email ?? "A team member";
+    const ticketSubject = ticket?.subject ?? "Unknown Ticket";
+    const { Notify } = await import("@/services/notifications");
+    await Notify.ticketAssigned(workspaceId, assigneeUserId, assignerName, ticketSubject, ticketId);
+  }
 }
 
 /** Change ticket status. */

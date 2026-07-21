@@ -20,6 +20,7 @@ export type NotificationType =
   | 'integration_error'
   | 'knowledge_indexed'
   | 'voice_clone_ready'
+  | 'ticket_assigned'
 
 export interface CreateNotificationParams {
   workspaceId: string
@@ -122,5 +123,25 @@ export const Notify = {
       title: 'Document indexed',
       body: `"${docName}" is now searchable in your knowledge base.`,
       link: '/dashboard/knowledge',
+    }),
+
+  conversationAssigned: (workspaceId: string, userId: string, assignerName: string) =>
+    createNotification({
+      workspaceId,
+      userId,
+      type: 'conversation_assigned',
+      title: 'Conversation Assigned',
+      body: `${assignerName} assigned a conversation to you.`,
+      link: '/dashboard/inbox',
+    }),
+
+  ticketAssigned: (workspaceId: string, userId: string, assignerName: string, ticketSubject: string, ticketId: string) =>
+    createNotification({
+      workspaceId,
+      userId,
+      type: 'ticket_assigned',
+      title: 'Ticket Assigned',
+      body: `${assignerName} assigned ticket "${ticketSubject}" to you.`,
+      link: `/dashboard/tickets/${ticketId}`,
     }),
 }

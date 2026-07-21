@@ -83,6 +83,20 @@ export async function POST(req: NextRequest) {
           .eq("workspace_id", workspaceId)
           .single();
         content = `Conversation assigned to ${member?.full_name ?? member?.email ?? "agent"}`;
+
+        // Send notification to the assignee if assigned by someone else
+        if (agentId !== userId) {
+          const { data: assigner } = await admin
+            .from("workspace_members")
+            .select("full_name, email")
+            .eq("user_id", userId)
+            .eq("workspace_id", workspaceId)
+            .single();
+          
+          const assignerName = assigner?.full_name ?? assigner?.email ?? "A team member";
+          const { Notify } = await import("@/services/notifications");
+          await Notify.conversationAssigned(workspaceId, agentId, assignerName);
+        }
       } else {
         content = "Conversation unassigned";
       }
