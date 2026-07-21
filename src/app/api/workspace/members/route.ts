@@ -17,25 +17,16 @@ export async function GET() {
       .eq("status", "active")
       .order("created_at")
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (!myMember) return NextResponse.json({ error: "No workspace" }, { status: 403 });
 
     const admin = await createAdminClient();
 
-    // Fetch members (direct columns now per 013 migration)
+    // Fetch members (use * to avoid missing column errors if partially migrated)
     const { data: members, error } = await admin
       .from("workspace_members")
-      .select(`
-        id,
-        user_id,
-        role,
-        status,
-        created_at,
-        full_name,
-        email,
-        avatar_url
-      `)
+      .select("*")
       .eq("workspace_id", myMember.workspace_id)
       .in("status", ["active", "pending", "invited"])
       .order("created_at", { ascending: true });
@@ -80,6 +71,9 @@ export async function GET() {
     return NextResponse.json({ members: result });
   } catch (err: any) {
     console.error("[members GET]", err);
-    return NextResponse.json({ error: err.message ?? "Internal error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal error", details: err instanceof Error ? err.message : String(err) },
+      { status: 500 }
+    );
   }
 }
