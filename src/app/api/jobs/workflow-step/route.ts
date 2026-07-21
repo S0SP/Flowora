@@ -269,12 +269,31 @@ async function executeNode(node: any, triggerData: any, workspaceId: string, adm
       const { sendTemplateMessage, sendTextMessage } = await import("@/lib/whatsapp/meta-api")
 
       if (template) {
+        // Resolve dynamic variables in template components
+        let paramsArray: any[] = []
+        if (Array.isArray(data.components)) {
+          const processed = data.components.map((c: any) => ({
+            ...c,
+            parameters: c.parameters?.map((p: any) => {
+              if (p.type === "text" && typeof p.text === "string") {
+                return { ...p, text: sub(p.text) }
+              }
+              return p
+            })
+          }))
+          const bodyComp = processed.find((c: any) => c.type === "body" || c.type === "BODY")
+          if (bodyComp && Array.isArray(bodyComp.parameters)) {
+            paramsArray = bodyComp.parameters.map((p: any) => p.text)
+          }
+        }
+
         await sendTemplateMessage({
           phoneNumberId: phoneNumId,
           accessToken: token,
           to: phone,
           templateName: template,
           language: data.templateLanguage ?? "en",
+          params: paramsArray.length > 0 ? paramsArray : undefined,
         })
       } else {
         await sendTextMessage({

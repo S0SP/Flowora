@@ -37,7 +37,7 @@ export async function getMetaTemplates(workspaceId: string) {
     try {
       const err = await res.json();
       if (err?.error?.message) errMsg = err.error.message;
-    } catch {}
+    } catch { }
     throw new Error(errMsg);
   }
 
@@ -72,9 +72,19 @@ export async function sendWhatsAppTemplate(
   workspaceId: string,
   phone: string,
   templateName: string,
-  templateLanguage: string
+  templateLanguage: string,
+  components?: any[]
 ) {
   const keys = await getMetaKeys(workspaceId);
+
+  const templatePayload: any = {
+    name: templateName,
+    language: { code: templateLanguage },
+  };
+
+  if (components && components.length > 0) {
+    templatePayload.components = components;
+  }
 
   const res = await fetch(`${META_API}/${keys.meta_phone_number_id}/messages`, {
     method: "POST",
@@ -86,10 +96,7 @@ export async function sendWhatsAppTemplate(
       messaging_product: "whatsapp",
       to: phone.replace("+", ""),
       type: "template",
-      template: {
-        name: templateName,
-        language: { code: templateLanguage },
-      },
+      template: templatePayload,
     }),
   });
 

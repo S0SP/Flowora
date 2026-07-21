@@ -444,19 +444,19 @@ export function LeadCaptureClient() {
       const res = await fetch(`/api/workflows/fetch-sheet-headers?url=${encodeURIComponent(sheetUrl)}`);
       const d = await res.json();
       if (!res.ok) throw new Error(d.error || "Failed to fetch columns");
-      
+
       const cols = d.headers ?? [];
       setValue("custom_columns", cols, { shouldDirty: true });
-      
+
       const lowerCols = cols.map((c: string) => c.toLowerCase());
       const phoneIdx = lowerCols.findIndex((c: string) => c.includes("phone") || c.includes("mobile") || c.includes("whatsapp") || c.includes("number"));
       const nameIdx = lowerCols.findIndex((c: string) => c.includes("name") || c.includes("full") || c.includes("lead"));
       const emailIdx = lowerCols.findIndex((c: string) => c.includes("email") || c.includes("mail"));
-      
+
       if (phoneIdx !== -1) setValue("phone_column", cols[phoneIdx], { shouldDirty: true });
       if (nameIdx !== -1) setValue("name_column", cols[nameIdx], { shouldDirty: true });
       if (emailIdx !== -1) setValue("email_column", cols[emailIdx], { shouldDirty: true });
-      
+
       toast.success(`Successfully fetched ${cols.length} column headers!`);
     } catch (err: any) {
       toast.error(err.message || "An error occurred while fetching sheet headers");
@@ -911,10 +911,10 @@ export function LeadCaptureClient() {
                         placeholder="https://docs.google.com/spreadsheets/d/..."
                         className="flex-1 px-3 py-2.5 bg-white border border-input rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                       />
-                      <button 
-                        type="button" 
-                        onClick={fetchHeaders} 
-                        disabled={fetchingHeaders} 
+                      <button
+                        type="button"
+                        onClick={fetchHeaders}
+                        disabled={fetchingHeaders}
                         className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold shrink-0 flex items-center gap-1.5 transition-colors"
                       >
                         {fetchingHeaders ? <Loader2 className="h-4 w-4 animate-spin" /> : "Fetch Columns"}
@@ -924,7 +924,7 @@ export function LeadCaptureClient() {
                       <p className="text-xs text-destructive">{errors.sheet_url.message}</p>
                     )}
                   </div>
-                  
+
                   {customColumns && Array.isArray(customColumns) && customColumns.length > 0 && (
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Detected Column Variables</label>
@@ -1302,8 +1302,8 @@ export function LeadCaptureClient() {
                   type="submit"
                   disabled={saving}
                   className={`px-6 py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-all ${isActive
-                      ? "bg-primary hover:bg-primary/95 text-primary-foreground"
-                      : "bg-slate-800 hover:bg-slate-700 text-white"
+                    ? "bg-primary hover:bg-primary/95 text-primary-foreground"
+                    : "bg-slate-800 hover:bg-slate-700 text-white"
                     }`}
                 >
                   {saving ? (
@@ -1349,8 +1349,8 @@ export function LeadCaptureClient() {
                   type="button"
                   onClick={() => setAutoRefresh((v) => !v)}
                   className={`text-[10px] px-2 py-1 rounded-lg border transition-all ${autoRefresh
-                      ? "bg-primary/10 text-primary border-primary/20"
-                      : "bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400 border-border dark:border-[#27272A]"
+                    ? "bg-primary/10 text-primary border-primary/20"
+                    : "bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400 border-border dark:border-[#27272A]"
                     }`}
                   title="Toggle 10s auto-refresh"
                 >

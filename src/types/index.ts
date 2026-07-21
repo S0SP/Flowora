@@ -91,6 +91,8 @@ export interface WhatsAppTemplate {
   name: string;
   language: string;
   display_name: string;
+  components?: any[];
+  body_text?: string;
 }
 
 export interface SendCampaignPayload {

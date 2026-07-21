@@ -28,7 +28,7 @@ export function interpolateCustomFields(text: string, customFields: Record<strin
 
   Object.entries(customFields).forEach(([key, value]) => {
     const cleanValue = value !== undefined && value !== null ? String(value) : "";
-    
+
     // Replace {{key}}
     const regexDouble = new RegExp(`\\{\\{${key}\\}\\}`, "gi");
     result = result.replace(regexDouble, cleanValue);
@@ -94,15 +94,15 @@ export async function syncActiveSheets() {
       try {
         console.log(`LeadCapture: syncing sheet for setting ${setting.id}`);
         const rows = await fetchGoogleSheetRows(setting.sheet_url);
-        
+
         const leadsToInsert = [];
 
         for (let i = 0; i < rows.length; i++) {
           const row = rows[i];
           const rawPhone = row[setting.phone_column];
-          
+
           if (!rawPhone) continue;
-          
+
           const phone = parsePhoneFromExcel(rawPhone);
           if (!isValidPhone(phone)) continue;
 
@@ -112,8 +112,8 @@ export async function syncActiveSheets() {
           // Extract all custom variables (any columns other than name, phone, email columns)
           const customFields: Record<string, any> = {};
           const standardCols = [
-            setting.phone_column?.toLowerCase(), 
-            setting.name_column?.toLowerCase(), 
+            setting.phone_column?.toLowerCase(),
+            setting.name_column?.toLowerCase(),
             setting.email_column?.toLowerCase()
           ].filter(Boolean);
 
@@ -233,13 +233,13 @@ export async function sendPendingLeads() {
         const { data: upsertedContact, error: contactError } = await supabase
           .from("contacts")
           .upsert(
-            { 
-              phone: lead.phone, 
-              name: lead.name, 
-              full_name: lead.name, 
-              email: lead.email, 
+            {
+              phone: lead.phone,
+              name: lead.name,
+              full_name: lead.name,
+              email: lead.email,
               custom_fields: customFields,
-              last_message_at: new Date().toISOString() 
+              last_message_at: new Date().toISOString()
             },
             { onConflict: "phone" }
           )
@@ -300,13 +300,25 @@ export async function sendPendingLeads() {
         // 2a. Send WhatsApp if enabled
         if (setting.whatsapp_enabled !== false) {
           if (setting.template_name) {
+            // Auto-map custom columns to WhatsApp template variables sequentially
+            // For example, the first custom column becomes {{1}}, the second {{2}}, etc.
+            const parameters = Object.values(customFields || {}).map(val => ({
+              type: "text",
+              text: val !== undefined && val !== null ? String(val) : ""
+            }));
+            
+            const components = parameters.length > 0 
+              ? [{ type: "body", parameters }] 
+              : undefined;
+
             const { ok, wamid, error } = await sendWhatsAppTemplate(
               lead.workspace_id,
               lead.phone,
               setting.template_name,
-              setting.template_language
+              setting.template_language,
+              components
             );
-            
+
             waSent = ok;
             waError = error;
             console.log(`LeadCapture: WhatsApp -> ${lead.phone} ok=${ok}${error ? ` error=${error}` : ` wamid=${wamid}`}`);
@@ -320,7 +332,7 @@ export async function sendPendingLeads() {
               status: ok ? "sent" : "failed",
               sent_at: new Date().toISOString(),
             });
-            
+
             await supabase.rpc("increment_message_count", { contact_id: upsertedContact.id });
           } else {
             waError = "WhatsApp template name is missing";
@@ -429,32 +441,32 @@ export async function sendPendingLeads() {
             // Place outbound call via Dograh Backend API
             const dograhUrl = process.env.DOGRAH_API_URL || "http://localhost:8000";
             const flowraSecret =
-                process.env.DOGRAH_SECRET ||
-                process.env.DOGRAH_API_SECRET ||
-                "change-me-in-production";
+              process.env.DOGRAH_SECRET ||
+              process.env.DOGRAH_API_SECRET ||
+              "change-me-in-production";
             const dograhWorkflowId = parseInt(process.env.DOGRAH_WORKFLOW_ID || "1", 10);
             const modelOverrides = agentType === "gemini"
               ? {
-                  is_realtime: true,
-                  realtime: {
-                    provider: "google_realtime",
-                    model: "gemini-3.1-flash-live-preview",
-                    voice: voiceId,
-                    language: geminiLiveLanguage(setting.sarvam_language),
-                  },
-                }
+                is_realtime: true,
+                realtime: {
+                  provider: "google_realtime",
+                  model: "gemini-3.1-flash-live-preview",
+                  voice: voiceId,
+                  language: geminiLiveLanguage(setting.sarvam_language),
+                },
+              }
               : {
-                  is_realtime: false,
-                  tts: {
-                    provider: "sarvam",
-                    voice: voiceId,
-                    language: setting.sarvam_language || "hi-IN",
-                  },
-                  llm: {
-                    provider: "groq",
-                    model: "llama-3.3-70b-versatile",
-                  },
-                };
+                is_realtime: false,
+                tts: {
+                  provider: "sarvam",
+                  voice: voiceId,
+                  language: setting.sarvam_language || "hi-IN",
+                },
+                llm: {
+                  provider: "groq",
+                  model: "llama-3.3-70b-versatile",
+                },
+              };
 
             const initialContext = {
               system_prompt: systemPrompt || "",

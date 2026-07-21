@@ -352,11 +352,16 @@ function GoogleSheetPanel({ data, onSave }: { data: any; onSave: (d: any) => voi
           </FieldWrap>
           <FieldWrap>
             <Label>Poll Interval Unit</Label>
-            <select className={selectCls} value={form.pollUnit} onChange={f("pollUnit")}>
-              <option value="seconds">Seconds</option>
-              <option value="minutes">Minutes</option>
-              <option value="hours">Hours</option>
-            </select>
+            <CustomSelect
+              className={selectCls}
+              value={form.pollUnit}
+              onValueChange={(val) => f("pollUnit")({ target: { value: val } } as any)}
+              options={[
+                { value: "seconds", label: "Seconds" },
+                { value: "minutes", label: "Minutes" },
+                { value: "hours", label: "Hours" }
+              ]}
+            />
           </FieldWrap>
         </div>
       </div>
@@ -488,12 +493,18 @@ function WhatsAppPanel({ data, onSave, availableVars }: { data: any; onSave: (d:
                   <Loader2 className="h-3 w-3 animate-spin" /> Loading templates…
                 </div>
               ) : (
-                <select className={selectCls} value={templateName} onChange={e => onTemplateChange(e.target.value)}>
-                  <option value="">— Select a template —</option>
-                  {templates.map((t: any) => (
-                    <option key={t.name} value={t.name}>{t.display_name ?? t.name} ({t.language})</option>
-                  ))}
-                </select>
+                <CustomSelect
+                  className={selectCls}
+                  value={templateName}
+                  onValueChange={onTemplateChange}
+                  options={[
+                    { value: "", label: "— Select a template —" },
+                    ...templates.map((t: any) => ({
+                      value: t.name,
+                      label: `${t.display_name ?? t.name} (${t.language})`
+                    }))
+                  ]}
+                />
               )}
             </FieldWrap>
             <FieldWrap>
@@ -750,34 +761,48 @@ function VoicePanel({ data, onSave, availableVars }: { data: any; onSave: (d: an
  </FieldWrap>
  <FieldWrap>
  <Label>Load Preset Settings</Label>
- <select className={selectCls} value={selectedPresetId} onChange={(e) => handleSelectPreset(e.target.value)}>
- <option value="">-- Select a Preset to Prefill --</option>
- {presets.map((p: any) => (
- <option key={p.id} value={p.id}>{p.name} ({p.agent_type === "gemini" ? "Gemini" : "LiveKit"})</option>
- ))}
- </select>
+ <CustomSelect
+   className={selectCls}
+   value={selectedPresetId}
+   onValueChange={handleSelectPreset}
+   options={[
+     { value: "", label: "-- Select a Preset to Prefill --" },
+     ...presets.map((p: any) => ({
+       value: p.id,
+       label: `${p.name} (${p.agent_type === "gemini" ? "Gemini" : "LiveKit"})`
+     }))
+   ]}
+ />
  </FieldWrap>
  <FieldWrap>
  <Label>Agent Engine</Label>
- <select className={selectCls} value={form.agentType} onChange={(e) => {
-   const val = e.target.value;
-   setForm(p => ({
-     ...p,
-     agentType: val,
-     voiceId: val === "gemini" ? "Zephyr" : "anushka"
-   }));
- }}>
- <option value="livekit">LiveKit + Sarvam TTS (Hindi/English)</option>
- <option value="gemini">Gemini Live (Multilingual)</option>
- </select>
+ <CustomSelect
+   className={selectCls}
+   value={form.agentType}
+   onValueChange={(val) => {
+     setForm(p => ({
+       ...p,
+       agentType: val,
+       voiceId: val === "gemini" ? "Zephyr" : "anushka"
+     }));
+   }}
+   options={[
+     { value: "livekit", label: "LiveKit + Sarvam TTS (Hindi/English)" },
+     { value: "gemini", label: "Gemini Live (Multilingual)" }
+   ]}
+ />
  </FieldWrap>
  <FieldWrap>
  <Label required>Voice</Label>
- <select className={selectCls} value={form.voiceId} onChange={f("voiceId")}>
- {Array.isArray(voices) && voices.map((v: any) => (
- <option key={v.id ?? v} value={v.id ?? v}>{v.name ?? v} {("style" in v) ? `· ${v.style}` : ""}</option>
- ))}
- </select>
+ <CustomSelect
+   className={selectCls}
+   value={form.voiceId}
+   onValueChange={(val) => f("voiceId")({ target: { value: val } } as any)}
+   options={Array.isArray(voices) ? voices.map((v: any) => ({
+     value: v.id ?? v,
+     label: `${v.name ?? v} ${("style" in v) ? `· ${v.style}` : ""}`
+   })) : []}
+ />
  </FieldWrap>
  <FieldWrap hint="Define what the AI agent should say and do on the call.">
  <div className="flex items-center justify-between mb-1.5">
@@ -892,19 +917,27 @@ function ConditionPanel({ data, onSave }: { data: any; onSave: (d: any) => void 
  <FieldWrap>
  <Label required>Field to Check</Label>
  <div className="flex gap-2">
- <select className={cn(selectCls, "flex-1")} value={field} onChange={e => setField(e.target.value)}>
- <option value="">— Select field —</option>
- {fieldOptions.map(f => <option key={f} value={f}>{f}</option>)}
- </select>
+ <CustomSelect
+   className={cn(selectCls, "flex-1")}
+   value={field}
+   onValueChange={setField}
+   options={[
+     { value: "", label: "— Select field —" },
+     ...fieldOptions.map(f => ({ value: f, label: f }))
+   ]}
+ />
  </div>
  <input className={cn(inputCls, "mt-2")} placeholder="Or type a custom field name" value={field} onChange={e => setField(e.target.value)} />
  </FieldWrap>
 
  <FieldWrap>
  <Label required>Operator</Label>
- <select className={selectCls} value={operator} onChange={e => setOperator(e.target.value)}>
- {operatorOptions.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
- </select>
+ <CustomSelect
+   className={selectCls}
+   value={operator}
+   onValueChange={setOperator}
+   options={operatorOptions.map(o => ({ value: o.v, label: o.l }))}
+ />
  </FieldWrap>
 
  {!["not_empty", "is_empty"].includes(operator) && (
@@ -1074,10 +1107,15 @@ function WebhookPanel({ data, onSave, workflowId }: { data: any; onSave: (d: any
 
         <FieldWrap>
           <Label>Method</Label>
-          <select className={selectCls} value={method} onChange={e => setMethod(e.target.value)}>
-            <option value="POST">POST</option>
-            <option value="GET">GET</option>
-          </select>
+          <CustomSelect
+            className={selectCls}
+            value={method}
+            onValueChange={setMethod}
+            options={[
+              { value: "POST", label: "POST" },
+              { value: "GET", label: "GET" }
+            ]}
+          />
         </FieldWrap>
 
         <FieldWrap hint="Optional custom headers as JSON object">
@@ -1158,13 +1196,21 @@ function ReminderPanel({ data, onSave }: { data: any; onSave: (d: any) => void }
  <div className="space-y-2">
  {reminders.map((r, i) => (
  <div key={i} className="flex items-center gap-2 bg-yellow-50 border border-yellow-200 rounded-xl px-3 py-2">
- <select className="text-[12px] bg-transparent font-semibold text-yellow-700 focus:outline-none" value={r.when} onChange={e => updateR(i, "when", e.target.value)}>
- {["5m", "15m", "30m", "1h", "3h", "6h", "12h", "1d", "2d", "3d", "7d"].map(w => <option key={w} value={w}>{w} before</option>)}
- </select>
- <select className="flex-1 text-[12px] bg-transparent focus:outline-none" value={r.template} onChange={e => updateR(i, "template", e.target.value)}>
- <option value="">— Template —</option>
- {templates.map((t: any) => <option key={t.name} value={t.name}>{t.display_name ?? t.name}</option>)}
- </select>
+ <CustomSelect
+   className="text-[12px] bg-transparent font-semibold text-yellow-700 focus:outline-none"
+   value={r.when}
+   onValueChange={(val) => updateR(i, "when", val)}
+   options={["5m", "15m", "30m", "1h", "3h", "6h", "12h", "1d", "2d", "3d", "7d"].map(w => ({ value: w, label: `${w} before` }))}
+ />
+ <CustomSelect
+   className="flex-1 text-[12px] bg-transparent focus:outline-none border-none min-w-[120px]"
+   value={r.template}
+   onValueChange={(val) => updateR(i, "template", val)}
+   options={[
+     { value: "", label: "— Template —" },
+     ...templates.map((t: any) => ({ value: t.name, label: t.display_name ?? t.name }))
+   ]}
+ />
  {reminders.length > 1 && <button type="button" onClick={() => removeR(i)} className="text-gray-500 hover:text-red-500"><Trash2 className="h-3 w-3" /></button>}
  </div>
  ))}
@@ -1750,12 +1796,17 @@ export default function WorkflowBuilderPage() {
  <div><Label required>Template Name</Label><input type="text" value={templateName} onChange={e => setTemplateName(e.target.value)} className={inputCls} placeholder="My Drip Workflow" required /></div>
  <div><Label>Description</Label><textarea value={templateDesc} onChange={e => setTemplateDesc(e.target.value)} className={cn(inputCls, "min-h-[80px]")} placeholder="Briefly describe what this does…" /></div>
  <div><Label>Category</Label>
- <select value={templateCat} onChange={e => setTemplateCat(e.target.value as any)} className={selectCls}>
- <option value="drip">Drip Campaign</option>
- <option value="automation">General Automation</option>
- <option value="reminder">Reminder / Alert</option>
- <option value="ads">Lead Gen / Ads</option>
- </select>
+ <CustomSelect
+   value={templateCat}
+   onValueChange={(val) => setTemplateCat(val as any)}
+   className={selectCls}
+   options={[
+     { value: "drip", label: "Drip Campaign" },
+     { value: "automation", label: "General Automation" },
+     { value: "reminder", label: "Reminder / Alert" },
+     { value: "ads", label: "Lead Gen / Ads" }
+   ]}
+ />
  </div>
  <div className="flex justify-end gap-2 pt-2">
  <button type="button" onClick={() => setShowSaveTemplateModal(false)} className="px-4 py-2 text-[13px] font-medium hover:bg-[var(--canvas-bg)] rounded-lg text-[var(--text-primary)]">Cancel</button>
