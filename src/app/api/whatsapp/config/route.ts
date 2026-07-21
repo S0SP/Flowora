@@ -23,7 +23,7 @@ export async function GET() {
 
     const { data: connection } = await admin
       .from("channel_connections")
-      .select("id, config, secrets_enc, is_active, last_error")
+      .select("id, config, secrets_enc, is_active, last_registration_error")
       .eq("workspace_id", member.workspace_id)
       .eq("type", "whatsapp")
       .limit(1)
@@ -194,7 +194,7 @@ export async function POST(req: Request) {
         config: configPayload,
         secrets_enc: { access_token: finalAccessTokenEncrypted },
         is_active: true,
-        last_error: null
+        last_registration_error: null
       }).eq("id", existing.id);
       
       if (error) {
