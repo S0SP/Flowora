@@ -148,7 +148,7 @@ export default function OnboardingPage() {
       })
       toast.success("🎉 Your workspace is live!")
       await new Promise(r => setTimeout(r, 800))
-      router.push("/dashboard")
+      window.location.href = "/dashboard"
     } catch (err: any) {
       toast.error(err.message)
     } finally {

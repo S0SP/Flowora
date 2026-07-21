@@ -78,6 +78,12 @@ export async function POST(_req: Request, ctx: RouteContext) {
       .update({ accepted_at: new Date().toISOString(), accepted_by: user.id })
       .eq("id", invite.id);
 
+    // Automatically complete onboarding for invited members so they go straight to the dashboard
+    await admin
+      .from("profiles")
+      .update({ onboarding_completed: true })
+      .eq("id", user.id);
+
     return NextResponse.json({
       success: true,
       workspace_id: invite.workspace_id,

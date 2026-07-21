@@ -58,7 +58,7 @@ export default function InvitePage() {
       if (!res.ok) throw new Error(data.error ?? "Failed to accept invite")
       setSuccess(true)
       setTimeout(() => {
-        router.push("/dashboard")
+        window.location.href = "/dashboard"
       }, 2000)
     } catch (err: any) {
       setError(err.message)
