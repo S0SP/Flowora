@@ -7,30 +7,21 @@ export const dynamic = "force-dynamic"
 export async function GET(req: NextRequest) {
   try {
     const { workspaceId } = await getTenant()
-    const admin = await createAdminClient()
+    const { getWhatsAppCredentials } = await import("@/lib/whatsapp/auth")
 
-    // Get workspace Meta credentials
-    const { data: conn } = await admin
-      .from("channel_connections")
-      .select("config, secrets_enc")
-      .eq("workspace_id", workspaceId)
-      .eq("type", "whatsapp")
-      .maybeSingle()
-
-    const config = conn?.config as any
-    const wabaId = config?.wabaId ?? config?.waba_id ?? process.env.META_WABA_ID ?? ""
+    let wabaId = ""
+    let token = ""
     
-    let token = process.env.META_ACCESS_TOKEN ?? ""
-    if (conn?.secrets_enc) {
-      try {
-        const { decrypt, parseSecrets } = await import("@/lib/crypto")
-        const secretsObj = parseSecrets(conn.secrets_enc)
-        if (secretsObj.accessToken) {
-          token = await decrypt(secretsObj.accessToken)
-        }
-      } catch (e) {
-        console.error("[templates GET] Failed to decrypt access token:", e)
-      }
+    try {
+      const creds = await getWhatsAppCredentials(workspaceId, await createAdminClient())
+      wabaId = creds.wabaId
+      token = creds.accessToken
+    } catch (e: any) {
+      console.error("[templates GET] Failed to get credentials:", e)
+      return NextResponse.json(
+        { error: e.message || "WhatsApp not configured." },
+        { status: 400 }
+      )
     }
 
     if (!wabaId || !token) {

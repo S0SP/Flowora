@@ -11,6 +11,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
+import { getWhatsAppCredentials } from "@/lib/whatsapp/auth";
 
 export const runtime = "nodejs";
 export const maxDuration = 300; // 5 min for large campaigns
@@ -27,15 +28,10 @@ export async function POST(req: NextRequest) {
     const admin = await createAdminClient();
 
     // Get WhatsApp connection for this workspace
-    const { data: conn } = await admin
-      .from("channel_connections")
-      .select("config")
-      .eq("workspace_id", workspaceId)
-      .eq("type", "whatsapp")
-      .single();
+    const credentials = await getWhatsAppCredentials(workspaceId, admin);
 
-    const phoneNumId = (conn?.config as any)?.phoneNumberId ?? process.env.META_PHONE_NUMBER_ID;
-    const token = (conn?.config as any)?.accessToken ?? process.env.META_ACCESS_TOKEN;
+    const phoneNumId = credentials?.phoneNumberId;
+    const token = credentials?.accessToken;
 
     if (!phoneNumId || !token) {
       await admin

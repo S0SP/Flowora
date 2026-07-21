@@ -1,7 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/server";
 import { sendWhatsAppText } from "./meta";
 
-export async function generateChatbotResponse(phone: string, incomingMessage: string, contactId: string) {
+export async function generateChatbotResponse(workspaceId: string, phone: string, incomingMessage: string, contactId: string) {
   try {
     const supabase = await createAdminClient();
 
@@ -9,6 +9,7 @@ export async function generateChatbotResponse(phone: string, incomingMessage: st
     const { data: settings, error: settingsError } = await supabase
       .from("chatbot_settings")
       .select("*")
+      .eq("workspace_id", workspaceId)
       .limit(1)
       .single();
 
@@ -269,7 +270,7 @@ export async function generateChatbotResponse(phone: string, incomingMessage: st
     console.log(`Chatbot: AI response generated: "${replyText.slice(0, 50)}..."`);
 
     // 4. Send response on WhatsApp
-    const { ok, wamid, error: waError } = await sendWhatsAppText(phone, replyText);
+    const { ok, wamid, error: waError } = await sendWhatsAppText(workspaceId, phone, replyText);
 
     // 5. Log chatbot outbound message in database messages history
     await supabase.from("messages").insert({

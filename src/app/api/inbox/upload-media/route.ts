@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/server"
 import { getTenant } from "@/lib/tenant"
+import { getWhatsAppCredentials } from "@/lib/whatsapp/auth"
 
 // POST /api/inbox/upload-media
 // Accepts a multipart/form-data with a `file` field.
@@ -37,15 +38,10 @@ export async function POST(req: NextRequest) {
 
     // Get workspace WhatsApp credentials
     const admin = await createAdminClient()
-    const { data: conn } = await admin
-      .from("channel_connections")
-      .select("config")
-      .eq("workspace_id", workspaceId)
-      .eq("type", "whatsapp")
-      .single()
+    const credentials = await getWhatsAppCredentials(workspaceId, admin)
 
-    const phoneNumId = (conn?.config as any)?.phoneNumberId ?? process.env.META_PHONE_NUMBER_ID
-    const token = (conn?.config as any)?.accessToken ?? process.env.META_ACCESS_TOKEN
+    const phoneNumId = credentials?.phoneNumberId
+    const token = credentials?.accessToken
 
     if (!phoneNumId || !token) {
       return NextResponse.json({ error: "WhatsApp credentials not configured" }, { status: 400 })

@@ -370,6 +370,8 @@ export async function agentReply(
 
 // ── Internal helper: send WhatsApp via workspace channel_connections ─────────
 
+import { getWhatsAppCredentials } from "@/lib/whatsapp/auth";
+
 async function _sendWhatsAppViaWorkspace(
   supabase: SupabaseAdmin,
   workspaceId: string,
@@ -379,42 +381,20 @@ async function _sendWhatsAppViaWorkspace(
   message: string,
   senderUserId?: string
 ) {
-  // Get workspace WhatsApp credentials
-  const { data: conn } = await supabase
-    .from("channel_connections")
-    .select("config, secrets_enc")
-    .eq("workspace_id", workspaceId)
-    .eq("type", "whatsapp")
-    .eq("is_active", true)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .single();
-
-  const cfg = conn?.config as Record<string, string> | null;
-  const phoneNumId = cfg?.phoneNumberId ?? cfg?.phone_number_id ?? process.env.META_PHONE_NUMBER_ID;
+  const credentials = await getWhatsAppCredentials(workspaceId, supabase);
   
-  let token = process.env.META_ACCESS_TOKEN;
-  if (conn?.secrets_enc) {
-    try {
-      const { decrypt, parseSecrets } = await import("@/lib/crypto")
-      const secretsObj = parseSecrets(conn.secrets_enc)
-      if (secretsObj.accessToken) {
-        token = await decrypt(secretsObj.accessToken)
-      }
-    } catch (e) {
-      console.error("[tickets] Failed to decrypt access token:", e)
-    }
-  }
-
   const { data: contact } = await supabase
     .from("contacts")
     .select("phone")
     .eq("id", contactId)
     .single();
 
-  if (!phoneNumId || !token || !contact?.phone) {
+  if (!credentials?.phoneNumberId || !credentials?.accessToken || !contact?.phone) {
     throw new Error("Missing WhatsApp credentials or contact phone");
   }
+
+  const phoneNumId = credentials.phoneNumberId;
+  const token = credentials.accessToken;
 
   const metaRes = await fetch(`https://graph.facebook.com/v18.0/${phoneNumId}/messages`, {
     method: "POST",

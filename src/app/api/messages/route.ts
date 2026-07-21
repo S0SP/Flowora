@@ -12,7 +12,17 @@ export async function POST(req: NextRequest) {
 
     const supabase = await createAdminClient();
 
-    const { ok, wamid, error } = await sendWhatsAppText(phone, message);
+    const { data: contact, error: contactError } = await supabase
+      .from("contacts")
+      .select("workspace_id")
+      .eq("id", contact_id)
+      .single();
+
+    if (contactError || !contact) {
+      return NextResponse.json({ error: "Contact not found" }, { status: 404 });
+    }
+
+    const { ok, wamid, error } = await sendWhatsAppText(contact.workspace_id, phone, message);
 
     if (!ok) {
       throw new Error(error ?? "Meta API failed");

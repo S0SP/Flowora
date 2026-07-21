@@ -1,15 +1,17 @@
 import { createAdminClient } from "@/lib/supabase/server";
+import { getWhatsAppCredentials } from "@/lib/whatsapp/auth";
 
 const META_API = "https://graph.facebook.com/v19.0";
 
-async function getMetaKeys() {
-  const supabase = await createAdminClient();
-  const { data } = await supabase.from("chatbot_settings").select("meta_access_token, meta_phone_number_id").single();
-  const token = data?.meta_access_token || process.env.META_ACCESS_TOKEN;
-  const phoneId = data?.meta_phone_number_id || process.env.META_PHONE_NUMBER_ID;
+async function getMetaKeys(workspaceId: string) {
+  const admin = await createAdminClient();
+  const credentials = await getWhatsAppCredentials(workspaceId, admin);
+
+  const token = credentials?.accessToken;
+  const phoneId = credentials?.phoneNumberId;
 
   if (!token || !phoneId) {
-    throw new Error("Meta API keys are missing in Settings (BYOK)");
+    throw new Error("Meta API keys are missing for this workspace");
   }
   return {
     meta_access_token: token,
@@ -17,8 +19,8 @@ async function getMetaKeys() {
   };
 }
 
-export async function initiateWhatsAppCall(phone: string) {
-  const keys = await getMetaKeys();
+export async function initiateWhatsAppCall(workspaceId: string, phone: string) {
+  const keys = await getMetaKeys(workspaceId);
 
   const res = await fetch(`${META_API}/${keys.meta_phone_number_id}/calls`, {
     method: "POST",
@@ -40,13 +42,13 @@ export async function initiateWhatsAppCall(phone: string) {
   };
 }
 
-
 export async function sendWhatsAppTemplate(
+  workspaceId: string,
   phone: string,
   templateName: string,
   templateLanguage: string
 ) {
-  const keys = await getMetaKeys();
+  const keys = await getMetaKeys(workspaceId);
 
   const res = await fetch(`${META_API}/${keys.meta_phone_number_id}/messages`, {
     method: "POST",
@@ -73,8 +75,8 @@ export async function sendWhatsAppTemplate(
   };
 }
 
-export async function sendWhatsAppText(phone: string, message: string) {
-  const keys = await getMetaKeys();
+export async function sendWhatsAppText(workspaceId: string, phone: string, message: string) {
+  const keys = await getMetaKeys(workspaceId);
 
   const res = await fetch(`${META_API}/${keys.meta_phone_number_id}/messages`, {
     method: "POST",
@@ -98,8 +100,8 @@ export async function sendWhatsAppText(phone: string, message: string) {
   };
 }
 
-export async function getWhatsAppSipCredentials() {
-  const keys = await getMetaKeys();
+export async function getWhatsAppSipCredentials(workspaceId: string) {
+  const keys = await getMetaKeys(workspaceId);
   const token = keys.meta_access_token;
   const phoneId = keys.meta_phone_number_id;
 

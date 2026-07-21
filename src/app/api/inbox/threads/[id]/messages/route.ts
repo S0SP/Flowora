@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/server"
 import { getTenant } from "@/lib/tenant"
+import { getWhatsAppCredentials } from "@/lib/whatsapp/auth"
 
 // GET /api/inbox/threads/[id]/messages
 export async function GET(
@@ -81,27 +82,9 @@ export async function POST(
 
     // Send via WhatsApp if not a note
     if (!isNote && contactPhone) {
-      const { data: conn } = await admin
-        .from("channel_connections")
-        .select("config, secrets_enc")
-        .eq("workspace_id", workspaceId)
-        .eq("type", "whatsapp")
-        .single()
-
-      const phoneNumId = (conn?.config as any)?.phoneNumberId ?? process.env.META_PHONE_NUMBER_ID
-      
-      let token = process.env.META_ACCESS_TOKEN
-      if (conn?.secrets_enc) {
-        try {
-          const { decrypt, parseSecrets } = await import("@/lib/crypto")
-          const secretsObj = parseSecrets(conn.secrets_enc)
-          if (secretsObj.accessToken) {
-            token = await decrypt(secretsObj.accessToken)
-          }
-        } catch (e) {
-          console.error("[inbox/messages] Failed to decrypt access token:", e)
-        }
-      }
+      const credentials = await getWhatsAppCredentials(workspaceId, admin)
+      const phoneNumId = credentials?.phoneNumberId
+      let token = credentials?.accessToken
 
       if (phoneNumId && token) {
         const to = contactPhone.replace(/\D/g, "")

@@ -88,6 +88,7 @@ export async function processScheduledCampaigns() {
         // 2. Loop and send messages
         for (const contact of upsertedContacts) {
           const { ok, wamid, error } = await sendWhatsAppTemplate(
+            campaign.workspace_id,
             contact.phone,
             campaign.template_name,
             campaign.template_language

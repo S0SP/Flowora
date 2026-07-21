@@ -57,7 +57,7 @@ export function CampaignSender() {
         toast.warning("No approved templates found. Get a template approved in Meta Business Manager first.");
       }
     } catch {
-      toast.error("Could not load templates. Check META_WABA_ID in your env.");
+      toast.error("Could not load templates. Check WhatsApp Configuration in Settings.");
       // Fallback to hello_world
       setTemplates([{ name: "hello_world", language: "en_US", display_name: "Hello World" }]);
     } finally {

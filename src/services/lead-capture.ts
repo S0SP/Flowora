@@ -301,6 +301,7 @@ export async function sendPendingLeads() {
         if (setting.whatsapp_enabled !== false) {
           if (setting.template_name) {
             const { ok, wamid, error } = await sendWhatsAppTemplate(
+              lead.workspace_id,
               lead.phone,
               setting.template_name,
               setting.template_language

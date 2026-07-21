@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { sendWhatsAppTemplate } from "@/services/meta";
 import { SendCampaignPayload } from "@/types";
+import { getTenant } from "@/lib/tenant";
 
 export async function POST(req: NextRequest) {
   try {
+    const { workspaceId } = await getTenant();
     const body: SendCampaignPayload = await req.json();
     const { campaign_name, template_name, template_language, contacts, scheduled_at } = body;
 
@@ -19,6 +21,7 @@ export async function POST(req: NextRequest) {
     const { data: campaign, error: campaignError } = await supabase
       .from("campaigns")
       .insert({
+        workspace_id: workspaceId,
         name: campaign_name,
         template_name,
         template_language,
@@ -47,8 +50,8 @@ export async function POST(req: NextRequest) {
     const { data: upsertedContacts } = await supabase
       .from("contacts")
       .upsert(
-        contacts.map((c) => ({ phone: c.phone, name: c.name ?? null, email: c.email ?? null })),
-        { onConflict: "phone", ignoreDuplicates: false }
+        contacts.map((c) => ({ workspace_id: workspaceId, phone: c.phone, name: c.name ?? null, email: c.email ?? null })),
+        { onConflict: "workspace_id, phone", ignoreDuplicates: false }
       )
       .select("id, phone");
 
@@ -61,6 +64,7 @@ export async function POST(req: NextRequest) {
 
     for (const contact of upsertedContacts) {
       const { ok, wamid, error } = await sendWhatsAppTemplate(
+        workspaceId,
         contact.phone,
         template_name,
         template_language

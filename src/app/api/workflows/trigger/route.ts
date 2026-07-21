@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/server"
 import { getTenant } from "@/lib/tenant"
+import { getWhatsAppCredentials } from "@/lib/whatsapp/auth"
 
 export const maxDuration = 120
 
@@ -326,16 +327,10 @@ async function executeNode(opts: {
 
   // Get WhatsApp credentials
   async function getWAConn() {
-    const { data: conn } = await admin
-      .from("channel_connections")
-      .select("config")
-      .eq("workspace_id", workspaceId)
-      .eq("type", "whatsapp")
-      .maybeSingle()
-    const cfg = conn?.config as any
+    const credentials = await getWhatsAppCredentials(workspaceId, admin)
     return {
-      phoneNumId: cfg?.phoneNumberId ?? cfg?.phone_number_id ?? process.env.META_PHONE_NUMBER_ID ?? "",
-      token:      cfg?.accessToken   ?? cfg?.access_token    ?? process.env.META_ACCESS_TOKEN   ?? "",
+      phoneNumId: credentials?.phoneNumberId ?? "",
+      token:      credentials?.accessToken   ?? "",
     }
   }
 

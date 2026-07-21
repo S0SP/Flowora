@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/server"
 import { generateRagResponse } from "@/services/rag"
 import { applyRoutingRules } from "@/app/api/inbox/routing/helper"
+import { getWhatsAppCredentials } from "@/lib/whatsapp/auth"
 
 const VERIFY_TOKEN = process.env.META_VERIFY_TOKEN ?? "flowora_webhook_verify"
 
@@ -233,6 +234,7 @@ export async function POST(req: NextRequest) {
         // ── AI Auto-Reply ─────────────────────────────────────────────────
         if (thread.ai_active && msg.type === "text" && content.trim()) {
           // Run AI reply asynchronously to not block webhook response
+          const credentials = await getWhatsAppCredentials(workspaceId, admin);
           handleAiReply({
             workspaceId,
             threadId: thread.id,
@@ -240,7 +242,7 @@ export async function POST(req: NextRequest) {
             toPhone: waId,
             userMessage: content,
             phoneNumberId,
-            accessToken: (conn.config as any)?.accessToken ?? process.env.META_ACCESS_TOKEN ?? "",
+            accessToken: credentials?.accessToken ?? "",
           }).catch(err => console.error("[WhatsApp AI Reply]", err))
         }
       }
