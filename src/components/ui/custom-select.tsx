@@ -34,13 +34,13 @@ export function CustomSelect({
     <SelectPrimitive.Root value={value} onValueChange={onValueChange}>
       <SelectPrimitive.Trigger
         className={cn(
-          "flex h-9 w-full items-center justify-between whitespace-nowrap rounded-[6px] border border-gray-200 bg-white px-3 py-2 text-xs shadow-sm ring-offset-background placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#10B981] disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+          "flex w-full items-center justify-between rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-gray-300 dark:focus:ring-gray-600 disabled:cursor-not-allowed disabled:opacity-50 text-gray-900 dark:text-gray-100",
           className
         )}
       >
         <SelectPrimitive.Value placeholder={placeholder} />
         <SelectPrimitive.Icon asChild>
-          <ChevronDown className="h-4 w-4 opacity-50" />
+          <ChevronDown className="h-3 w-3 opacity-50" />
         </SelectPrimitive.Icon>
       </SelectPrimitive.Trigger>
 
@@ -48,9 +48,9 @@ export function CustomSelect({
         <SelectPrimitive.Content
           position="popper"
           sideOffset={4}
-          className="relative z-[150] max-h-96 min-w-[8rem] overflow-hidden rounded-md border border-gray-200 bg-white text-popover-foreground shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2"
+          className="relative z-50 overflow-hidden rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-md animate-in fade-in-80"
         >
-          <SelectPrimitive.Viewport className="h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)] p-1">
+          <SelectPrimitive.Viewport className="p-1">
             {options.map((option, index) => {
               if ('options' in option) {
                 return (
@@ -62,7 +62,7 @@ export function CustomSelect({
                       <SelectPrimitive.Item
                         key={subOpt.value}
                         value={subOpt.value}
-                        className="relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-xs outline-none focus:bg-gray-50 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[state=checked]:font-semibold"
+                        className="relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-xs outline-none focus:bg-gray-100 dark:focus:bg-gray-700 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[state=checked]:font-semibold text-gray-900 dark:text-gray-100"
                       >
                         <SelectPrimitive.ItemText>{subOpt.label}</SelectPrimitive.ItemText>
                         <SelectPrimitive.ItemIndicator className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center text-[#10B981]">
@@ -78,7 +78,7 @@ export function CustomSelect({
                 <SelectPrimitive.Item
                   key={option.value}
                   value={option.value}
-                  className="relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-xs outline-none focus:bg-gray-50 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[state=checked]:font-semibold"
+                  className="relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-xs outline-none focus:bg-gray-100 dark:focus:bg-gray-700 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[state=checked]:font-semibold text-gray-900 dark:text-gray-100"
                 >
                   <SelectPrimitive.ItemText>{option.label}</SelectPrimitive.ItemText>
                   <SelectPrimitive.ItemIndicator className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center text-[#10B981]">

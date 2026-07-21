@@ -503,6 +503,7 @@ CREATE TABLE public.message_templates (
     meta_template_id text,
     quality_score text,
     header_media_url text,
+    rejection_reason text,
     created_at timestamp with time zone,
     updated_at timestamp with time zone
 );
