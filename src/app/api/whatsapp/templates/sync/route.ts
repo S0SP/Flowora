@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient, createAdminClient } from "@/lib/supabase/server"
-import { getWhatsAppCredentials } from "@/lib/whatsapp/auth"
 import { getTenant } from "@/lib/tenant"
+import { getMetaTemplates } from "@/services/meta"
 
 export const dynamic = "force-dynamic"
 
@@ -17,41 +17,9 @@ export async function POST(_req: NextRequest) {
 
     const { workspaceId } = await getTenant()
     const admin = await createAdminClient()
-    const creds = await getWhatsAppCredentials(workspaceId, admin)
 
-    if (!creds) {
-      return NextResponse.json(
-        { error: "WhatsApp not configured. Please save credentials in Settings → WhatsApp first." },
-        { status: 400 }
-      )
-    }
-
-    const { accessToken, wabaId } = creds
-
-    if (!wabaId) {
-      return NextResponse.json(
-        { error: "WhatsApp Business Account ID (WABA ID) is not configured." },
-        { status: 400 }
-      )
-    }
-
-    // Fetch all templates from Meta
-    const url = `https://graph.facebook.com/v21.0/${wabaId}/message_templates?limit=250&fields=id,name,status,language,category,quality_score,components,rejection_reason`
-    const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    })
-
-    if (!res.ok) {
-      let errMsg = `Meta API error: ${res.status}`
-      try {
-        const err = await res.json()
-        if (err?.error?.message) errMsg = err.error.message
-      } catch {}
-      return NextResponse.json({ error: errMsg }, { status: 502 })
-    }
-
-    const raw = await res.json()
-    const metaTemplates: any[] = raw.data ?? []
+    // Fetch all templates from Meta using the meta service
+    const metaTemplates = await getMetaTemplates(workspaceId);
 
     let inserted = 0
     let updated = 0

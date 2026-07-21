@@ -16,7 +16,33 @@ async function getMetaKeys(workspaceId: string) {
   return {
     meta_access_token: token,
     meta_phone_number_id: phoneId,
+    waba_id: credentials?.wabaId,
   };
+}
+
+export async function getMetaTemplates(workspaceId: string) {
+  const keys = await getMetaKeys(workspaceId);
+
+  if (!keys.waba_id) {
+    throw new Error("WhatsApp Business Account ID (WABA ID) is not configured.");
+  }
+
+  const url = `${META_API}/${keys.waba_id}/message_templates?limit=250&fields=id,name,status,language,category,quality_score,components,rejection_reason`;
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${keys.meta_access_token}` },
+  });
+
+  if (!res.ok) {
+    let errMsg = `Meta API error: ${res.status}`;
+    try {
+      const err = await res.json();
+      if (err?.error?.message) errMsg = err.error.message;
+    } catch {}
+    throw new Error(errMsg);
+  }
+
+  const raw = await res.json();
+  return raw.data ?? [];
 }
 
 export async function initiateWhatsAppCall(workspaceId: string, phone: string) {
