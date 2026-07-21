@@ -86,7 +86,7 @@ export function WhatsAppConnectPanel() {
         setResetReason(null);
         setStatusMessage("");
       } else if (payload.connected) {
-        setConfig(payload);
+        setConfig(payload.config);
         setPhoneNumberId(payload.config?.phone_number_id || "");
         setWabaId(payload.config?.waba_id || "");
         setAccessToken(MASKED_TOKEN);
@@ -97,7 +97,7 @@ export function WhatsAppConnectPanel() {
         setResetReason(null);
         setStatusMessage("");
       } else {
-        setConfig(payload);
+        setConfig(payload.config);
         setPhoneNumberId(payload.config?.phone_number_id || "");
         setWabaId(payload.config?.waba_id || "");
         setAccessToken(MASKED_TOKEN);

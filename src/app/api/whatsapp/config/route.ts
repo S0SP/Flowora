@@ -50,13 +50,14 @@ export async function GET() {
 
     try {
       // Verify with Meta API
-      await verifyPhoneNumber({
+      const phoneInfo = await verifyPhoneNumber({
         accessToken,
         phoneNumberId: connection.config.phone_number_id
       });
 
       return NextResponse.json({
         connected: true,
+        phone_info: phoneInfo,
         config: {
           phone_number_id: connection.config.phone_number_id,
           waba_id: connection.config.waba_id,
