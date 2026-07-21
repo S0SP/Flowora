@@ -430,31 +430,94 @@ async function executeNode(opts: {
       const phone = sub(data.toPhone ?? triggerData.phone ?? "").replace(/\D/g, "")
       if (!phone) return { skipped: "no phone number" }
 
-      // Fetch global voice settings for language presets
-      const { data: vSettings } = await admin
-        .from("voice_agent_settings")
-        .select("*")
+      const agentType = data.agentType ?? "livekit"
+      const voiceId = data.voiceId ?? "anushka"
+
+      // 1. Fetch channel connection to get dograhWorkflowId
+      const { data: voiceConn } = await admin
+        .from("channel_connections")
+        .select("config")
         .eq("workspace_id", workspaceId)
+        .eq("type", "voice")
         .maybeSingle()
 
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
-      const res = await fetch(`${baseUrl}/api/voice/dial`, {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({
-          toNumber:         phone,
-          agentType:        data.agentType    ?? vSettings?.agent_type ?? "livekit",
-          voiceId:          data.voiceId      ?? vSettings?.voice_id ?? "anushka",
-          systemPrompt:     data.systemPrompt ?? vSettings?.system_prompt ?? "",
-          callObjective:    data.callObjective ?? vSettings?.call_objective ?? "",
-          deepgramLanguage: vSettings?.deepgram_language ?? "hi",
-          sarvamLanguage:   vSettings?.sarvam_language ?? "hi-IN",
-          languagePreset:   vSettings?.language_preset ?? "hinglish",
-        }),
-      })
-      const result = await res.json()
-      if (!res.ok) throw new Error(result?.error ?? "Voice dial failed")
-      return { called: true, callId: result.callId, phone }
+      let dograhWorkflowId = parseInt(process.env.DOGRAH_WORKFLOW_ID || "1", 10)
+      if (voiceConn?.config?.dograhWorkflowId) {
+        const parsedId = parseInt(voiceConn.config.dograhWorkflowId, 10)
+        if (!isNaN(parsedId)) {
+          dograhWorkflowId = parsedId
+        }
+      }
+
+      // 2. Insert call record into `voice_calls`
+      // Try to find a workspace owner or at least a member to associate the call with
+      const { data: member } = await admin
+        .from("workspace_members")
+        .select("user_id")
+        .eq("workspace_id", workspaceId)
+        .limit(1)
+        .maybeSingle()
+
+      let dialUserId = member?.user_id
+
+      let callRecordId = null
+      let roomName = ""
+      let sipCallId = ""
+
+      const dograhUrl = process.env.DOGRAH_API_URL || "http://localhost:8000"
+      const flowraSecret = process.env.DOGRAH_SECRET || process.env.DOGRAH_API_SECRET || "change-me-in-production"
+
+      // 3. Initiate call via Dograh
+      try {
+        const dograhRes = await fetch(`${dograhUrl}/api/v1/telephony/initiate-call`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${flowraSecret}`
+          },
+          body: JSON.stringify({
+            telephony_provider: "voicelink",
+            workflow_id: dograhWorkflowId,
+            to_number: phone,
+          }),
+        })
+
+        if (!dograhRes.ok) {
+          const errText = await dograhRes.text()
+          throw new Error(`Dograh API error: ${errText}`)
+        }
+
+        const dograhData = await dograhRes.json()
+        roomName = `run-${dograhData.workflow_run_id}`
+        sipCallId = String(dograhData.workflow_run_id)
+      } catch (err: any) {
+        throw new Error(err.message ?? "Voice dial failed")
+      }
+
+      // 4. Update the DB call record now that we have the roomName and sipCallId
+      if (dialUserId) {
+        try {
+          const { data: callRecord } = await admin
+            .from("voice_calls")
+            .insert({
+              user_id: dialUserId,
+              phone_number: phone,
+              agent_type: agentType,
+              voice_id: voiceId,
+              status: "ringing",
+              livekit_room_name: roomName,
+              livekit_sip_call_id: sipCallId,
+            })
+            .select("id")
+            .single()
+            
+          callRecordId = callRecord?.id
+        } catch (recErr) {
+          console.warn("[workflow] could not write voice_calls record:", recErr)
+        }
+      }
+
+      return { called: true, callId: callRecordId, phone }
     }
 
     // ── Delay — handled in main loop ────────────────────────────────────────

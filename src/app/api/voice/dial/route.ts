@@ -53,7 +53,34 @@ export async function POST(req: NextRequest) {
       process.env.DOGRAH_SECRET ||
       process.env.DOGRAH_API_SECRET ||
       "change-me-in-production";
-    const dograhWorkflowId = parseInt(process.env.DOGRAH_WORKFLOW_ID || "1", 10);
+      
+    // Fetch workspace_id for the user
+    const { data: member } = await supabase
+      .from("workspace_members")
+      .select("workspace_id")
+      .eq("user_id", user.id)
+      .limit(1)
+      .maybeSingle();
+
+    let dograhWorkflowId = parseInt(process.env.DOGRAH_WORKFLOW_ID || "1", 10);
+
+    if (member?.workspace_id) {
+      // Fetch voice channel connection to get Dograh Workflow ID
+      const { data: voiceConn } = await supabase
+        .from("channel_connections")
+        .select("config")
+        .eq("workspace_id", member.workspace_id)
+        .eq("type", "voice")
+        .maybeSingle();
+
+      if (voiceConn?.config?.dograhWorkflowId) {
+        const parsedId = parseInt(voiceConn.config.dograhWorkflowId, 10);
+        if (!isNaN(parsedId)) {
+          dograhWorkflowId = parsedId;
+        }
+      }
+    }
+
     const modelOverrides = agentType === "gemini"
       ? {
           is_realtime: true,

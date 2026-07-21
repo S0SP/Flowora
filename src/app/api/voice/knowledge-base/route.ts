@@ -13,10 +13,38 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { query, workspaceId, limit = 4 } = body;
+    let { query, workspaceId, phoneNumber, limit = 4 } = body;
 
-    if (!query || !workspaceId) {
-      return NextResponse.json({ error: "query and workspaceId are required" }, { status: 400 });
+    if (!query) {
+      return NextResponse.json({ error: "query is required" }, { status: 400 });
+    }
+    
+    const admin = await createAdminClient();
+
+    // If workspaceId is not provided, try to resolve it from the incoming phone number (inbound route)
+    if (!workspaceId && phoneNumber) {
+      // Find the workspace where voice connection dograhPhoneNumber matches this incoming number
+      const { data: connections } = await admin
+        .from("channel_connections")
+        .select("workspace_id, config")
+        .eq("type", "voice");
+
+      if (connections) {
+        const matchingConn = connections.find(c => {
+          if (!c.config?.dograhPhoneNumber) return false;
+          // Basic normalization for matching
+          const normalize = (p: string) => p.replace(/\D/g, "");
+          return normalize(c.config.dograhPhoneNumber) === normalize(phoneNumber);
+        });
+        
+        if (matchingConn) {
+          workspaceId = matchingConn.workspace_id;
+        }
+      }
+    }
+
+    if (!workspaceId) {
+       return NextResponse.json({ error: "workspaceId or mapped phoneNumber is required" }, { status: 400 });
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
@@ -50,7 +78,6 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Query similarity on public.knowledge_chunks
-    const admin = await createAdminClient();
     const { data: chunks, error: matchErr } = await admin.rpc("match_knowledge_chunks", {
       query_embedding: queryEmbedding,
       workspace_id_param: workspaceId,

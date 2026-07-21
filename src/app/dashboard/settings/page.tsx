@@ -84,6 +84,8 @@ export default function SettingsPage() {
   const [livekitApiSecret, setLivekitApiSecret] = useState("")
   const [deepgramApiKey, setDeepgramApiKey] = useState("")
   const [sarvamApiKey, setSarvamApiKey] = useState("")
+  const [dograhWorkflowId, setDograhWorkflowId] = useState("")
+  const [dograhPhoneNumber, setDograhPhoneNumber] = useState("")
 
   const [isSaving, setIsSaving] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
@@ -343,6 +345,8 @@ export default function SettingsPage() {
           setLivekitUrl(voice.config?.livekitUrl || "")
           setDeepgramApiKey(voice.config?.deepgramApiKey || "")
           setSarvamApiKey(voice.config?.sarvamApiKey || "")
+          setDograhWorkflowId(voice.config?.dograhWorkflowId || "")
+          setDograhPhoneNumber(voice.config?.dograhPhoneNumber || "")
           setLivekitApiKey("••••••••••••••••")
           setLivekitApiSecret("••••••••••••••••")
         }
@@ -441,6 +445,8 @@ export default function SettingsPage() {
             livekitUrl,
             deepgramApiKey,
             sarvamApiKey,
+            dograhWorkflowId,
+            dograhPhoneNumber,
           },
           secrets: {},
         }
@@ -742,6 +748,29 @@ export default function SettingsPage() {
                     value={sarvamApiKey}
                     onChange={e => setSarvamApiKey(e.target.value)}
                     placeholder="Sarvam API key" 
+                    className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-gray-900 bg-white focus:outline-none focus:ring-1 focus:ring-primary" 
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-semibold text-gray-900">Dograh Workflow ID</label>
+                  <input 
+                    type="number" 
+                    value={dograhWorkflowId}
+                    onChange={e => setDograhWorkflowId(e.target.value)}
+                    placeholder="e.g. 1" 
+                    className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-gray-900 bg-white focus:outline-none focus:ring-1 focus:ring-primary" 
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-semibold text-gray-900">Dograh Phone Number (Inbound)</label>
+                  <input 
+                    type="text" 
+                    value={dograhPhoneNumber}
+                    onChange={e => setDograhPhoneNumber(e.target.value)}
+                    placeholder="+91..." 
                     className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-gray-900 bg-white focus:outline-none focus:ring-1 focus:ring-primary" 
                   />
                 </div>
