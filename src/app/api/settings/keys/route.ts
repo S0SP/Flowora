@@ -111,24 +111,56 @@ export async function POST(req: NextRequest) {
 
       try {
         const cleanPhone = phoneNumber.replace(/\D/g, "")
-        const didRes = await fetch(`${dograhUrl}/api/v1/organizations/telephony-configs/1/phone-numbers`, {
-          method: "POST",
-          headers: { 
-            "X-Flowra-Secret": secret, 
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${secret}`
-          },
-          body: JSON.stringify({
-            address: cleanPhone,
-            inbound_workflow_id: inboundWorkflowId,
-            is_active: true,
-          }),
+        const reqHeaders = { 
+          "X-Flowra-Secret": secret, 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${secret}`
+        }
+
+        let phoneNumId = null
+        const listRes = await fetch(`${dograhUrl}/api/v1/organizations/telephony-configs/1/phone-numbers`, {
+          headers: reqHeaders
         })
+        
+        if (listRes.ok) {
+          const data = await listRes.json()
+          const existing = data.phone_numbers?.find((p: any) => 
+            p.address === cleanPhone || 
+            p.address === `+${cleanPhone}` ||
+            p.address_normalized === `+${cleanPhone}` || 
+            p.address_normalized === cleanPhone
+          )
+          if (existing) {
+            phoneNumId = existing.id
+          }
+        }
+
+        let didRes
+        if (phoneNumId) {
+          didRes = await fetch(`${dograhUrl}/api/v1/organizations/telephony-configs/1/phone-numbers/${phoneNumId}`, {
+            method: "PUT",
+            headers: reqHeaders,
+            body: JSON.stringify({
+              inbound_workflow_id: inboundWorkflowId,
+              is_active: true,
+            }),
+          })
+        } else {
+          didRes = await fetch(`${dograhUrl}/api/v1/organizations/telephony-configs/1/phone-numbers`, {
+            method: "POST",
+            headers: reqHeaders,
+            body: JSON.stringify({
+              address: cleanPhone,
+              inbound_workflow_id: inboundWorkflowId,
+              is_active: true,
+            }),
+          })
+        }
 
         if (!didRes.ok) {
-          console.warn("[keys/POST] Dograh DID registration failed:", await didRes.text())
+          console.warn("[keys/POST] Dograh DID registration/update failed:", await didRes.text())
         } else {
-          console.log(`[keys/POST] Dograh DID registered for phone ${cleanPhone} with inbound_workflow_id=${inboundWorkflowId}`)
+          console.log(`[keys/POST] Dograh DID synced for phone ${cleanPhone} with inbound_workflow_id=${inboundWorkflowId}`)
         }
       } catch (didErr) {
         console.error("[keys/POST] Dograh DID request failed:", didErr)
