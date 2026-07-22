@@ -19,6 +19,7 @@ import { SARVAM_VOICES, GEMINI_VOICES } from "@/lib/voices"
 import { format } from "date-fns"
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
+import { CustomSelect } from "@/components/ui/custom-select"
 
 // Types 
 type WorkflowStatus = "draft" | "active" | "paused"
