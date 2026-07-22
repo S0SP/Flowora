@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { getTenant } from "@/lib/tenant";
 
+const DOGRAH_API_URL = process.env.DOGRAH_API_URL;
+const DOGRAH_SECRET = process.env.DOGRAH_SECRET;
+
 interface RouteParams {
   params: Promise<{
     id: string;
@@ -74,6 +77,38 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Agent ID is required" }, { status: 400 });
     }
 
+    // 1. Fetch the agent to get the Dograh workflow ID
+    const { data: agent, error: fetchError } = await admin
+      .from("voice_agents")
+      .select("dograh_workflow_id")
+      .eq("id", agentId)
+      .eq("workspace_id", workspaceId)
+      .single();
+
+    if (fetchError || !agent) {
+      return NextResponse.json({ error: "Agent not found" }, { status: 404 });
+    }
+
+    const dograhWorkflowId = agent.dograh_workflow_id;
+
+    // 2. Archive the workflow in Dograh (there is no hard delete in Dograh for workflows)
+    if (DOGRAH_API_URL && DOGRAH_SECRET && dograhWorkflowId) {
+      const archiveRes = await fetch(`${DOGRAH_API_URL}/api/v1/workflow/${dograhWorkflowId}/status`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Flowra-Secret": DOGRAH_SECRET,
+          "Authorization": `Bearer ${DOGRAH_SECRET}`
+        },
+        body: JSON.stringify({ status: "archived" })
+      });
+      
+      if (!archiveRes.ok) {
+        console.warn(`Failed to archive Dograh workflow ${dograhWorkflowId}`);
+      }
+    }
+
+    // 3. Delete the preset from Flowra
     const { error } = await admin
       .from("voice_agents")
       .delete()
@@ -84,6 +119,8 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({ success: true });
   } catch (err: any) {
+    console.error("Error deleting agent preset:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
+
