@@ -82,18 +82,7 @@ export async function POST(req: NextRequest) {
     const workflowData = await createRes.json();
     const dograhWorkflowId = workflowData.id;
 
-    // 3. Publish the Workflow in Dograh
-    const publishRes = await fetch(`${DOGRAH_API_URL}/api/v1/workflow/${dograhWorkflowId}/publish`, {
-      method: "POST",
-      headers: {
-        "X-Flowra-Secret": DOGRAH_SECRET,
-        "Authorization": `Bearer ${DOGRAH_SECRET}`
-      }
-    });
 
-    if (!publishRes.ok) {
-      console.warn(`Created workflow ${dograhWorkflowId} but failed to publish it.`);
-    }
 
     // 4. Save Preset to Flowra DB
     const insertData = {
