@@ -110,7 +110,11 @@ export async function POST(req: NextRequest) {
       }
 
       try {
-        const cleanPhone = phoneNumber.replace(/\D/g, "")
+        let cleanPhone = phoneNumber.replace(/[^\d+]/g, "")
+        if (/^\d+$/.test(cleanPhone)) {
+          cleanPhone = "+" + cleanPhone
+        }
+        
         const reqHeaders = { 
           "X-Flowra-Secret": secret, 
           "Content-Type": "application/json",
@@ -124,12 +128,11 @@ export async function POST(req: NextRequest) {
         
         if (listRes.ok) {
           const data = await listRes.json()
-          const existing = data.phone_numbers?.find((p: any) => 
-            p.address === cleanPhone || 
-            p.address === `+${cleanPhone}` ||
-            p.address_normalized === `+${cleanPhone}` || 
-            p.address_normalized === cleanPhone
-          )
+          const checkBase = cleanPhone.replace(/\D/g, "")
+          const existing = data.phone_numbers?.find((p: any) => {
+            const pBase = (p.address || "").replace(/\D/g, "")
+            return checkBase === pBase
+          })
           if (existing) {
             phoneNumId = existing.id
           }
