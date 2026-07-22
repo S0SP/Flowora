@@ -46,6 +46,7 @@ export async function POST(req: NextRequest) {
       recording_url,
       transcript,
       transcript_text,
+      transcript_url,
       status,
       direction,
       from_number,
@@ -150,6 +151,7 @@ export async function POST(req: NextRequest) {
     // ── Transcript ────────────────────────────────────────────────────────────
     const transcriptToStore =
       transcript_text ??
+      transcript_url ??
       (typeof transcript === "string" ? transcript : null) ??
       (Array.isArray(transcript)
         ? transcript
