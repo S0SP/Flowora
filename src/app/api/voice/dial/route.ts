@@ -8,11 +8,20 @@ function geminiLiveLanguage(languagePreset?: string, sarvamLanguage?: string) {
   return sarvamLanguage?.slice(0, 2) || "hi";
 }
 
+// Default Hinglish greeting — used when agent has no first_message configured.
+// Must contain Hindi words so Sarvam hi-IN TTS accepts it.
+const DEFAULT_FIRST_MESSAGE =
+  "Haan, namaste! Main aapki kaise help kar sakti hoon aaj?";
+
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+    if (authError || !user)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const body = await req.json();
     const {
@@ -26,15 +35,67 @@ export async function POST(req: NextRequest) {
       languagePreset,
     } = body;
 
-    if (!toNumber || !/^[0-9+\s\-()]{6,15}$/.test(toNumber.replace(/\s/g, ""))) {
-      return NextResponse.json({ error: "Invalid phone number" }, { status: 400 });
+    if (
+      !toNumber ||
+      !/^[0-9+\s\-()]{6,15}$/.test(toNumber.replace(/\s/g, ""))
+    ) {
+      return NextResponse.json(
+        { error: "Invalid phone number" },
+        { status: 400 }
+      );
     }
 
-    // Insert call record in Supabase
+    // ── Resolve workspace ────────────────────────────────────────────────────
+    const { data: member } = await supabase
+      .from("workspace_members")
+      .select("workspace_id")
+      .eq("user_id", user.id)
+      .limit(1)
+      .maybeSingle();
+
+    const workspaceId = member?.workspace_id ?? null;
+
+    // ── Resolve voice agent config from DB (first_message, system_prompt) ───
+    let resolvedFirstMessage = DEFAULT_FIRST_MESSAGE;
+    let resolvedSystemPrompt = systemPrompt || "";
+
+    if (workspaceId) {
+      const { data: agent } = await supabase
+        .from("voice_agents")
+        .select("first_message, system_prompt")
+        .eq("workspace_id", workspaceId)
+        .eq("is_enabled", true)
+        .limit(1)
+        .maybeSingle();
+
+      if (agent?.first_message) resolvedFirstMessage = agent.first_message;
+      if (!resolvedSystemPrompt && agent?.system_prompt)
+        resolvedSystemPrompt = agent.system_prompt;
+    }
+
+    // ── Resolve Dograh workflow ID ───────────────────────────────────────────
+    let dograhWorkflowId = parseInt(process.env.DOGRAH_WORKFLOW_ID || "1", 10);
+
+    if (workspaceId) {
+      const { data: voiceConn } = await supabase
+        .from("channel_connections")
+        .select("config")
+        .eq("workspace_id", workspaceId)
+        .eq("type", "voice")
+        .maybeSingle();
+
+      if (voiceConn?.config?.dograhWorkflowId) {
+        const parsed = parseInt(voiceConn.config.dograhWorkflowId, 10);
+        if (!isNaN(parsed)) dograhWorkflowId = parsed;
+      }
+    }
+
+    // ── Insert call record ───────────────────────────────────────────────────
     const { data: callRecord, error: insertError } = await supabase
       .from("voice_calls")
       .insert({
         user_id: user.id,
+        workspace_id: workspaceId,        // store workspace for multi-tenant queries
         phone_number: toNumber,
         agent_type: agentType,
         voice_id: voiceId,
@@ -44,89 +105,89 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (insertError) {
-      console.error("DB insert error:", insertError);
-      return NextResponse.json({ error: "Failed to create call record" }, { status: 500 });
+      // If workspace_id column doesn't exist yet, retry without it
+      const { data: fallback, error: fallbackErr } = await supabase
+        .from("voice_calls")
+        .insert({
+          user_id: user.id,
+          phone_number: toNumber,
+          agent_type: agentType,
+          voice_id: voiceId,
+          status: "initiated",
+        })
+        .select()
+        .single();
+      if (fallbackErr) {
+        console.error("DB insert error:", fallbackErr);
+        return NextResponse.json(
+          { error: "Failed to create call record" },
+          { status: 500 }
+        );
+      }
+      Object.assign(callRecord ?? {}, fallback);
     }
 
-    // Place outbound call via Dograh Backend API
+    // ── Build model_overrides ────────────────────────────────────────────────
+    // For Gemini Live (realtime) → send full realtime override.
+    // For Sarvam+LLM stack     → ONLY send TTS voice/language so Flowra controls
+    //                            the voice, but Dograh's BYOK decides LLM + STT.
+    //                            Never hardcode a specific LLM here.
+    let modelOverrides: Record<string, any>;
+
+    if (agentType === "gemini") {
+      modelOverrides = {
+        is_realtime: true,
+        realtime: {
+          provider: "google_realtime",
+          model: "gemini-2.0-flash-live-001",
+          voice: voiceId,
+          language: geminiLiveLanguage(languagePreset, sarvamLanguage),
+        },
+      };
+    } else {
+      // Non-realtime: let Dograh BYOK handle LLM + STT.
+      // Only override TTS voice so the agent's selected voice is respected.
+      modelOverrides = {
+        is_realtime: false,
+        tts: {
+          voice: voiceId,
+          language: sarvamLanguage || "hi-IN",
+          // provider intentionally omitted → Dograh uses its BYOK TTS provider
+        },
+      };
+    }
+
+    // ── Build initial_context ────────────────────────────────────────────────
+    const initialContext: Record<string, any> = {
+      system_prompt: resolvedSystemPrompt,
+      first_message: resolvedFirstMessage,   // always non-empty → Sarvam won't 400
+      model_overrides: modelOverrides,
+    };
+
+    if (voiceIntent) initialContext.call_objective = voiceIntent;
+
+    // ── Call Dograh ──────────────────────────────────────────────────────────
     const dograhUrl = process.env.DOGRAH_API_URL || "http://localhost:8000";
     const flowraSecret =
       process.env.DOGRAH_SECRET ||
       process.env.DOGRAH_API_SECRET ||
       "change-me-in-production";
-      
-    // Fetch workspace_id for the user
-    const { data: member } = await supabase
-      .from("workspace_members")
-      .select("workspace_id")
-      .eq("user_id", user.id)
-      .limit(1)
-      .maybeSingle();
 
-    let dograhWorkflowId = parseInt(process.env.DOGRAH_WORKFLOW_ID || "1", 10);
-
-    if (member?.workspace_id) {
-      // Fetch voice channel connection to get Dograh Workflow ID
-      const { data: voiceConn } = await supabase
-        .from("channel_connections")
-        .select("config")
-        .eq("workspace_id", member.workspace_id)
-        .eq("type", "voice")
-        .maybeSingle();
-
-      if (voiceConn?.config?.dograhWorkflowId) {
-        const parsedId = parseInt(voiceConn.config.dograhWorkflowId, 10);
-        if (!isNaN(parsedId)) {
-          dograhWorkflowId = parsedId;
-        }
+    const dograhRes = await fetch(
+      `${dograhUrl}/api/v1/telephony/initiate-call`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Flowra-Secret": flowraSecret,
+        },
+        body: JSON.stringify({
+          workflow_id: dograhWorkflowId,
+          phone_number: toNumber,
+          initial_context: initialContext,
+        }),
       }
-    }
-
-    const modelOverrides = agentType === "gemini"
-      ? {
-          is_realtime: true,
-          realtime: {
-            provider: "google_realtime",
-            model: "gemini-3.1-flash-live-preview",
-            voice: voiceId,
-            language: geminiLiveLanguage(languagePreset, sarvamLanguage),
-          },
-        }
-      : {
-          is_realtime: false,
-          tts: {
-            provider: "sarvam",
-            voice: voiceId,
-            language: sarvamLanguage || "hi-IN",
-          },
-          llm: {
-            provider: "groq",
-            model: "llama-3.3-70b-versatile",
-          },
-        };
-
-    const initialContext: Record<string, any> = {
-      system_prompt: systemPrompt || "",
-      first_message: "",
-      model_overrides: modelOverrides,
-    };
-    
-    if (voiceIntent) {
-      initialContext.call_objective = voiceIntent;
-    }
-
-    const dograhRes = await fetch(`${dograhUrl}/api/v1/telephony/initiate-call`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Flowra-Secret": flowraSecret,
-      },
-      body: JSON.stringify({
-        workflow_id: dograhWorkflowId,
-        phone_number: toNumber,
-        initial_context: initialContext,
-      }),
-    });
+    );
 
     if (!dograhRes.ok) {
       const errText = await dograhRes.text();
@@ -135,24 +196,32 @@ export async function POST(req: NextRequest) {
 
     const dograhData = await dograhRes.json();
 
-    // Update call record with Dograh run details
+    // Dograh now returns { message, workflow_run_id, workflow_run_name }
+    // livekit_sip_call_id is reused to store the Dograh workflow_run_id
+    const workflowRunId = dograhData.workflow_run_id
+      ? String(dograhData.workflow_run_id)
+      : null;
+
     await supabase
       .from("voice_calls")
       .update({
-        livekit_room_name: `run-${dograhData.workflow_run_id}`,
-        livekit_sip_call_id: String(dograhData.workflow_run_id),
+        livekit_room_name: workflowRunId ? `run-${workflowRunId}` : null,
+        livekit_sip_call_id: workflowRunId,
         status: "ringing",
       })
-      .eq("id", callRecord.id);
+      .eq("id", (callRecord as any).id);
 
     return NextResponse.json({
       ok: true,
-      callId: callRecord.id,
+      callId: (callRecord as any).id,
       workflowRunId: dograhData.workflow_run_id,
       workflowRunName: dograhData.workflow_run_name,
     });
   } catch (err: any) {
     console.error("Dial error:", err);
-    return NextResponse.json({ error: err.message || "Call failed" }, { status: 502 });
+    return NextResponse.json(
+      { error: err.message || "Call failed" },
+      { status: 502 }
+    );
   }
 }
