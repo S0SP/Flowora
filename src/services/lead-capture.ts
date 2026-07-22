@@ -306,9 +306,9 @@ export async function sendPendingLeads() {
               type: "text",
               text: val !== undefined && val !== null ? String(val) : ""
             }));
-            
-            const components = parameters.length > 0 
-              ? [{ type: "body", parameters }] 
+
+            const components = parameters.length > 0
+              ? [{ type: "body", parameters }]
               : undefined;
 
             const { ok, wamid, error } = await sendWhatsAppTemplate(
@@ -452,7 +452,7 @@ export async function sendPendingLeads() {
               .eq("workspace_id", lead.workspace_id)
               .eq("type", "voice")
               .maybeSingle();
-            
+
             let dograhWorkflowId = parseInt(process.env.DOGRAH_WORKFLOW_ID || "1", 10);
             if (voiceConn?.config?.dograhWorkflowId) {
               const parsedId = parseInt(voiceConn.config.dograhWorkflowId, 10);

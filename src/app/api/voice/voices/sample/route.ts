@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import fs from "fs";
+import path from "path";
 
 const SARVAM_TTS_URL = "https://api.sarvam.ai/text-to-speech";
-const GEMINI_LIVE_MODEL = "gemini-3.1-flash-live-preview";
-const GEMINI_LIVE_WS_URL = "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent";
 
 export const runtime = "nodejs";
 
@@ -41,109 +41,70 @@ function getWavHeader(dataLength: number, sampleRate = 24000, numChannels = 1, b
   return header;
 }
 
-function wavResponseFromPcm(pcmBuffer: Buffer) {
-  const header = getWavHeader(pcmBuffer.length, 24000, 1, 16);
+function wavResponseFromPcm(pcmBuffer: Buffer, sampleRate = 24000) {
+  const header = getWavHeader(pcmBuffer.length, sampleRate, 1, 16);
   const wavBuffer = Buffer.concat([header, pcmBuffer]);
   return new NextResponse(wavBuffer, {
     headers: {
       "Content-Type": "audio/wav",
       "Content-Length": String(wavBuffer.length),
-      "Cache-Control": "public, max-age=3600",
+      "Cache-Control": "public, max-age=31536000, immutable",
     },
   });
 }
 
-async function liveMessageText(data: unknown) {
-  if (typeof data === "string") return data;
-  if (data instanceof ArrayBuffer) return Buffer.from(data).toString("utf8");
-  if (data instanceof Blob) return data.text();
-  if (ArrayBuffer.isView(data)) return Buffer.from(data.buffer).toString("utf8");
-  return String(data);
-}
+async function generateSarvamSample(voice: string, lang: string, text: string) {
+  const v3BetaVoices = [
+    "ritu", "pooja", "simran", "kavya", "ishita", "shreya", "priya", "shubh", "rahul",
+    "amit", "ratan", "rohan", "dev", "manan", "sumit", "aditya", "kabir", "neha", "varun", "roopa",
+    "aayan", "ashutosh", "advait", "amelia", "sophia"
+  ];
+  const validV2Voices = ["anushka", "manisha", "vidya", "arya", "abhilash", "karun", "hitesh"];
 
-async function generateGeminiLiveSample(apiKey: string, voiceName: string, text: string) {
-  return await new Promise<NextResponse>((resolve, reject) => {
-    const ws = new WebSocket(`${GEMINI_LIVE_WS_URL}?key=${encodeURIComponent(apiKey)}`);
-    const audioChunks: Buffer[] = [];
-    let settled = false;
-    let sentPrompt = false;
+  const requestedLower = voice.toLowerCase();
+  const isV3 = v3BetaVoices.includes(requestedLower);
+  const sarvamVoice = isV3 ? requestedLower : (validV2Voices.includes(requestedLower) ? requestedLower : "anushka");
+  const model = isV3 ? "bulbul:v3-beta" : "bulbul:v2";
 
-    const finish = (fn: () => void) => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timeout);
-      try {
-        ws.close();
-      } catch {}
-      fn();
-    };
+  const apiKey = process.env.SARVAM_API_KEY;
+  if (!apiKey) {
+    throw new Error("Sarvam API key missing");
+  }
 
-    const timeout = setTimeout(() => {
-      finish(() => reject(new Error("Gemini Live sample timed out")));
-    }, 15000);
+  const res = await fetch(SARVAM_TTS_URL, {
+    method: "POST",
+    headers: {
+      "api-subscription-key": apiKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      inputs: [text],
+      target_language_code: lang,
+      speaker: sarvamVoice,
+      model,
+      pace: 1.0,
+      speech_sample_rate: 22050,
+      enable_preprocessing: false,
+      output_audio_bitrate: "128k",
+    }),
+  });
 
-    ws.onopen = () => {
-      ws.send(JSON.stringify({
-        setup: {
-          model: `models/${GEMINI_LIVE_MODEL}`,
-          generationConfig: {
-            responseModalities: ["AUDIO"],
-            speechConfig: {
-              voiceConfig: {
-                prebuiltVoiceConfig: {
-                  voiceName,
-                },
-              },
-            },
-            thinkingConfig: {
-              thinkingLevel: "minimal",
-            },
-          },
-        },
-      }));
-    };
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Sarvam TTS API error (${res.status}): ${errText}`);
+  }
 
-    ws.onerror = () => {
-      finish(() => reject(new Error("Gemini Live websocket failed")));
-    };
+  const data = await res.json();
+  const audioBase64: string = data.audios?.[0];
+  if (!audioBase64) throw new Error("No audio returned from Sarvam");
 
-    ws.onmessage = async (event) => {
-      try {
-        const message = JSON.parse(await liveMessageText(event.data));
-        if (message.error) {
-          finish(() => reject(new Error(message.error.message || "Gemini Live API error")));
-          return;
-        }
-
-        if (message.setupComplete && !sentPrompt) {
-          sentPrompt = true;
-          ws.send(JSON.stringify({
-            realtimeInput: {
-              text: `Say naturally in a short friendly voice sample, then stop: ${text}`,
-            },
-          }));
-          return;
-        }
-
-        const parts = message.serverContent?.modelTurn?.parts ?? [];
-        for (const part of parts) {
-          const audioData = part.inlineData?.data;
-          if (audioData) {
-            audioChunks.push(Buffer.from(audioData, "base64"));
-          }
-        }
-
-        if (message.serverContent?.turnComplete) {
-          if (audioChunks.length === 0) {
-            finish(() => reject(new Error("No audio returned from Gemini Live")));
-            return;
-          }
-          finish(() => resolve(wavResponseFromPcm(Buffer.concat(audioChunks))));
-        }
-      } catch (err) {
-        finish(() => reject(err instanceof Error ? err : new Error("Invalid Gemini Live response")));
-      }
-    };
+  const audioBuffer = Buffer.from(audioBase64, "base64");
+  return new NextResponse(audioBuffer, {
+    headers: {
+      "Content-Type": "audio/wav",
+      "Content-Length": String(audioBuffer.length),
+      "Cache-Control": "public, max-age=3600",
+    },
   });
 }
 
@@ -162,106 +123,35 @@ export async function GET(req: NextRequest) {
   );
 
   if (matchedGeminiVoice) {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      return NextResponse.json({ error: "Gemini API key not configured on server" }, { status: 500 });
+    const voiceFile = `${matchedGeminiVoice.toLowerCase()}.wav`;
+    const staticFilePath = path.join(process.cwd(), "public", "voices", "gemini", voiceFile);
+
+    // Serve pre-generated static preview file if available (0 latency, 0 cost, 0 rate limits)
+    if (fs.existsSync(staticFilePath)) {
+      const fileBuffer = fs.readFileSync(staticFilePath);
+      return new NextResponse(fileBuffer, {
+        headers: {
+          "Content-Type": "audio/wav",
+          "Content-Length": String(fileBuffer.length),
+          "Cache-Control": "public, max-age=31536000, immutable",
+        },
+      });
     }
 
+    // Fallback to Sarvam TTS sample so user ALWAYS gets audio preview if static file is missing
     try {
-      const payload = {
-        model: GEMINI_TTS_MODEL,
-        input: text,
-        response_format: {
-          type: "audio",
-          sample_rate: 24000,
-        },
-        generation_config: {
-          speech_config: [
-            {
-              voice: matchedGeminiVoice,
-            },
-          ],
-        },
-      };
-
-      for (let attempt = 0; attempt < 2; attempt++) {
-        const res = await fetch(GEMINI_INTERACTIONS_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-goog-api-key": apiKey,
-          },
-          body: JSON.stringify(payload),
-        });
-
-        if (!res.ok) {
-          const errText = await res.text();
-          console.error("Gemini TTS error:", errText);
-          if (attempt === 0 && res.status >= 500) continue;
-          return NextResponse.json({ error: "Gemini TTS API error" }, { status: 502 });
-        }
-
-        const data = await res.json();
-        const audio = extractGeminiAudio(data);
-        if (audio) {
-          return audioResponse(audio.base64, audio.mimeType);
-        }
-
-        console.error("Gemini TTS returned no audio:", JSON.stringify(data).slice(0, 1000));
-        if (attempt === 0) continue;
-      }
-
-      return NextResponse.json({ error: "No audio returned from Gemini" }, { status: 502 });
+      return await generateSarvamSample("anushka", lang, text);
     } catch (err: any) {
-      console.error("Error generating Gemini voice sample:", err);
+      console.error("Sarvam fallback error for Gemini voice:", err.message);
       return NextResponse.json({ error: err.message }, { status: 500 });
     }
   }
 
-  // 2. Otherwise fallback to Sarvam bulbul TTS
-  const v3BetaVoices = ["ritu","pooja","simran","kavya","ishita","shreya","priya","shubh","rahul",
-    "amit","ratan","rohan","dev","manan","sumit","aditya","kabir","neha","varun","roopa",
-    "aayan","ashutosh","advait","amelia","sophia"];
-  const model = v3BetaVoices.includes(voice) ? "bulbul:v3-beta" : "bulbul:v2";
-
+  // 2. Handle Sarvam voice sample directly
   try {
-    const res = await fetch(SARVAM_TTS_URL, {
-      method: "POST",
-      headers: {
-        "api-subscription-key": process.env.SARVAM_API_KEY!,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        inputs: [text],
-        target_language_code: lang,
-        speaker: voice,
-        model,
-        pace: 1.1,
-        speech_sample_rate: 22050,
-        enable_preprocessing: false,
-        output_audio_bitrate: "128k",
-      }),
-    });
-
-    if (!res.ok) {
-      const errText = await res.text();
-      console.error("Sarvam TTS error:", errText);
-      return NextResponse.json({ error: "TTS API error" }, { status: 502 });
-    }
-
-    const data = await res.json();
-    const audioBase64: string = data.audios?.[0];
-    if (!audioBase64) return NextResponse.json({ error: "No audio returned" }, { status: 500 });
-
-    const audioBuffer = Buffer.from(audioBase64, "base64");
-    return new NextResponse(audioBuffer, {
-      headers: {
-        "Content-Type": "audio/wav",
-        "Content-Length": String(audioBuffer.length),
-        "Cache-Control": "public, max-age=3600",
-      },
-    });
+    return await generateSarvamSample(voice, lang, text);
   } catch (err: any) {
+    console.error("Sarvam voice sample error:", err.message);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

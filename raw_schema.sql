@@ -698,7 +698,7 @@ CREATE TABLE public.voice_agents (
     knowledge_base_id uuid,
     first_message text,
     vapi_assistant_id text,
-    dograh_workflow_id uuid,
+    dograh_workflow_id integer,
     config jsonb,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL

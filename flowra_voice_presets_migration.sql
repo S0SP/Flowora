@@ -5,7 +5,7 @@
 
 -- 1. Update `voice_agents` to hold the dograh_workflow_id
 ALTER TABLE public.voice_agents
-  ADD COLUMN IF NOT EXISTS dograh_workflow_id uuid;
+  ADD COLUMN IF NOT EXISTS dograh_workflow_id integer;
 
 -- 2. Update `lead_capture_settings` to point to a `voice_agent` preset
 ALTER TABLE public.lead_capture_settings

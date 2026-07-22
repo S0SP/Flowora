@@ -83,6 +83,9 @@ export default function SettingsPage() {
   const [livekitApiKey, setLivekitApiKey] = useState("")
   const [livekitApiSecret, setLivekitApiSecret] = useState("")
   const [dograhPhoneNumber, setDograhPhoneNumber] = useState("")
+  const [dograhWorkflowId, setDograhWorkflowId] = useState("")
+  const [selectedInboundPresetId, setSelectedInboundPresetId] = useState("")
+  const [voicePresets, setVoicePresets] = useState<any[]>([])
 
   const [isSaving, setIsSaving] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
@@ -320,6 +323,13 @@ export default function SettingsPage() {
       })
       .catch(console.error)
 
+    fetch("/api/voice/agents")
+      .then(res => res.json())
+      .then(data => {
+        if (data?.agents) setVoicePresets(data.agents)
+      })
+      .catch(console.error)
+
     fetch("/api/settings/keys")
       .then(res => res.json())
       .then(data => {
@@ -339,13 +349,9 @@ export default function SettingsPage() {
         }
         const voice = connections.find((c: any) => c.type === "voice")
         if (voice) {
-          setLivekitUrl(voice.config?.livekitUrl || "")
-          setDeepgramApiKey(voice.config?.deepgramApiKey || "")
-          setSarvamApiKey(voice.config?.sarvamApiKey || "")
           setDograhWorkflowId(voice.config?.dograhWorkflowId || "")
-          setDograhPhoneNumber(voice.config?.dograhPhoneNumber || "")
-          setLivekitApiKey("••••••••••••••••")
-          setLivekitApiSecret("••••••••••••••••")
+          setDograhPhoneNumber(voice.config?.dograhPhoneNumber || voice.config?.phone || "")
+          setSelectedInboundPresetId(voice.config?.inboundPresetId || "")
         }
       })
       .catch(console.error)
@@ -435,11 +441,19 @@ export default function SettingsPage() {
         if (!res.ok) throw new Error("Failed to save SMTP settings")
         toast.success("SMTP Email configuration saved successfully!")
       } else if (activeItem === "Voice & Calling") {
+        const chosenPreset = voicePresets.find(p => p.id === selectedInboundPresetId)
+        const chosenWorkflowId = chosenPreset?.dograh_workflow_id
+          ? String(chosenPreset.dograh_workflow_id)
+          : dograhWorkflowId
+
         const body: any = {
           workspaceId: wsId,
           type: "voice",
           config: {
             dograhPhoneNumber,
+            phone: dograhPhoneNumber,
+            dograhWorkflowId: chosenWorkflowId,
+            inboundPresetId: selectedInboundPresetId,
           },
           secrets: {},
         }
@@ -723,7 +737,7 @@ export default function SettingsPage() {
             <p className="text-[14px] text-gray-500 mb-7">Configure Sarvam AI (TTS), Deepgram (STT), and Gemini Live for the Dograh voice worker.</p>
             <div className="bg-card border border-border rounded-xl p-6 shadow-sm space-y-5">
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-[13px] font-semibold text-gray-900">Dograh Phone Number (Inbound)</label>
                   <input 
@@ -734,13 +748,38 @@ export default function SettingsPage() {
                     className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-gray-900 bg-white focus:outline-none focus:ring-1 focus:ring-primary" 
                   />
                 </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-semibold text-gray-900">Inbound Call Voice Preset</label>
+                  <select
+                    value={selectedInboundPresetId}
+                    onChange={e => {
+                      const presetId = e.target.value
+                      setSelectedInboundPresetId(presetId)
+                      const p = voicePresets.find(item => item.id === presetId)
+                      if (p?.dograh_workflow_id) {
+                        setDograhWorkflowId(String(p.dograh_workflow_id))
+                      }
+                    }}
+                    className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-gray-900 bg-white focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer"
+                  >
+                    <option value="">-- Default System Preset --</option>
+                    {voicePresets.map(p => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} ({p.agent_type === "gemini" ? "Gemini Live" : "Sarvam+Groq"} · Voice: {p.voice_id})
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[11px] text-gray-500">
+                    Incoming calls to your phone number will be answered using the prompt, voice, and workflow from this preset.
+                  </p>
+                </div>
               </div>
 
               <div className="bg-primary/8 border border-primary/20 rounded-lg p-4">
-                <p className="text-[12px] font-semibold text-gray-900 mb-1">Dograh Integration Note</p>
+                <p className="text-[12px] font-semibold text-gray-900 mb-1">Dograh Telephony Routing Note</p>
                 <p className="text-[12px] text-gray-500">
-                  Dograh API keys and phone number assignments are managed by your admin on the private Dograh panel. 
-                  Voice call presets (system prompt, intent, TTS voice) are configured in Voice Agent settings.
+                  Selecting a preset will automatically assign its published workflow ID to your inbound phone number in Dograh so incoming callers interact with that agent.
                 </p>
               </div>
 

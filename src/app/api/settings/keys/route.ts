@@ -86,15 +86,31 @@ export async function POST(req: NextRequest) {
     }
 
     // Automate Dograh DID Registration if voice type and has phone
-    if (type === "voice" && config?.phone) {
+    const phoneNumber = config?.dograhPhoneNumber || config?.phone
+    if (type === "voice" && phoneNumber) {
       const dograhUrl = process.env.DOGRAH_API_URL || "http://localhost:8000"
       const secret = process.env.DOGRAH_SECRET || process.env.DOGRAH_API_SECRET || "change-me-in-production"
       
-      // We fall back to 1 if no inbound workflow is specified in config. 
-      // User can change the preset via VoiceAgents later
-      const inboundWorkflowId = parseInt(process.env.DOGRAH_WORKFLOW_ID || "1", 10)
+      let inboundWorkflowId = parseInt(process.env.DOGRAH_WORKFLOW_ID || "1", 10)
+
+      if (config?.dograhWorkflowId) {
+        const parsed = parseInt(String(config.dograhWorkflowId), 10)
+        if (!isNaN(parsed) && parsed > 0) inboundWorkflowId = parsed
+      } else if (config?.inboundPresetId) {
+        const { data: preset } = await admin
+          .from("voice_agents")
+          .select("dograh_workflow_id")
+          .eq("id", config.inboundPresetId)
+          .maybeSingle()
+
+        if (preset?.dograh_workflow_id) {
+          const parsed = parseInt(String(preset.dograh_workflow_id), 10)
+          if (!isNaN(parsed) && parsed > 0) inboundWorkflowId = parsed
+        }
+      }
 
       try {
+        const cleanPhone = phoneNumber.replace(/\D/g, "")
         const didRes = await fetch(`${dograhUrl}/api/v1/organizations/telephony-configs/1/phone-numbers`, {
           method: "POST",
           headers: { 
@@ -103,7 +119,7 @@ export async function POST(req: NextRequest) {
             "Authorization": `Bearer ${secret}`
           },
           body: JSON.stringify({
-            address: config.phone.replace(/\D/g, ""),
+            address: cleanPhone,
             inbound_workflow_id: inboundWorkflowId,
             is_active: true,
           }),
@@ -111,6 +127,8 @@ export async function POST(req: NextRequest) {
 
         if (!didRes.ok) {
           console.warn("[keys/POST] Dograh DID registration failed:", await didRes.text())
+        } else {
+          console.log(`[keys/POST] Dograh DID registered for phone ${cleanPhone} with inbound_workflow_id=${inboundWorkflowId}`)
         }
       } catch (didErr) {
         console.error("[keys/POST] Dograh DID request failed:", didErr)
