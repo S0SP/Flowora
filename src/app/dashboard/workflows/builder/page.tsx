@@ -498,13 +498,11 @@ function WhatsAppPanel({ data, onSave, availableVars }: { data: any; onSave: (d:
                   className={selectCls}
                   value={templateName}
                   onValueChange={onTemplateChange}
-                  options={[
-                    { value: "", label: "— Select a template —" },
-                    ...templates.map((t: any) => ({
-                      value: t.name,
-                      label: `${t.display_name ?? t.name} (${t.language})`
-                    }))
-                  ]}
+                  placeholder="— Select a template —"
+                  options={templates.map((t: any) => ({
+                    value: t.name,
+                    label: `${t.display_name ?? t.name} (${t.language})`
+                  }))}
                 />
               )}
             </FieldWrap>
@@ -766,13 +764,11 @@ function VoicePanel({ data, onSave, availableVars }: { data: any; onSave: (d: an
    className={selectCls}
    value={selectedPresetId}
    onValueChange={handleSelectPreset}
-   options={[
-     { value: "", label: "-- Select a Preset to Prefill --" },
-     ...presets.map((p: any) => ({
-       value: p.id,
-       label: `${p.name} (${p.agent_type === "gemini" ? "Gemini" : "LiveKit"})`
-     }))
-   ]}
+   placeholder="-- Select a Preset to Prefill --"
+   options={presets.map((p: any) => ({
+     value: p.id,
+     label: `${p.name} (${p.agent_type === "gemini" ? "Gemini" : "LiveKit"})`
+   }))}
  />
  </FieldWrap>
  <FieldWrap>
