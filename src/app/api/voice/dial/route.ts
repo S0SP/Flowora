@@ -8,6 +8,60 @@ function geminiLiveLanguage(languagePreset?: string, sarvamLanguage?: string) {
   return sarvamLanguage?.slice(0, 2) || "hi";
 }
 
+// Gemini Live WebSocket API only supports these 5 voices.
+// The extended voice set (Zephyr, Leda, Achernar, etc.) belongs to Google's
+// REST TTS API — passing them to the Live API causes an immediate session
+// rejection which manifests as an instant call hang-up.
+const GEMINI_LIVE_SUPPORTED_VOICES = new Set([
+  "Puck", "Charon", "Kore", "Fenrir", "Aoede",
+]);
+
+// Map extended voices to the nearest supported Live voice by style similarity.
+const GEMINI_LIVE_VOICE_FALLBACK: Record<string, string> = {
+  Zephyr: "Puck",        // Bright → Upbeat
+  Leda: "Aoede",         // Youthful → Breezy
+  Orus: "Kore",          // Firm → Firm
+  Callirrhoe: "Aoede",   // Easy-going → Breezy
+  Autonoe: "Puck",       // Bright → Upbeat
+  Enceladus: "Aoede",    // Breathy → Breezy
+  Iocaste: "Charon",     // Informative → Informative
+  Umbriel: "Aoede",      // Easy-going → Breezy
+  Algieba: "Charon",     // Smooth → Calm
+  Despina: "Aoede",      // Smooth → Breezy
+  Erinome: "Charon",     // Clear → Informative
+  Algenib: "Fenrir",     // Gravelly → Excitable
+  Rasalghul: "Charon",   // Informative → Informative
+  Laomedeia: "Puck",     // Upbeat → Upbeat
+  Achernar: "Aoede",     // Soft → Breezy
+  Alnilam: "Kore",       // Firm → Firm
+  Schedar: "Charon",     // Even → Informative
+  Gacrux: "Charon",      // Mature → Calm
+  Pulcherrima: "Fenrir", // Forward → Excitable
+  Achird: "Puck",        // Friendly → Upbeat
+  Zubenelgenubi: "Aoede",// Casual → Breezy
+  Vindemiatrix: "Aoede", // Gentle → Breezy
+  Sadachbia: "Fenrir",   // Lively → Excitable
+  Sulafat: "Aoede",      // Warm → Breezy
+  Sadaltager: "Charon",  // Knowledgeable → Informative
+};
+
+/**
+ * Ensure the voice ID is valid for Gemini Live WebSocket API.
+ * Extended Google voices only work with the REST TTS API, not the Live API.
+ * Falls back gracefully to the nearest supported voice instead of crashing.
+ */
+function sanitizeGeminiLiveVoice(voiceId: string): string {
+  if (GEMINI_LIVE_SUPPORTED_VOICES.has(voiceId)) return voiceId;
+  const fallback = GEMINI_LIVE_VOICE_FALLBACK[voiceId];
+  if (fallback) {
+    console.warn(`[dial] Voice "${voiceId}" is not supported by Gemini Live API. Falling back to "${fallback}".`);
+    return fallback;
+  }
+  // Unknown voice — safe default
+  console.warn(`[dial] Unknown Gemini voice "${voiceId}". Defaulting to "Puck".`);
+  return "Puck";
+}
+
 // Default Hinglish greeting — used when agent has no first_message configured.
 // Must contain Hindi words so Sarvam hi-IN TTS accepts it.
 const DEFAULT_FIRST_MESSAGE =
@@ -158,12 +212,20 @@ export async function POST(req: NextRequest) {
     let modelOverrides: Record<string, any>;
 
     if (agentType === "gemini") {
+      // Sanitize voice: extended Google voices (Zephyr, Achernar, etc.) are
+      // only supported by the REST TTS API, NOT the Live WebSocket API.
+      // Passing an unsupported voice causes Google to reject the session,
+      // which manifests as an immediate call hang-up on pickup.
+      const liveVoice = sanitizeGeminiLiveVoice(voiceId);
       modelOverrides = {
         is_realtime: true,
         realtime: {
           provider: "google_realtime",
-          model: "gemini-2.0-flash-live-001",
-          voice: voiceId,
+          // Do NOT hardcode model here — the org's BYOK config has the correct
+          // current model (gemini-3.1-flash-live-preview). Overriding with the
+          // deprecated gemini-2.0-flash-live-001 causes all calls to fail with
+          // "not found for API version v1beta".
+          voice: liveVoice,
           language: geminiLiveLanguage(languagePreset, sarvamLanguage),
         },
       };

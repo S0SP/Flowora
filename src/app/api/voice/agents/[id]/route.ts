@@ -60,6 +60,39 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
 
     if (error) throw error;
 
+    // For Gemini presets: sync the updated voice into the Dograh workflow's
+    // workflow_configurations so inbound calls use the new voice.
+    if (data && (data.agent_type === "gemini") && body.voiceId && data.dograh_workflow_id) {
+      if (DOGRAH_API_URL && DOGRAH_SECRET) {
+        const syncRes = await fetch(
+          `${DOGRAH_API_URL}/api/v1/workflow/${data.dograh_workflow_id}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Flowra-Secret": DOGRAH_SECRET,
+              "Authorization": `Bearer ${DOGRAH_SECRET}`,
+            },
+            body: JSON.stringify({
+              workflow_configurations: {
+                model_overrides: {
+                  is_realtime: true,
+                  realtime: {
+                    provider: "google_realtime",
+                    voice: body.voiceId,
+                    // No model — use org's configured model
+                  },
+                },
+              },
+            }),
+          }
+        );
+        if (!syncRes.ok) {
+          console.warn(`[agents/${data.dograh_workflow_id}] Failed to sync voice override: ${await syncRes.text()}`);
+        }
+      }
+    }
+
     return NextResponse.json({ agent: data });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });

@@ -99,13 +99,53 @@ export async function POST(req: NextRequest) {
       } else if (config?.inboundPresetId) {
         const { data: preset } = await admin
           .from("voice_agents")
-          .select("dograh_workflow_id")
+          .select("dograh_workflow_id, agent_type, voice_id")
           .eq("id", config.inboundPresetId)
           .maybeSingle()
 
         if (preset?.dograh_workflow_id) {
           const parsed = parseInt(String(preset.dograh_workflow_id), 10)
           if (!isNaN(parsed) && parsed > 0) inboundWorkflowId = parsed
+
+          // For Gemini presets: bake the voice into the workflow's workflow_configurations
+          // so that ALL inbound calls to this number use the correct voice, even if the
+          // preset was created before this sync was in place.
+          if (preset.agent_type === "gemini" && preset.voice_id) {
+            const dograhUrl2 = process.env.DOGRAH_API_URL || "http://localhost:8000"
+            const secret2 = process.env.DOGRAH_SECRET || process.env.DOGRAH_API_SECRET || "change-me-in-production"
+            try {
+              const voiceSyncRes = await fetch(
+                `${dograhUrl2}/api/v1/workflow/${inboundWorkflowId}`,
+                {
+                  method: "PUT",
+                  headers: {
+                    "Content-Type": "application/json",
+                    "X-Flowra-Secret": secret2,
+                    "Authorization": `Bearer ${secret2}`,
+                  },
+                  body: JSON.stringify({
+                    workflow_configurations: {
+                      model_overrides: {
+                        is_realtime: true,
+                        realtime: {
+                          provider: "google_realtime",
+                          voice: preset.voice_id,
+                          // No model — use org's configured model (gemini-3.1-flash-live-preview)
+                        },
+                      },
+                    },
+                  }),
+                }
+              )
+              if (!voiceSyncRes.ok) {
+                console.warn(`[keys/POST] Failed to sync voice for inbound workflow ${inboundWorkflowId}: ${await voiceSyncRes.text()}`)
+              } else {
+                console.log(`[keys/POST] Voice "${preset.voice_id}" synced to inbound workflow ${inboundWorkflowId}`)
+              }
+            } catch (voiceSyncErr) {
+              console.error("[keys/POST] Voice sync request failed:", voiceSyncErr)
+            }
+          }
         }
       }
 

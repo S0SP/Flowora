@@ -82,7 +82,43 @@ export async function POST(req: NextRequest) {
     const workflowData = await createRes.json();
     const dograhWorkflowId = workflowData.id;
 
-
+    // For Gemini (realtime) presets: bake the voice + language into the workflow's
+    // workflow_configurations as model_overrides so that INBOUND calls also use
+    // the correct voice. Outbound calls always have model_overrides in initial_context,
+    // but inbound calls only use what's baked into the workflow itself.
+    if ((body.agentType ?? "livekit") === "gemini" && body.voiceId) {
+      const geminiVoice = body.voiceId as string;
+      // Dograh will enrich the override with API keys from the org's BYOK config.
+      const workflowConfigRes = await fetch(
+        `${DOGRAH_API_URL}/api/v1/workflow/${dograhWorkflowId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Flowra-Secret": DOGRAH_SECRET,
+            "Authorization": `Bearer ${DOGRAH_SECRET}`,
+          },
+          body: JSON.stringify({
+            workflow_configurations: {
+              model_overrides: {
+                is_realtime: true,
+                realtime: {
+                  provider: "google_realtime",
+                  voice: geminiVoice,
+                  // No model — use org's configured model (gemini-3.1-flash-live-preview)
+                },
+              },
+            },
+          }),
+        }
+      );
+      if (!workflowConfigRes.ok) {
+        const errText = await workflowConfigRes.text();
+        console.warn(
+          `[agents] Could not bake model_overrides into workflow ${dograhWorkflowId}: ${errText}`
+        );
+      }
+    }
 
     // 4. Save Preset to Flowra DB
     const insertData = {
