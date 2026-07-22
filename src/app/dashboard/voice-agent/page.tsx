@@ -403,6 +403,7 @@ function VoiceAgentPageContent({ initialVoice }: { initialVoice: string }) {
           languagePreset: selectedLang,
           sarvamLanguage: langPreset?.sarvamLang ?? "hi-IN",
           deepgramLanguage: langPreset?.deepgramLang ?? "hi",
+          presetId: selectedPresetId || undefined,
         }),
       });
       const data = await res.json();

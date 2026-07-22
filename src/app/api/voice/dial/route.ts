@@ -33,6 +33,7 @@ export async function POST(req: NextRequest) {
       deepgramLanguage,
       sarvamLanguage,
       languagePreset,
+      presetId,
     } = body;
 
     if (
@@ -87,6 +88,28 @@ export async function POST(req: NextRequest) {
       if (voiceConn?.config?.dograhWorkflowId) {
         const parsed = parseInt(voiceConn.config.dograhWorkflowId, 10);
         if (!isNaN(parsed)) dograhWorkflowId = parsed;
+      }
+    }
+
+    if (presetId) {
+      const { data: preset } = await supabase
+        .from("voice_agents")
+        .select("dograh_workflow_id")
+        .eq("id", presetId)
+        .maybeSingle();
+      if (preset?.dograh_workflow_id) {
+        dograhWorkflowId = preset.dograh_workflow_id;
+      }
+    } else if (workspaceId) {
+      const { data: defaultAgent } = await supabase
+        .from("voice_agents")
+        .select("dograh_workflow_id")
+        .eq("workspace_id", workspaceId)
+        .eq("is_enabled", true)
+        .limit(1)
+        .maybeSingle();
+      if (defaultAgent?.dograh_workflow_id) {
+        dograhWorkflowId = defaultAgent.dograh_workflow_id;
       }
     }
 
@@ -184,6 +207,11 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({
           workflow_id: dograhWorkflowId,
           phone_number: toNumber,
+          metadata: {
+            flowra_source: "manual_dialer",
+            preset_id: presetId || null,
+            workspace_id: workspaceId
+          },
           initial_context: initialContext,
         }),
       }

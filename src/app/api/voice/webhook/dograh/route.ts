@@ -47,6 +47,10 @@ export async function POST(req: NextRequest) {
       transcript,
       transcript_text,
       status,
+      direction,
+      from_number,
+      to_number,
+      metadata,
     } = payload;
 
     const runId = workflow_run_id ?? run_id ?? payload?.run?.id;
@@ -58,15 +62,71 @@ export async function POST(req: NextRequest) {
     const supabase = await createAdminClient();
 
     // ── Find matching voice_call by livekit_sip_call_id = runId ─────────────
-    const { data: call } = await supabase
+    let { data: call } = await supabase
       .from("voice_calls")
       .select("id, status")
       .eq("livekit_sip_call_id", String(runId))
       .maybeSingle();
 
     if (!call) {
-      console.warn(`[dograh webhook] No voice_call found for run_id=${runId}`);
-      return NextResponse.json({ ok: true, skipped: true });
+      // ── Try to handle as Inbound Call ──────────────────────────────────────
+      console.log(`[dograh webhook] No voice_call found for run_id=${runId}. Checking if inbound...`);
+      
+      const callDir = direction ?? metadata?.direction;
+      const toPhone = to_number ?? metadata?.to_number;
+      const fromPhone = from_number ?? metadata?.from_number;
+
+      if (toPhone && fromPhone) {
+        const cleanToPhone = toPhone.replace(/\D/g, "");
+        const { data: allConns } = await supabase
+          .from("channel_connections")
+          .select("workspace_id, config")
+          .eq("type", "voice");
+          
+        const matched = allConns?.find(c => {
+          const p = c.config?.phone?.replace(/\D/g, "");
+          return p === cleanToPhone || (p && cleanToPhone.includes(p)) || (p && p.includes(cleanToPhone));
+        });
+
+        if (matched?.workspace_id) {
+          const workspaceId = matched.workspace_id;
+          const { data: member } = await supabase
+            .from("workspace_members")
+            .select("user_id")
+            .eq("workspace_id", workspaceId)
+            .limit(1)
+            .maybeSingle();
+
+          if (member?.user_id) {
+            const { data: newCall, error: insertErr } = await supabase
+              .from("voice_calls")
+              .insert({
+                user_id: member.user_id,
+                workspace_id: workspaceId,
+                phone_number: fromPhone,
+                agent_type: "inbound",
+                voice_id: "inbound",
+                status: "completed",
+                livekit_room_name: `run-${runId}`,
+                livekit_sip_call_id: String(runId),
+              })
+              .select("id")
+              .single();
+
+            if (!insertErr && newCall) {
+              call = { id: newCall.id, status: "completed" };
+              console.log(`[dograh webhook] Created inbound voice_call ${call.id}`);
+            } else {
+              console.error("[dograh webhook] Failed to insert inbound call:", insertErr);
+            }
+          }
+        }
+      }
+
+      if (!call) {
+        console.warn(`[dograh webhook] Could not create inbound call record for run_id=${runId}. Skipping.`);
+        return NextResponse.json({ ok: true, skipped: true });
+      }
     }
 
     // ── Determine final status ────────────────────────────────────────────────

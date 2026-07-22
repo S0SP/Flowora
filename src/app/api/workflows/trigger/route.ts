@@ -449,6 +449,18 @@ async function executeNode(opts: {
         }
       }
 
+      // Preset Override
+      if (data.voice_agent_id) {
+        const { data: preset } = await admin
+          .from("voice_agents")
+          .select("dograh_workflow_id")
+          .eq("id", data.voice_agent_id)
+          .maybeSingle()
+        if (preset?.dograh_workflow_id) {
+          dograhWorkflowId = preset.dograh_workflow_id
+        }
+      }
+
       // 2. Insert call record into `voice_calls`
       // Try to find a workspace owner or at least a member to associate the call with
       const { data: member } = await admin
@@ -512,6 +524,10 @@ async function executeNode(opts: {
             telephony_provider: "voicelink",
             workflow_id: dograhWorkflowId,
             to_number: phone,
+            metadata: {
+              flowra_source: "workflow_builder",
+              workspace_id: workspaceId
+            },
             initial_context: initialContext,
           }),
         })

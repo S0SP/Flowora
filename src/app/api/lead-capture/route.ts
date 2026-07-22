@@ -68,6 +68,7 @@ export async function POST(req: NextRequest) {
       voice_agent_type,
       voice_id,
       voice_prompt,
+      voice_agent_id,
       custom_columns
     } = body;
 
@@ -83,8 +84,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "SMTP Host, User, Password and Sender Email are required when Email sending is active" }, { status: 400 });
     }
 
-    if (voice_enabled && (!voice_prompt || !voice_id)) {
-      return NextResponse.json({ error: "Voice Prompt and Voice ID are required when Voice is enabled" }, { status: 400 });
+    if (voice_enabled && (!voice_prompt || !voice_id) && !voice_agent_id) {
+      return NextResponse.json({ error: "Voice Preset (or Prompt and Voice ID) is required when Voice is enabled" }, { status: 400 });
     }
 
     const supabase = await createAdminClient();
@@ -120,6 +121,7 @@ export async function POST(req: NextRequest) {
       voice_agent_type: voice_agent_type || "livekit",
       voice_id: voice_id || "anushka",
       voice_prompt: voice_prompt || null,
+      voice_agent_id: voice_agent_id || null,
       custom_columns: custom_columns || [],
       updated_at: new Date().toISOString(),
     };

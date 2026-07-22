@@ -459,6 +459,7 @@ CREATE TABLE public.lead_capture_settings (
     voice_agent_type USER-DEFINED,
     voice_id text,
     voice_prompt text,
+    voice_agent_id uuid,
     custom_columns jsonb DEFAULT '[]'::jsonb,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL
@@ -697,6 +698,7 @@ CREATE TABLE public.voice_agents (
     knowledge_base_id uuid,
     first_message text,
     vapi_assistant_id text,
+    dograh_workflow_id uuid,
     config jsonb,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL
@@ -705,6 +707,7 @@ CREATE TABLE public.voice_agents (
 CREATE TABLE public.voice_calls (
     id uuid NOT NULL,
     user_id uuid NOT NULL,
+    workspace_id uuid,
     phone_number text NOT NULL,
     agent_type text NOT NULL,
     voice_id text,
@@ -714,6 +717,7 @@ CREATE TABLE public.voice_calls (
     recording_url text,
     transcript text,
     duration_seconds integer,
+    cost_breakdown jsonb,
     created_at timestamp with time zone,
     updated_at timestamp with time zone
 );
@@ -1008,3 +1012,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.threads;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.member_presence;
+
+-- Voice Calls Indexes
+CREATE INDEX idx_voice_calls_sip_call_id ON public.voice_calls(livekit_sip_call_id) WHERE livekit_sip_call_id IS NOT NULL;
+CREATE INDEX idx_voice_calls_workspace_created ON public.voice_calls(workspace_id, created_at DESC) WHERE workspace_id IS NOT NULL;

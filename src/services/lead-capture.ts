@@ -461,6 +461,18 @@ export async function sendPendingLeads() {
               }
             }
 
+            // Preset Dograh Workflow ID Override
+            if (setting.voice_agent_id) {
+              const { data: preset } = await supabase
+                .from("voice_agents")
+                .select("dograh_workflow_id")
+                .eq("id", setting.voice_agent_id)
+                .maybeSingle();
+              if (preset?.dograh_workflow_id) {
+                dograhWorkflowId = preset.dograh_workflow_id;
+              }
+            }
+
             const modelOverrides = agentType === "gemini"
               ? {
                 is_realtime: true,
@@ -500,6 +512,11 @@ export async function sendPendingLeads() {
               body: JSON.stringify({
                 workflow_id: dograhWorkflowId,
                 phone_number: lead.phone,
+                metadata: {
+                  flowra_source: "lead_capture",
+                  lead_id: lead.id,
+                  workspace_id: lead.workspace_id
+                },
                 initial_context: initialContext,
               }),
             });

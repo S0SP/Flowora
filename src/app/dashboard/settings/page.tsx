@@ -82,9 +82,6 @@ export default function SettingsPage() {
   const [livekitUrl, setLivekitUrl] = useState("")
   const [livekitApiKey, setLivekitApiKey] = useState("")
   const [livekitApiSecret, setLivekitApiSecret] = useState("")
-  const [deepgramApiKey, setDeepgramApiKey] = useState("")
-  const [sarvamApiKey, setSarvamApiKey] = useState("")
-  const [dograhWorkflowId, setDograhWorkflowId] = useState("")
   const [dograhPhoneNumber, setDograhPhoneNumber] = useState("")
 
   const [isSaving, setIsSaving] = useState(false)
@@ -442,10 +439,6 @@ export default function SettingsPage() {
           workspaceId: wsId,
           type: "voice",
           config: {
-            livekitUrl,
-            deepgramApiKey,
-            sarvamApiKey,
-            dograhWorkflowId,
             dograhPhoneNumber,
           },
           secrets: {},
@@ -731,39 +724,6 @@ export default function SettingsPage() {
             <div className="bg-card border border-border rounded-xl p-6 shadow-sm space-y-5">
               
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[13px] font-semibold text-gray-900">Deepgram API Key (STT)</label>
-                  <input 
-                    type="password" 
-                    value={deepgramApiKey}
-                    onChange={e => setDeepgramApiKey(e.target.value)}
-                    placeholder="Deepgram API key" 
-                    className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-gray-900 bg-white focus:outline-none focus:ring-1 focus:ring-primary" 
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[13px] font-semibold text-gray-900">Sarvam API Key (TTS)</label>
-                  <input 
-                    type="password" 
-                    value={sarvamApiKey}
-                    onChange={e => setSarvamApiKey(e.target.value)}
-                    placeholder="Sarvam API key" 
-                    className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-gray-900 bg-white focus:outline-none focus:ring-1 focus:ring-primary" 
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[13px] font-semibold text-gray-900">Dograh Workflow ID</label>
-                  <input 
-                    type="number" 
-                    value={dograhWorkflowId}
-                    onChange={e => setDograhWorkflowId(e.target.value)}
-                    placeholder="e.g. 1" 
-                    className="w-full border border-border rounded-lg px-3.5 py-2.5 text-[14px] text-gray-900 bg-white focus:outline-none focus:ring-1 focus:ring-primary" 
-                  />
-                </div>
                 <div className="space-y-1.5">
                   <label className="text-[13px] font-semibold text-gray-900">Dograh Phone Number (Inbound)</label>
                   <input 

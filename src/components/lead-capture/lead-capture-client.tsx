@@ -69,6 +69,7 @@ const schema = z.object({
   voice_id: z.string().default("anushka"),
   voice_prompt: z.string().optional().nullable(),
   voice_intent: z.string().optional().nullable(),
+  voice_agent_id: z.string().optional().nullable(),
   custom_columns: z.any().optional().nullable(),
 });
 
@@ -356,6 +357,7 @@ export function LeadCaptureClient() {
       setValue("voice_id", preset.voice_id || "anushka");
       setValue("voice_prompt", preset.system_prompt);
       setValue("voice_intent", preset.intent || "");
+      setValue("voice_agent_id", preset.id);
       toast.success(`Loaded voice preset: ${preset.name} ✓`);
     }
   };
@@ -423,6 +425,7 @@ export function LeadCaptureClient() {
       voice_id: "anushka",
       voice_prompt: "You are an AI assistant for {{brand_name}}. You are calling a new lead named {{lead_name}}. Be helpful, keep it short, and remind them to check their email/whatsapp.",
       voice_intent: "",
+      voice_agent_id: "",
     },
   });
 
@@ -536,6 +539,7 @@ export function LeadCaptureClient() {
             voice_id: settings.voice_id ?? "anushka",
             voice_prompt: settings.voice_prompt ?? "",
             voice_intent: settings.voice_intent ?? "",
+            voice_agent_id: settings.voice_agent_id ?? "",
             custom_columns: settings.custom_columns ?? [],
           });
         }

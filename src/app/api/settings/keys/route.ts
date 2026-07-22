@@ -85,6 +85,38 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
+    // Automate Dograh DID Registration if voice type and has phone
+    if (type === "voice" && config?.phone) {
+      const dograhUrl = process.env.DOGRAH_API_URL || "http://localhost:8000"
+      const secret = process.env.DOGRAH_SECRET || process.env.DOGRAH_API_SECRET || "change-me-in-production"
+      
+      // We fall back to 1 if no inbound workflow is specified in config. 
+      // User can change the preset via VoiceAgents later
+      const inboundWorkflowId = parseInt(process.env.DOGRAH_WORKFLOW_ID || "1", 10)
+
+      try {
+        const didRes = await fetch(`${dograhUrl}/api/v1/organizations/telephony-configs/1/phone-numbers`, {
+          method: "POST",
+          headers: { 
+            "X-Flowra-Secret": secret, 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${secret}`
+          },
+          body: JSON.stringify({
+            address: config.phone.replace(/\D/g, ""),
+            inbound_workflow_id: inboundWorkflowId,
+            is_active: true,
+          }),
+        })
+
+        if (!didRes.ok) {
+          console.warn("[keys/POST] Dograh DID registration failed:", await didRes.text())
+        }
+      } catch (didErr) {
+        console.error("[keys/POST] Dograh DID request failed:", didErr)
+      }
+    }
+
     return NextResponse.json({ id: data?.id, ok: true }, { status: 200 })
   } catch (err: any) {
     console.error("[keys/POST] Unhandled crash:", err)
