@@ -131,6 +131,7 @@ export async function POST(req: NextRequest) {
       if (runId) {
         // 1. Insert into workflow_run_steps (proper normalized table)
         await admin.from("workflow_run_steps").insert({
+          id:           crypto.randomUUID(),
           workspace_id: workspaceId,
           run_id:       runId,
           node_id:      nodeId,
