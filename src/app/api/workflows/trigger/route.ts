@@ -232,43 +232,4 @@ function resolveNextNodes(
 
   // De-duplicate and filter already-visited
   return [...new Set(nextIds)].filter(id => !visitedNodeIds.has(id))
-}
-
-      }
-      return { scheduled: reminders.length, eventDate }
-    }
-
-    // ── Webhook / HTTP Request ──────────────────────────────────────────────
-    case "webhook":
-    case "http_request": {
-      const url = data.url ?? ""
-      if (!url) return { skipped: "no URL configured" }
-
-      let headers: Record<string, string> = { "Content-Type": "application/json" }
-      if (data.headers) {
-        try { headers = { ...headers, ...JSON.parse(data.headers) } } catch {}
-      }
-
-      const res = await fetch(url, {
-        method:  data.method ?? "POST",
-        headers,
-        body:    JSON.stringify({ ...triggerData, ...context }),
-      })
-      return { status: res.status, ok: res.ok }
-    }
-
-    default:
-      console.warn(`[executeNode] Unknown node type: ${nodeType}`)
-      return { skipped: `unknown node type: ${nodeType}` }
-  }
-}
-
-// ── Helper: parse reminder offset strings like "3d", "1h", "30m" ─────────────
-function parseReminderOffset(when: string): number {
-  const num  = parseInt(when)
-  if (isNaN(num)) return 0
-  if (when.endsWith("d")) return num * 86400 * 1000
-  if (when.endsWith("h")) return num * 3600  * 1000
-  if (when.endsWith("m")) return num * 60    * 1000
-  return 0
-}
+}
