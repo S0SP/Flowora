@@ -118,11 +118,22 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Update run progress
+    // Update run progress and context
     try {
-      await admin.from("workflow_runs")
-        .update({ steps_completed: newVisited.length })
+      const { data: currentRun } = await admin.from("workflow_runs")
+        .select("context")
         .eq("id", runId)
+        .single()
+        
+      if (currentRun) {
+        const currentContext = currentRun.context || {}
+        await admin.from("workflow_runs")
+          .update({ 
+            steps_completed: newVisited.length,
+            context: { ...currentContext, [nodeId]: execResult }
+          })
+          .eq("id", runId)
+      }
     } catch {}
 
     return NextResponse.json({ ok: true, nodeId, result: execResult, nextNodeIds })
@@ -270,9 +281,9 @@ async function executeNode(node: any, triggerData: any, workspaceId: string, adm
 
       if (template) {
         // Resolve dynamic variables in template components
-        let paramsArray: any[] = []
+        let processedComponents: any[] | undefined = undefined
         if (Array.isArray(data.components)) {
-          const processed = data.components.map((c: any) => ({
+          processedComponents = data.components.map((c: any) => ({
             ...c,
             parameters: c.parameters?.map((p: any) => {
               if (p.type === "text" && typeof p.text === "string") {
@@ -281,10 +292,6 @@ async function executeNode(node: any, triggerData: any, workspaceId: string, adm
               return p
             })
           }))
-          const bodyComp = processed.find((c: any) => c.type === "body" || c.type === "BODY")
-          if (bodyComp && Array.isArray(bodyComp.parameters)) {
-            paramsArray = bodyComp.parameters.map((p: any) => p.text)
-          }
         }
 
         await sendTemplateMessage({
@@ -293,7 +300,7 @@ async function executeNode(node: any, triggerData: any, workspaceId: string, adm
           to: phone,
           templateName: template,
           language: data.templateLanguage ?? "en",
-          params: paramsArray.length > 0 ? paramsArray : undefined,
+          components: processedComponents,
         })
       } else {
         await sendTextMessage({
@@ -327,16 +334,25 @@ async function executeNode(node: any, triggerData: any, workspaceId: string, adm
     }
 
     case "voice": case "voice_call": {
+      const { initiateVoiceCall } = await import("@/services/voice")
       const phone = sub(data.toPhone ?? triggerData?.phone ?? "").replace(/\D/g, "")
       if (!phone) return { skipped: "no phone" }
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
-      const res = await fetch(`${baseUrl}/api/voice/dial`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ toNumber: phone, agentType: data.agentType ?? "livekit", voiceId: data.voiceId ?? "anushka", systemPrompt: data.systemPrompt }),
-      })
-      if (!res.ok) throw new Error("Voice dial failed")
-      return { called: true, phone }
+      
+      try {
+        await initiateVoiceCall({
+          supabase: admin,
+          workspaceId: workspaceId,
+          toNumber: phone,
+          agentType: data.agentType ?? "livekit",
+          voiceId: data.voiceId ?? "anushka",
+          systemPrompt: data.systemPrompt ? sub(data.systemPrompt) : undefined,
+          presetId: data.presetId,
+          metadataSource: "workflow_builder"
+        })
+        return { called: true, phone }
+      } catch (err: any) {
+        throw new Error(`Voice dial failed: ${err.message}`)
+      }
     }
 
     case "update_crm": case "crm": {

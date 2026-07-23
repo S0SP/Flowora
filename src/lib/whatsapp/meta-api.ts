@@ -240,6 +240,7 @@ export interface SendTemplateMessageArgs {
   template?: MessageTemplate;
   messageParams?: SendTimeParams;
   contextMessageId?: string;
+  components?: any[];
 }
 
 export async function sendTemplateMessage(
@@ -263,7 +264,9 @@ export async function sendTemplateMessage(
     language: { code: language },
   };
 
-  if (template) {
+  if (args.components && args.components.length > 0) {
+    templatePayload.components = args.components;
+  } else if (template) {
     const components = buildSendComponents(template, {
       body: messageParams?.body ?? params,
       headerText: messageParams?.headerText,
