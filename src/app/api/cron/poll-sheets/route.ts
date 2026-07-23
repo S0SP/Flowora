@@ -30,13 +30,11 @@ export async function GET(req: NextRequest) {
     // Find active workflows with google_sheet trigger
     const { data: workflows } = await admin
       .from("workflows")
-      .select("id, workspace_id, nodes, trigger_config, trigger_type")
+      .select("id, workspace_id, nodes, graph, trigger_config, trigger_type")
       .eq("status", "active")
       .eq("trigger_type", "google_sheet");
 
-    if (!workflows?.length) {
-      return NextResponse.json({ checked: 0 });
-    }
+    console.log(`[poll-sheets] Found ${workflows?.length ?? 0} active google_sheet workflows`)
 
     let triggered = 0;
     let newLeads = 0;
@@ -45,7 +43,9 @@ export async function GET(req: NextRequest) {
       const triggerConfig = workflow.trigger_config ?? {};
       const lastPolledAt = triggerConfig.last_polled_at;
 
-      const triggerNode = workflow.nodes?.find(
+      // nodes can be top-level OR inside graph column
+      const allNodes: any[] = (workflow as any).graph?.nodes ?? (workflow as any).nodes ?? []
+      const triggerNode = allNodes.find(
         (n: any) => n.data?.type === "trigger" || n.data?.subtype === "google_sheet" || n.type === "trigger"
       );
 
@@ -58,6 +58,8 @@ export async function GET(req: NextRequest) {
           continue;
         }
       }
+
+      console.log(`[poll-sheets] Polling workflow ${workflow.id} (last polled: ${lastPolledAt ?? 'never'}, interval: ${pollInterval}s)`)
 
       // Record check timestamp
       try {
@@ -75,17 +77,24 @@ export async function GET(req: NextRequest) {
 
       try {
         const sheetUrl = triggerNode?.data?.sheetUrl || triggerNode?.data?.url;
-        if (!sheetUrl) continue;
+        if (!sheetUrl) {
+          console.warn(`[poll-sheets] Workflow ${workflow.id}: no sheetUrl in trigger node data:`, JSON.stringify(triggerNode?.data))
+          continue;
+        }
 
         // Fetch sheet as CSV (Google Sheets public CSV export)
         const csvUrl = toCSVExportUrl(sheetUrl);
         if (!csvUrl) continue;
 
         const res = await fetch(csvUrl, { signal: AbortSignal.timeout(10000) });
-        if (!res.ok) continue;
+        if (!res.ok) {
+          console.error(`[poll-sheets] Workflow ${workflow.id}: CSV fetch failed: ${res.status} ${res.statusText} url=${csvUrl}`)
+          continue;
+        }
 
         const csv = await res.text();
         const rows = parseCSV(csv);
+        console.log(`[poll-sheets] Workflow ${workflow.id}: fetched ${rows.length} rows (incl header) from sheet`)
         if (rows.length < 2) continue;
 
         const headers = rows[0].map((h: string) => h.trim().toLowerCase());
@@ -141,6 +150,7 @@ export async function GET(req: NextRequest) {
           triggerData.email = triggerData[emailCol ?? "email"] ?? "";
 
           // Enqueue workflow execution via QStash (fire and forget)
+          console.log(`[poll-sheets] Enqueueing workflow ${workflow.id} for phone=${phone} name=${triggerData.name}`)
           await enqueue("/api/workflows/trigger", {
             workflowId: workflow.id,
             workspaceId: workflow.workspace_id,

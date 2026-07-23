@@ -37,7 +37,13 @@ export async function POST(req: NextRequest) {
     const { data: workflow, error } = await query.single()
 
     if (error || !workflow) {
+      console.error(`[workflows/trigger] Workflow ${workflowId} not found in workspace ${workspaceId}. Error:`, error?.message)
       return NextResponse.json({ error: "Workflow not found" }, { status: 404 })
+    }
+
+    if (workflow.status !== "active") {
+      console.warn(`[workflows/trigger] Workflow ${workflowId} is not active (status=${workflow.status})`)
+      return NextResponse.json({ error: "Workflow is not active" }, { status: 400 })
     }
 
     // Set correct workspaceId from workflow record if not determined yet
@@ -45,8 +51,10 @@ export async function POST(req: NextRequest) {
       workspaceId = workflow.workspace_id
     }
 
-    const nodesCount = (workflow.graph?.nodes ?? workflow.nodes ?? []).length
-    
+    const actualNodes = workflow.graph?.nodes ?? workflow.nodes ?? []
+    const actualEdges = workflow.graph?.edges ?? workflow.edges ?? []
+    console.log(`[workflows/trigger] workflowId=${workflowId} nodes=${actualNodes.length} edges=${actualEdges.length} triggerData keys: ${Object.keys(triggerData ?? {}).join(", ")}`)
+
     // Create run record
     const { data: run } = await admin
       .from("workflow_runs")
@@ -58,20 +66,22 @@ export async function POST(req: NextRequest) {
         context: {
           trigger_type:  workflow.trigger_type,
           trigger_data:  triggerData ?? {},
-          steps_total:   nodesCount,
+          steps_total:   actualNodes.length,
+          steps_log:     [],
         }
       })
       .select()
       .single()
 
     if (!run) {
+      console.error(`[workflows/trigger] Failed to create run record for workflow ${workflowId}`)
       return NextResponse.json({ error: "Failed to create run record" }, { status: 500 })
     }
 
+    console.log(`[workflows/trigger] Created run ${run.id} for workflow ${workflowId}`)
+
+
     try {
-      const actualNodes = workflow.graph?.nodes ?? workflow.nodes ?? []
-      const actualEdges = workflow.graph?.edges ?? workflow.edges ?? []
-      
       const triggerNode = actualNodes.find((n: any) =>
         n.type === "trigger" ||
         n.data?.type === "trigger" ||
@@ -81,11 +91,15 @@ export async function POST(req: NextRequest) {
       )
 
       if (!triggerNode) {
-        throw new Error("No trigger node found in workflow")
+        throw new Error(`No trigger node found in workflow. Node types: ${actualNodes.map((n:any) => n.type || n.data?.type || n.data?.subtype).join(", ")}`)
       }
+
+      console.log(`[workflows/trigger] Found trigger node: ${triggerNode.id} type=${triggerNode.type} subtype=${triggerNode.data?.subtype}`)
 
       const edgeMap = buildEdgeMap(actualEdges)
       const nextNodeIds = resolveNextNodes(triggerNode.id, triggerNode.data?.subtype ?? triggerNode.data?.type ?? triggerNode.type, triggerNode.data, null, edgeMap, new Set([triggerNode.id]))
+
+      console.log(`[workflows/trigger] Next nodes to enqueue: ${nextNodeIds.join(", ")}`)
 
       for (const nextNodeId of nextNodeIds) {
         await enqueue(

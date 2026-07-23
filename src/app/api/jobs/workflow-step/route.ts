@@ -43,12 +43,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Workflow inactive or not found" })
     }
 
-    const nodes: any[] = workflow.nodes ?? []
-    const edges: any[] = workflow.edges ?? []
+    // CRITICAL FIX: nodes/edges are stored inside workflow.graph, not top-level
+    const nodes: any[] = (workflow as any).graph?.nodes ?? (workflow as any).nodes ?? []
+    const edges: any[] = (workflow as any).graph?.edges ?? (workflow as any).edges ?? []
+
+    console.log(`[workflow-step] workflowId=${workflowId} nodeId=${nodeId} nodes=${nodes.length} edges=${edges.length} runId=${runId}`)
 
     const currentNode = nodes.find(n => n.id === nodeId)
     if (!currentNode) {
-      return NextResponse.json({ message: "Node not found" })
+      console.error(`[workflow-step] Node ${nodeId} not found in workflow ${workflowId}. Available node IDs: ${nodes.map((n:any)=>n.id).join(", ")}`)
+      return NextResponse.json({ message: "Node not found", availableNodes: nodes.map((n:any)=>n.id) })
     }
 
     const nodeData = currentNode.data ?? {}
@@ -65,9 +69,12 @@ export async function POST(req: NextRequest) {
     if (nodeType === "condition") {
       condResult = evaluateCondition(nodeData, { triggerData })
       execResult = { condition: condResult }
+      console.log(`[workflow-step] Condition node ${nodeId}: result=${condResult}`)
     } else {
       try {
+        console.log(`[workflow-step] Executing node ${nodeId} type=${nodeType}`)
         execResult = await executeNode(currentNode, triggerData, workspaceId, admin)
+        console.log(`[workflow-step] Node ${nodeId} result:`, JSON.stringify(execResult))
       } catch (err: any) {
         console.error(`[workflow-step] Node ${nodeId} error:`, err.message)
         execResult = { error: err.message }
@@ -118,23 +125,44 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Update run progress and context
+    // Update run progress and log step result
     try {
-      const { data: currentRun } = await admin.from("workflow_runs")
-        .select("context")
-        .eq("id", runId)
-        .single()
-        
-      if (currentRun) {
-        const currentContext = currentRun.context || {}
-        await admin.from("workflow_runs")
-          .update({ 
-            steps_completed: newVisited.length,
-            context: { ...currentContext, [nodeId]: execResult }
-          })
+      if (runId) {
+        const { data: currentRun } = await admin.from("workflow_runs")
+          .select("context, steps_completed")
           .eq("id", runId)
+          .single()
+
+        if (currentRun) {
+          const currentContext = currentRun.context || {}
+          const stepLog = {
+            nodeId,
+            nodeType,
+            executedAt: new Date().toISOString(),
+            result: execResult,
+            nextNodes: nextNodeIds,
+          }
+          const steps_log: any[] = currentContext.steps_log ?? []
+          steps_log.push(stepLog)
+
+          const isLast = nextNodeIds.length === 0
+          await admin.from("workflow_runs")
+            .update({
+              steps_completed: (currentRun.steps_completed ?? 0) + 1,
+              status: execResult?.error ? "failed" : (isLast ? "completed" : "running"),
+              finished_at: isLast ? new Date().toISOString() : undefined,
+              context: {
+                ...currentContext,
+                steps_log,
+                last_step: { nodeId, nodeType, result: execResult, at: new Date().toISOString() },
+              }
+            })
+            .eq("id", runId)
+        }
       }
-    } catch {}
+    } catch (logErr: any) {
+      console.warn(`[workflow-step] Failed to update run log:`, logErr.message)
+    }
 
     return NextResponse.json({ ok: true, nodeId, result: execResult, nextNodeIds })
   } catch (err: any) {
