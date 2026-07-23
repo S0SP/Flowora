@@ -21,7 +21,16 @@ export async function GET(req: NextRequest) {
         .maybeSingle();
 
       if (error) throw error;
-      return NextResponse.json({ workflow });
+
+      let formattedWorkflow = null;
+      if (workflow) {
+        formattedWorkflow = {
+          ...workflow,
+          nodes: (workflow.graph as any)?.nodes ?? [],
+          edges: (workflow.graph as any)?.edges ?? [],
+        };
+      }
+      return NextResponse.json({ workflow: formattedWorkflow });
     }
 
     const { data: workflows, error } = await admin
@@ -54,12 +63,11 @@ export async function POST(req: NextRequest) {
     const triggerNode = nodes?.find((n: any) => n.type === "trigger" || n.data?.type === "trigger");
     const triggerType = triggerNode?.data?.triggerType ?? triggerNode?.data?.subtype ?? "manual";
 
-    const upsertData = {
+    const updateData = {
       workspace_id: workspaceId,
       name,
       description: body.description ?? null,
-      nodes: nodes ?? [],
-      edges: edges ?? [],
+      graph: { nodes: nodes ?? [], edges: edges ?? [] },
       status: status ?? "draft",
       trigger_type: triggerType,
       trigger_config: triggerNode?.data ?? {},
@@ -72,7 +80,7 @@ export async function POST(req: NextRequest) {
       // Update existing
       const { data, error } = await admin
         .from("workflows")
-        .update(upsertData)
+        .update(updateData)
         .eq("id", id)
         .eq("workspace_id", workspaceId)
         .select()
@@ -83,7 +91,7 @@ export async function POST(req: NextRequest) {
       // Create new
       const { data, error } = await admin
         .from("workflows")
-        .insert(upsertData)
+        .insert({ ...updateData, version: 1 })
         .select()
         .single();
       if (error) throw error;
