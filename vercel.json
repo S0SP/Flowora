@@ -6,6 +6,24 @@
       "maxDuration": 60
     }
   },
+  "crons": [
+    {
+      "path": "/api/cron/poll-sheets",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/process-schedules",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/lead-capture",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/send-reminders",
+      "schedule": "* * * * *"
+    }
+  ],
   "headers": [
     {
       "source": "/api/(.*)",
