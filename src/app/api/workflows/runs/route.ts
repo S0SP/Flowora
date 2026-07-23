@@ -19,12 +19,23 @@ export async function GET(req: NextRequest) {
       .select("*")
       .eq("workspace_id", workspaceId)
       .eq("workflow_id", workflowId)
-      .order("created_at", { ascending: false })
+      .order("started_at", { ascending: false })
       .limit(100);
 
     if (error) throw error;
 
-    return NextResponse.json({ runs: runs ?? [] });
+    const formattedRuns = runs?.map((r: any) => ({
+      ...r,
+      created_at: r.started_at,
+      completed_at: r.finished_at,
+      trigger_type: r.context?.trigger_type,
+      trigger_data: r.context?.trigger_data,
+      steps_total: r.context?.steps_total,
+      steps_completed: r.context?.steps_completed,
+      error_message: r.context?.error_message,
+    }))
+
+    return NextResponse.json({ runs: formattedRuns ?? [] });
   } catch (err: any) {
     const status = err?.status === 401 ? 401 : 500;
     return NextResponse.json({ error: err.message ?? "Failed to fetch runs" }, { status });

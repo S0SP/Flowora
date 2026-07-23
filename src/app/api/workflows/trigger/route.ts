@@ -45,16 +45,21 @@ export async function POST(req: NextRequest) {
       workspaceId = workflow.workspace_id
     }
 
+    const nodesCount = (workflow.graph?.nodes ?? workflow.nodes ?? []).length
+    
     // Create run record
     const { data: run } = await admin
       .from("workflow_runs")
       .insert({
         workspace_id:  workspaceId,
         workflow_id:   workflowId,
-        trigger_type:  workflow.trigger_type,
-        trigger_data:  triggerData ?? {},
         status:        "running",
-        steps_total:   (workflow.nodes ?? []).length,
+        started_at:    new Date().toISOString(),
+        context: {
+          trigger_type:  workflow.trigger_type,
+          trigger_data:  triggerData ?? {},
+          steps_total:   nodesCount,
+        }
       })
       .select()
       .single()
@@ -64,24 +69,27 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      await executeWorkflow({ workflow, nodes: workflow.nodes ?? [], edges: workflow.edges ?? [], triggerData, workspaceId, run, admin })
+      const actualNodes = workflow.graph?.nodes ?? workflow.nodes ?? []
+      const actualEdges = workflow.graph?.edges ?? workflow.edges ?? []
+      await executeWorkflow({ workflow, nodes: actualNodes, edges: actualEdges, triggerData, workspaceId, run, admin })
 
       await admin.from("workflow_runs").update({
         status:          "completed",
-        completed_at:    new Date().toISOString(),
-        steps_completed: (workflow.nodes ?? []).length,
+        finished_at:     new Date().toISOString(),
+        context: {
+          ...run.context,
+          steps_completed: nodesCount,
+        }
       }).eq("id", run.id)
-
-      await admin.from("workflows").update({
-        total_runs:  (workflow.total_runs ?? 0) + 1,
-        last_run_at: new Date().toISOString(),
-      }).eq("id", workflowId)
 
     } catch (execErr: any) {
       await admin.from("workflow_runs").update({
         status:        "failed",
-        error_message: execErr.message ?? "Execution failed",
-        completed_at:  new Date().toISOString(),
+        finished_at:   new Date().toISOString(),
+        context: {
+          ...run.context,
+          error_message: execErr.message ?? "Execution failed",
+        }
       }).eq("id", run.id)
       throw execErr
     }
