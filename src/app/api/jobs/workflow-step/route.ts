@@ -125,34 +125,50 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Update run progress and log step result
+    // Log this step to the proper workflow_run_steps table (per schema)
+    // Also update workflow_runs.context with step log for the UI
     try {
       if (runId) {
+        // 1. Insert into workflow_run_steps (proper normalized table)
+        await admin.from("workflow_run_steps").insert({
+          workspace_id: workspaceId,
+          run_id:       runId,
+          node_id:      nodeId,
+          node_type:    nodeType,
+          status:       execResult?.error ? "failed" : (execResult?.skipped ? "skipped" : "completed"),
+          input:        { triggerData },
+          output:       execResult,
+          created_at:   new Date().toISOString(),
+        })
+
+        // 2. Update workflow_runs context with step log array for UI display
         const { data: currentRun } = await admin.from("workflow_runs")
-          .select("context, steps_completed")
+          .select("context")
           .eq("id", runId)
           .single()
 
         if (currentRun) {
-          const currentContext = currentRun.context || {}
-          const stepLog = {
+          const ctx = currentRun.context || {}
+          const steps_log: any[] = ctx.steps_log ?? []
+          steps_log.push({
             nodeId,
             nodeType,
             executedAt: new Date().toISOString(),
-            result: execResult,
-            nextNodes: nextNodeIds,
-          }
-          const steps_log: any[] = currentContext.steps_log ?? []
-          steps_log.push(stepLog)
+            result:     execResult,
+            nextNodes:  nextNodeIds,
+          })
 
-          const isLast = nextNodeIds.length === 0
+          const isLast   = nextNodeIds.length === 0
+          const newStatus = execResult?.error ? "failed" : (isLast ? "completed" : "running")
+
+          // Only update columns that EXIST in the schema: status, context, finished_at, current_node
           await admin.from("workflow_runs")
             .update({
-              steps_completed: (currentRun.steps_completed ?? 0) + 1,
-              status: execResult?.error ? "failed" : (isLast ? "completed" : "running"),
-              finished_at: isLast ? new Date().toISOString() : undefined,
+              status:       newStatus,
+              current_node: isLast ? null : nextNodeIds[0] ?? null,
+              finished_at:  isLast ? new Date().toISOString() : null,
               context: {
-                ...currentContext,
+                ...ctx,
                 steps_log,
                 last_step: { nodeId, nodeType, result: execResult, at: new Date().toISOString() },
               }
@@ -161,7 +177,7 @@ export async function POST(req: NextRequest) {
         }
       }
     } catch (logErr: any) {
-      console.warn(`[workflow-step] Failed to update run log:`, logErr.message)
+      console.warn(`[workflow-step] Failed to log step:`, logErr.message)
     }
 
     return NextResponse.json({ ok: true, nodeId, result: execResult, nextNodeIds })

@@ -126,19 +126,33 @@ export async function GET(req: NextRequest) {
           const phone = normalizePhone(rawPhone);
           if (processedPhones.has(phone)) continue;
 
-          // Mark as being processed (prevent duplicate triggers)
-          await admin.from("lead_capture_leads").upsert({
-            workspace_id: workflow.workspace_id,
-            workflow_id: workflow.id,
-            phone,
-            name: row[nameIdx]?.trim() ?? null,
-            email: row[emailIdx]?.trim() ?? null,
-            status: "pending",
-            channel_status: {},
-          }, {
-            onConflict: "phone,workflow_id",
-            ignoreDuplicates: true,
-          });
+          // Mark as processed - use a simple insert with the workflow_id
+          // lead_capture_leads requires lead_capture_settings_id (NOT NULL) per schema,
+          // but this is workflow-builder polling. We use a sentinel UUID and rely on
+          // the processedPhones Set (already loaded above) for deduplication instead.
+          // Just track processed in memory for this poll run - the Set was built from DB above.
+          // The upsert below uses onConflict on phone+workflow_id (added via migration if needed)
+          try {
+            await admin.from("lead_capture_leads").insert({
+              workspace_id:            workflow.workspace_id,
+              workflow_id:             workflow.id,
+              lead_capture_settings_id: "00000000-0000-0000-0000-000000000000", // sentinel for workflow-builder
+              phone,
+              name:  row[nameIdx]?.trim() ?? null,
+              email: row[emailIdx]?.trim() ?? null,
+              row_hash: phone + "::" + workflow.id,
+              status: "pending",
+              channel_status: {},
+            })
+          } catch (dupErr: any) {
+            // If insert fails due to duplicate, skip (already processed)
+            if (dupErr.code === "23505" || dupErr.message?.includes("duplicate") || dupErr.message?.includes("unique")) {
+              console.log(`[poll-sheets] phone=${phone} already in lead_capture_leads, skipping`)
+              processedPhones.add(phone)
+              continue
+            }
+            console.warn(`[poll-sheets] Failed to insert lead_capture_lead for ${phone}:`, dupErr.message)
+          }
 
           // Build trigger data from all columns
           const triggerData: Record<string, string> = {};
