@@ -145,7 +145,7 @@ export default function WorkflowsPage() {
 
   const fetchWorkflows = useCallback(async () => {
     try {
-      const res = await fetch("/api/workflows")
+      const res = await fetch("/api/workflows", { cache: "no-store" })
       if (!res.ok) throw new Error()
       const data = await res.json()
       setWorkflows(data.workflows ?? [])

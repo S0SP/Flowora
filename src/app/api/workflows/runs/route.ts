@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { getTenant } from "@/lib/tenant";
 
+export const dynamic = "force-dynamic";
+
 // GET /api/workflows/runs?workflowId=xxx
 export async function GET(req: NextRequest) {
   try {

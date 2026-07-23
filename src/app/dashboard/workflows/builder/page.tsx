@@ -1415,15 +1415,15 @@ export default function WorkflowBuilderPage() {
  }
  }
 
- const fetchRuns = useCallback(async () => {
- if (!workflowId) return
- setRunsLoading(true)
- try {
- const res = await fetch(`/api/workflows/runs?workflowId=${workflowId}`)
- const d = await res.json()
- if (res.ok) setWorkflowRuns(d.runs ?? [])
- } catch { } finally { setRunsLoading(false); setRunsLoaded(true) }
- }, [workflowId])
+  const fetchRuns = useCallback(async () => {
+    if (!workflowId) return
+    setRunsLoading(true)
+    try {
+      const res = await fetch(`/api/workflows/runs?workflowId=${workflowId}`, { cache: "no-store" })
+      const d = await res.json()
+      if (res.ok) setWorkflowRuns(d.runs ?? [])
+    } catch { } finally { setRunsLoading(false); setRunsLoaded(true) }
+  }, [workflowId])
 
  useEffect(() => {
  if ((activeTab === "Logs" || activeTab === "Analytics") && !runsLoaded) fetchRuns()

@@ -116,6 +116,26 @@ export async function GET(req: NextRequest) {
           .eq("workflow_id", workflow.id)
           .eq("workspace_id", workflow.workspace_id);
 
+        // Ensure dummy settings row exists for FK constraint
+        let { data: dummySettings } = await admin
+          .from("lead_capture_settings")
+          .select("id")
+          .eq("workspace_id", workflow.workspace_id)
+          .eq("name", "Workflow Builder Dummy")
+          .maybeSingle();
+
+        if (!dummySettings) {
+          const { data: newSettings } = await admin.from("lead_capture_settings").insert({
+            workspace_id: workflow.workspace_id,
+            name: "Workflow Builder Dummy",
+            is_active: false,
+            sheet_url: "dummy",
+            phone_column: "phone",
+            delay_minutes: 0,
+          }).select("id").single();
+          dummySettings = newSettings;
+        }
+
         const processedPhones = new Set((processed ?? []).map((r: any) => normalizePhone(r.phone)));
 
         // Process new rows
@@ -126,17 +146,12 @@ export async function GET(req: NextRequest) {
           const phone = normalizePhone(rawPhone);
           if (processedPhones.has(phone)) continue;
 
-          // Mark as processed - use a simple insert with the workflow_id
-          // lead_capture_leads requires lead_capture_settings_id (NOT NULL) per schema,
-          // but this is workflow-builder polling. We use a sentinel UUID and rely on
-          // the processedPhones Set (already loaded above) for deduplication instead.
-          // Just track processed in memory for this poll run - the Set was built from DB above.
-          // The upsert below uses onConflict on phone+workflow_id (added via migration if needed)
+          // Mark as processed
           try {
             await admin.from("lead_capture_leads").insert({
               workspace_id:            workflow.workspace_id,
               workflow_id:             workflow.id,
-              lead_capture_settings_id: "00000000-0000-0000-0000-000000000000", // sentinel for workflow-builder
+              lead_capture_settings_id: dummySettings.id,
               phone,
               name:  row[nameIdx]?.trim() ?? null,
               email: row[emailIdx]?.trim() ?? null,
