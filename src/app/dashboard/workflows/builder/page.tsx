@@ -1664,7 +1664,7 @@ export default function WorkflowBuilderPage() {
  <div className="px-8 py-5 border-b border-[var(--node-border)] bg-[var(--panel-bg)] flex items-center justify-between">
  <div>
  <h2 className="text-[18px] font-bold flex items-center gap-2 text-[var(--text-primary)]"><Activity className="h-5 w-5 text-primary" /> Execution Logs</h2>
- <p className="text-[13px] text-[var(--text-secondary)] mt-0.5">{workflowId ? `Runs for: ${workflowName}` : "Save workflow first to see logs."}</p>
+ <p className="text-[13px] text-[var(--text-secondary)] mt-0.5">{workflowId ? `Showing all runs for: ${workflowName}` : "Save workflow first to see logs."}</p>
  </div>
  {workflowId && (
  <button onClick={() => { setRunsLoaded(false); fetchRuns() }} disabled={runsLoading}
@@ -1687,40 +1687,102 @@ export default function WorkflowBuilderPage() {
  <div className="flex flex-col items-center justify-center h-full gap-3 text-[var(--text-secondary)] text-center">
  <Activity className="h-10 w-10 opacity-20" />
  <p className="font-semibold">No runs yet</p>
- <p className="text-[13px]">Use Test Run or activate to see executions here.</p>
+ <p className="text-[13px]">Use Test Run or activate + add a row to Google Sheet to see executions here.</p>
  </div>
  ) : (
- <div className="space-y-3 max-w-4xl">
- {workflowRuns.map(run => (
- <div key={run.id} className="border border-[var(--node-border)] rounded-xl p-4 bg-[var(--node-bg)] shadow-sm">
- <div className="flex items-center justify-between mb-2">
- <div className="flex items-center gap-2">
- {run.status === "completed" ? <CheckCircle2 className="h-4 w-4 text-green-500" /> :
- run.status === "failed" ? <XCircle className="h-4 w-4 text-red-500" /> :
- run.status === "running" ? <Loader2 className="h-4 w-4 text-blue-500 animate-spin" /> :
- <AlertCircle className="h-4 w-4 text-amber-500" />}
- <span className={cn("text-[11px] font-bold px-2 py-0.5 rounded-full",
- run.status === "completed" ? "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400" :
- run.status === "failed" ? "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400" :
- run.status === "running" ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400" : "bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400"
- )}>{run.status.toUpperCase()}</span>
- <span className="text-[11px] font-mono text-[var(--text-secondary)]">#{run.id?.slice(0, 8)}</span>
+ <div className="space-y-4 max-w-4xl">
+ {workflowRuns.map(run => {
+   const stepsLog: any[] = run.context?.steps_log ?? []
+   const triggerData = run.context?.trigger_data ?? run.trigger_data ?? {}
+   const errorMsg = run.context?.error_message ?? run.error_message
+   const isExpanded = true // always show details
+   return (
+ <div key={run.id} className="border border-[var(--node-border)] rounded-xl overflow-hidden bg-[var(--node-bg)] shadow-sm">
+   {/* Run header */}
+   <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--node-border)] bg-[var(--panel-bg)]">
+     <div className="flex items-center gap-2.5">
+       {run.status === "completed" ? <CheckCircle2 className="h-4 w-4 text-green-500" /> :
+        run.status === "failed"    ? <XCircle className="h-4 w-4 text-red-500" /> :
+        run.status === "running"   ? <Loader2 className="h-4 w-4 text-blue-500 animate-spin" /> :
+        <AlertCircle className="h-4 w-4 text-amber-500" />}
+       <span className={cn("text-[11px] font-bold px-2 py-0.5 rounded-full",
+         run.status === "completed" ? "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400" :
+         run.status === "failed"    ? "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400" :
+         run.status === "running"   ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400" :
+         "bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400"
+       )}>{run.status?.toUpperCase()}</span>
+       <span className="text-[11px] font-mono text-[var(--text-secondary)]">#{run.id?.slice(0, 8)}</span>
+       <span className="text-[11px] text-[var(--text-secondary)]">· Trigger: <b className="text-[var(--text-primary)]">{run.trigger_type ?? run.context?.trigger_type ?? "manual"}</b></span>
+     </div>
+     <div className="flex items-center gap-3 text-[11px] text-[var(--text-secondary)]">
+       <span>Steps: <b className="text-[var(--text-primary)]">{run.steps_completed ?? stepsLog.length}/{run.steps_total ?? run.context?.steps_total ?? "?"}</b></span>
+       <span>{run.created_at ? format(new Date(run.created_at), "dd MMM HH:mm:ss") : "—"}</span>
+     </div>
+   </div>
+
+   {/* Trigger data */}
+   {Object.keys(triggerData).length > 0 && (
+   <div className="px-5 py-2.5 border-b border-[var(--node-border)] bg-[var(--canvas-bg)]">
+     <p className="text-[11px] font-semibold text-[var(--text-secondary)] mb-1.5 uppercase tracking-wide">📥 Trigger Data (Lead Info)</p>
+     <div className="flex flex-wrap gap-x-4 gap-y-1">
+       {Object.entries(triggerData).map(([k, v]) => (
+         <span key={k} className="text-[11px] font-mono"><span className="text-[var(--text-secondary)]">{k}:</span> <span className="text-[var(--text-primary)] font-medium">{String(v)}</span></span>
+       ))}
+     </div>
+   </div>
+   )}
+
+   {/* Step-by-step trace */}
+   {stepsLog.length > 0 ? (
+   <div className="px-5 py-3">
+     <p className="text-[11px] font-semibold text-[var(--text-secondary)] mb-3 uppercase tracking-wide">⚡ Step Execution Trace</p>
+     <div className="space-y-2">
+       {stepsLog.map((step: any, i: number) => (
+         <div key={i} className="flex gap-3 items-start">
+           <div className="flex flex-col items-center">
+             <div className={cn("h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0",
+               step.result?.error ? "bg-red-100 dark:bg-red-900/40 text-red-600" :
+               step.result?.skipped ? "bg-amber-100 dark:bg-amber-900/40 text-amber-600" :
+               "bg-green-100 dark:bg-green-900/40 text-green-600"
+             )}>{i + 1}</div>
+             {i < stepsLog.length - 1 && <div className="w-px h-full min-h-[16px] bg-[var(--node-border)] mt-1" />}
+           </div>
+           <div className="flex-1 pb-2">
+             <div className="flex items-center gap-2 flex-wrap">
+               <span className="text-[12px] font-semibold text-[var(--text-primary)] capitalize">{step.nodeType?.replace(/_/g, " ")}</span>
+               <code className="text-[10px] font-mono bg-[var(--canvas-bg)] px-1.5 py-0.5 rounded text-[var(--text-secondary)]">{step.nodeId?.slice(0, 12)}</code>
+               {step.result?.error && <span className="text-[11px] text-red-500 font-medium">❌ {step.result.error}</span>}
+               {step.result?.skipped && <span className="text-[11px] text-amber-500 font-medium">⚠ skipped: {step.result.skipped}</span>}
+               {step.result?.sent && <span className="text-[11px] text-green-500 font-medium">✓ Sent to {step.result.phone}</span>}
+               {step.result?.called && <span className="text-[11px] text-green-500 font-medium">✓ Called {step.result.phone}</span>}
+               {step.result?.updated && <span className="text-[11px] text-green-500 font-medium">✓ CRM updated (stage: {step.result.stage})</span>}
+               {step.result?.condition !== undefined && <span className="text-[11px] font-medium" style={{color: step.result.condition ? "green" : "orange"}}>Condition → {step.result.condition ? "TRUE" : "FALSE"}</span>}
+               {step.result?.delayed && <span className="text-[11px] text-blue-500 font-medium">⏱ Delayed, next steps enqueued</span>}
+               <span className="text-[10px] text-[var(--text-secondary)] ml-auto">{step.executedAt ? format(new Date(step.executedAt), "HH:mm:ss") : ""}</span>
+             </div>
+             {step.nextNodes?.length > 0 && (
+               <p className="text-[10px] text-[var(--text-secondary)] mt-0.5">→ next: {step.nextNodes.join(", ")}</p>
+             )}
+           </div>
+         </div>
+       ))}
+     </div>
+   </div>
+   ) : (
+   <div className="px-5 py-3 text-[12px] text-[var(--text-secondary)]">
+     {run.status === "running" ? "⏳ Workflow is running… refresh to see steps as they complete." : "No step trace available for this run."}
+   </div>
+   )}
+
+   {/* Error message */}
+   {errorMsg && (
+   <div className="px-5 py-2.5 border-t border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20">
+     <p className="text-[12px] text-red-600 dark:text-red-400 font-medium">❌ Error: {errorMsg}</p>
+   </div>
+   )}
  </div>
- <span className="text-[11px] text-[var(--text-secondary)]">{run.created_at ? format(new Date(run.created_at), "dd MMM HH:mm:ss") : "—"}</span>
- </div>
- <div className="flex gap-4 text-[12px] text-[var(--text-secondary)]">
- <span>Trigger: <b className="text-[var(--text-primary)]">{run.trigger_type ?? "manual"}</b></span>
- <span>Steps: <b className="text-[var(--text-primary)]">{run.steps_completed ?? 0}/{run.steps_total ?? 0}</b></span>
- {run.error_message && <span className="text-red-600 dark:text-red-400 font-medium"> {run.error_message}</span>}
- </div>
- {run.trigger_data && Object.keys(run.trigger_data).length > 0 && (
- <details className="mt-2">
- <summary className="text-[11px] text-[var(--text-secondary)] cursor-pointer hover:text-[var(--text-primary)] font-medium">Trigger data </summary>
- <pre className="mt-1 text-[10px] font-mono bg-[var(--canvas-bg)] p-2 rounded-lg text-[var(--text-primary)] overflow-x-auto">{JSON.stringify(run.trigger_data, null, 2)}</pre>
- </details>
- )}
- </div>
- ))}
+   )
+ })}
  </div>
  )}
  </div>
