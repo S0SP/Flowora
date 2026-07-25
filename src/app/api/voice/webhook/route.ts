@@ -123,7 +123,7 @@ export async function POST(req: NextRequest) {
                   full_name: phone,
                   channel: "whatsapp",
                 }).select("id").single();
-                contact = newContact;
+                contact = newContact ?? undefined;
               }
 
               if (contact) {

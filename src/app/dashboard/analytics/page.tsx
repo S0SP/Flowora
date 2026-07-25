@@ -58,7 +58,7 @@ export default function AnalyticsPage() {
     )
   }
 
-  const kpis = [
+  const kpis: Array<{ label: string; value: any; subtext?: string; icon: any; iconColor?: string; bg?: string; color?: string; change?: string }> = [
     { label: "Total Conversations", value: data.messages.total_week + data.inbox.total_threads, icon: MessageCircle, color: "text-[#22C55E]" },
     { label: "Resolved by AI", value: data.inbox.ai_resolved_today, subtext: "Today", icon: Bot, iconColor: "text-[#C4B1F9]", bg: "bg-[#F5F3FF]" },
     { label: "Total Contacts", value: data.contacts.total, subtext: `+${data.contacts.new_today} today`, icon: User },

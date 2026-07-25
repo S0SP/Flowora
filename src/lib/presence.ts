@@ -14,11 +14,11 @@ export const IDLE_AFTER_MS = 5 * 60 * 1000; // 5 minutes
 /** Rows older than this are treated as "offline" (tab is closed). */
 export const OFFLINE_AFTER_MS = HEARTBEAT_MS * 3; // 90 seconds
 
-export type StoredPresence = "online" | "away";
+export type StoredPresence = "online" | "away" | "offline";
 export type PresenceStatus = "online" | "away" | "offline";
 
 export interface PresenceRow {
-  status: StoredPresence;
+  status: PresenceStatus;
   last_seen_at: string; // ISO timestamp
 }
 

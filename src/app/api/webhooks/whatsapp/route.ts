@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
             full_name: waName ?? waId,
             channel: "whatsapp",
           }).select("id, full_name").single()
-          contact = newContact
+          contact = newContact ?? undefined
         }
 
         if (!contact) continue

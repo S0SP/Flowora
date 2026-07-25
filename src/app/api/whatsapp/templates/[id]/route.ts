@@ -11,7 +11,7 @@ import { validateTemplatePayload } from "@/lib/whatsapp/template-validators"
 
 export const dynamic = "force-dynamic"
 
-type RouteCtx = { params: { id: string } }
+type RouteCtx = { params: Promise<{ id: string }> }
 
 /**
  * PATCH /api/whatsapp/templates/[id]
@@ -19,6 +19,7 @@ type RouteCtx = { params: { id: string } }
  */
 export async function PATCH(req: NextRequest, { params }: RouteCtx) {
   try {
+    const { id } = await params;
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -30,7 +31,7 @@ export async function PATCH(req: NextRequest, { params }: RouteCtx) {
     const { data: existing, error: fetchErr } = await admin
       .from("message_templates")
       .select("*")
-      .eq("id", params.id)
+      .eq("id", id)
       .eq("workspace_id", workspaceId)
       .single()
 
@@ -96,7 +97,7 @@ export async function PATCH(req: NextRequest, { params }: RouteCtx) {
         last_submitted_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
-      .eq("id", params.id)
+      .eq("id", id)
       .eq("workspace_id", workspaceId)
       .select()
       .single()
@@ -123,6 +124,7 @@ export async function PATCH(req: NextRequest, { params }: RouteCtx) {
  */
 export async function DELETE(_req: NextRequest, { params }: RouteCtx) {
   try {
+    const { id } = await params;
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -134,7 +136,7 @@ export async function DELETE(_req: NextRequest, { params }: RouteCtx) {
     const { data: existing, error: fetchErr } = await admin
       .from("message_templates")
       .select("id, name, meta_template_id")
-      .eq("id", params.id)
+      .eq("id", id)
       .eq("workspace_id", workspaceId)
       .single()
 
@@ -161,7 +163,7 @@ export async function DELETE(_req: NextRequest, { params }: RouteCtx) {
     const { error: deleteErr } = await admin
       .from("message_templates")
       .delete()
-      .eq("id", params.id)
+      .eq("id", id)
       .eq("workspace_id", workspaceId)
 
     if (deleteErr) throw new Error(deleteErr.message)

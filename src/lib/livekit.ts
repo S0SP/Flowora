@@ -38,6 +38,7 @@ export function formatSipNumber(toNumber: string): string {
 export interface DialOptions {
   toNumber: string;
   userId: string;
+  workspaceId?: string;
   agentType: "livekit" | "gemini";
   voiceId?: string;
   systemPrompt?: string;
@@ -223,7 +224,7 @@ export async function dialSip(opts: DialOptions) {
   if (opts.isWhatsApp) {
     try {
       const { getWhatsAppSipCredentials } = await import("@/services/meta");
-      const { phoneNumber, sipPassword } = await getWhatsAppSipCredentials();
+      const { phoneNumber, sipPassword } = await getWhatsAppSipCredentials(opts.workspaceId || opts.userId);
       const { outboundTrunkId } = await setupWhatsAppSipTrunks(phoneNumber, sipPassword);
       targetTrunkId = outboundTrunkId;
     } catch (e) {
