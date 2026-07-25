@@ -26,8 +26,9 @@ export async function GET() {
     return NextResponse.json({ settings: settingsList ?? [], leads: leads ?? [] });
   } catch (err) {
     console.error("LeadCapture API GET Error:", err);
+    const errorMessage = err instanceof Error ? err.message : (err as any)?.message || (err as any)?.details || "Failed to fetch lead capture data";
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Failed to fetch lead capture data" },
+      { error: errorMessage },
       { status: 500 }
     );
   }
@@ -156,8 +157,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, settings: result.data });
   } catch (err) {
     console.error("LeadCapture API POST Error:", err);
+    const errorMessage = err instanceof Error ? err.message : (err as any)?.message || (err as any)?.details || (err as any)?.hint || JSON.stringify(err) || "Failed to save settings";
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Failed to save settings" },
+      { error: errorMessage },
       { status: 500 }
     );
   }
@@ -182,8 +184,9 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("LeadCapture API DELETE Error:", err);
+    const errorMessage = err instanceof Error ? err.message : (err as any)?.message || (err as any)?.details || "Failed to delete workflow";
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Failed to delete workflow" },
+      { error: errorMessage },
       { status: 500 }
     );
   }

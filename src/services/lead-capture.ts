@@ -351,10 +351,10 @@ export async function sendPendingLeads() {
               .maybeSingle();
 
             const smtpConfig = (smtpConn?.config as any) || {};
-            const smtpHost = smtpConfig.host;
-            const smtpPort = smtpConfig.port;
-            const smtpUser = smtpConfig.user;
-            const smtpPassword = smtpConfig.password; // Assuming securely stored or decrypted elsewhere in a real prod app, but matching current config usage
+            const smtpHost = setting.smtp_host || smtpConfig.host;
+            const smtpPort = setting.smtp_port || smtpConfig.port;
+            const smtpUser = setting.smtp_user || smtpConfig.user;
+            const smtpPassword = setting.smtp_password || smtpConfig.password;
 
             if (!smtpHost || !smtpUser || !smtpPassword) {
               throw new Error("SMTP credentials not configured in workspace settings");
