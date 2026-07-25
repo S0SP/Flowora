@@ -16,12 +16,13 @@ export async function sendDueReminders(admin?: any): Promise<{ processed: number
   try {
     const { data: reminderWorkflows } = await admin
       .from("workflows")
-      .select("id, workspace_id, nodes, edges")
+      .select("*")
       .eq("status", "active")
       .contains("trigger_type", "reminder");
 
     for (const workflow of reminderWorkflows ?? []) {
-      const reminderNode = workflow.nodes?.find((n: any) =>
+      const actualNodes: any[] = (workflow as any).graph?.nodes ?? (workflow as any).nodes ?? [];
+      const reminderNode = actualNodes.find((n: any) =>
         n.type === "reminder" || n.data?.type === "reminder" || n.data?.subtype === "reminder"
       );
 

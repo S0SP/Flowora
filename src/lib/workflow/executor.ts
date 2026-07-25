@@ -29,7 +29,7 @@ export async function executeWorkflowSynchronously({
 
   const { data: workflow } = await admin
     .from("workflows")
-    .select("nodes, edges, status, graph")
+    .select("*")
     .eq("id", workflowId)
     .single();
 

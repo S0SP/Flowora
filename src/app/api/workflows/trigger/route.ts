@@ -26,6 +26,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "workflowId required" }, { status: 400 });
     }
 
+    if (process.env.DJANGO_ENGINE_URL) {
+      try {
+        const djangoRes = await fetch(`${process.env.DJANGO_ENGINE_URL.replace(/\/$/, "")}/api/execute/workflow/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(process.env.DJANGO_ENGINE_SECRET ? { Authorization: `Bearer ${process.env.DJANGO_ENGINE_SECRET}` } : {}),
+          },
+          body: JSON.stringify({ workflowId, workspaceId, triggerData, async: true }),
+        });
+        if (djangoRes.ok) {
+          const data = await djangoRes.json();
+          return NextResponse.json({ runId: data.run_id || data.task_id, ok: true, engine: "django" });
+        }
+      } catch (err) {
+        console.error("[workflows/trigger] Django engine forward failed, falling back to local engine:", err);
+      }
+    }
+
     const result = await runWorkflowTrigger({
       workflowId,
       workspaceId,

@@ -136,7 +136,7 @@ export async function pollActiveSheets(admin?: any): Promise<{ checked: number; 
 
   const { data: workflows } = await admin
     .from("workflows")
-    .select("id, workspace_id, nodes, graph, trigger_config, trigger_type")
+    .select("*")
     .eq("status", "active")
     .eq("trigger_type", "google_sheet");
 
