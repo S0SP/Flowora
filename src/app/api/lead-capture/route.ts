@@ -80,10 +80,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "WhatsApp template is required when WhatsApp sending is active" }, { status: 400 });
     }
 
-    if (email_enabled && (!smtp_host || !smtp_user || !smtp_password || !email_from)) {
-      return NextResponse.json({ error: "SMTP Host, User, Password and Sender Email are required when Email sending is active" }, { status: 400 });
-    }
-
     if (voice_enabled && (!voice_prompt || !voice_id) && !voice_agent_id) {
       return NextResponse.json({ error: "Voice Preset (or Prompt and Voice ID) is required when Voice is enabled" }, { status: 400 });
     }
