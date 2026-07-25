@@ -15,7 +15,7 @@ import { createClient } from "@/lib/supabase/client";
 import { PageShell, PageHeader } from "@/components/ui";
 
 type AgentType = "livekit" | "gemini";
-type CallStatus = "idle" | "calling" | "ringing" | "active" | "ended";
+type CallStatus = "idle" | "calling" | "ringing" | "connected" | "active" | "call ended" | "ended";
 
 const DEFAULT_PROMPT = `You are Aria, a senior Academic Advisor calling on behalf of UnboundYou's admissions team.
 
@@ -161,9 +161,9 @@ function VoiceAgentPageContent({ initialVoice }: { initialVoice: string }) {
   const realtimeRef = useRef<ReturnType<typeof createClient> | null>(null);
   const channelRef = useRef<any>(null);
 
-  const callTimer = useCallTimer(callStatus === "active");
+  const callTimer = useCallTimer(callStatus === "active" || callStatus === "connected");
   const voices = agentType === "livekit" ? SARVAM_VOICES : GEMINI_VOICES;
-  const isInCall = callStatus === "calling" || callStatus === "ringing" || callStatus === "active";
+  const isInCall = callStatus === "calling" || callStatus === "ringing" || callStatus === "active" || callStatus === "connected";
   const selectedVoiceInfo = [...SARVAM_VOICES, ...GEMINI_VOICES].find(v => v.id === selectedVoice);
 
   // Realtime call status subscription
@@ -178,11 +178,11 @@ function VoiceAgentPageContent({ initialVoice }: { initialVoice: string }) {
         { event: "UPDATE", schema: "public", table: "voice_calls", filter: `id=eq.${callId}` },
         (payload) => {
           const status: string = payload.new?.status;
-          if (status === "active") setCallStatus("active");
-          if (status === "completed" || status === "failed") {
-            setCallStatus("ended");
-            setTimeout(() => setCallStatus("idle"), 3000);
-            toast.success(status === "completed" ? "Call ended ✓" : "Call failed");
+          if (status === "active" || status === "connected") setCallStatus(status as CallStatus);
+          if (status === "completed" || status === "failed" || status === "ended" || status === "call ended") {
+            setCallStatus(status === "failed" ? "ended" : (status === "completed" ? "call ended" : status as CallStatus));
+            setTimeout(() => setCallStatus("idle"), 4000);
+            toast.success(status === "completed" || status === "call ended" || status === "ended" ? "Call ended ✓" : "Call failed");
             channel.unsubscribe();
           }
         }
@@ -471,7 +471,9 @@ function VoiceAgentPageContent({ initialVoice }: { initialVoice: string }) {
     idle: "bg-muted-foreground/40",
     calling: "bg-primary animate-pulse",
     ringing: "bg-amber-500 animate-pulse",
+    connected: "bg-emerald-500 animate-pulse",
     active: "bg-emerald-500 animate-pulse",
+    "call ended": "bg-blue-500",
     ended: "bg-blue-500",
   };
 
@@ -479,7 +481,9 @@ function VoiceAgentPageContent({ initialVoice }: { initialVoice: string }) {
     idle: "Ready",
     calling: "Connecting…",
     ringing: "Ringing…",
+    connected: "Connected",
     active: "Live",
+    "call ended": "Call Ended",
     ended: "Ended",
   };
 
@@ -521,7 +525,7 @@ function VoiceAgentPageContent({ initialVoice }: { initialVoice: string }) {
             <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted px-3 py-1.5 rounded-full">
               <span className={cn("w-2 h-2 rounded-full", statusColors[callStatus])} />
               {statusLabel[callStatus]}
-              {callStatus === "active" && <span className="font-mono font-bold text-foreground ml-1">{callTimer}</span>}
+              {(callStatus === "active" || callStatus === "connected") && <span className="font-mono font-bold text-foreground ml-1">{callTimer}</span>}
             </div>
           </div>
         </div>
@@ -530,30 +534,30 @@ function VoiceAgentPageContent({ initialVoice }: { initialVoice: string }) {
         {isInCall && (
           <div className={cn(
             "rounded-2xl border p-4 flex items-center justify-between transition-all",
-            callStatus === "active"
+            (callStatus === "active" || callStatus === "connected")
               ? "border-emerald-500/40 bg-emerald-500/5"
               : "border-primary/30 bg-primary/5"
           )}>
             <div className="flex items-center gap-4">
               <div className={cn(
                 "w-10 h-10 rounded-full flex items-center justify-center",
-                callStatus === "active" ? "bg-emerald-500/20" : "bg-primary/20"
+                (callStatus === "active" || callStatus === "connected") ? "bg-emerald-500/20" : "bg-primary/20"
               )}>
-                {callStatus === "active"
+                {(callStatus === "active" || callStatus === "connected")
                   ? <Radio className="w-5 h-5 text-emerald-500" />
                   : <Loader2 className="w-5 h-5 text-primary animate-spin" />
                 }
               </div>
               <div>
                 <p className="text-sm font-semibold text-foreground">
-                  {callStatus === "active" ? "Call Active" : "Ringing…"}
+                  {(callStatus === "active" || callStatus === "connected") ? "Call Active" : "Ringing…"}
                 </p>
                 <p className="text-xs text-muted-foreground font-mono">+91 {phoneNumber}</p>
               </div>
-              {callStatus === "active" && <WaveformBars active />}
+              {(callStatus === "active" || callStatus === "connected") && <WaveformBars active />}
             </div>
             <div className="flex items-center gap-3">
-              {callStatus === "active" && (
+              {(callStatus === "active" || callStatus === "connected") && (
                 <span className="text-xl font-mono font-bold text-emerald-500">{callTimer}</span>
               )}
               <button
@@ -763,15 +767,15 @@ function VoiceAgentPageContent({ initialVoice }: { initialVoice: string }) {
                   "w-full py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed",
                   callStatus === "idle" && "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20",
                   callStatus === "calling" && "bg-primary/70 text-primary-foreground cursor-not-allowed",
-                  (callStatus === "ringing" || callStatus === "active") && "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-                  callStatus === "ended" && "bg-emerald-600 text-white cursor-default",
+                  (callStatus === "ringing" || callStatus === "active" || callStatus === "connected") && "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+                  (callStatus === "ended" || callStatus === "call ended") && "bg-emerald-600 text-white cursor-default",
                 )}
               >
                 {callStatus === "idle" && <><Phone className="w-4 h-4" /> Place Call</>}
                 {callStatus === "calling" && <><Loader2 className="w-4 h-4 animate-spin" /> Connecting…</>}
                 {callStatus === "ringing" && <><PhoneOff className="w-4 h-4" /> Hang Up</>}
-                {callStatus === "active" && <><PhoneOff className="w-4 h-4" /> Hang Up · {callTimer}</>}
-                {callStatus === "ended" && <><Check className="w-4 h-4" /> Call Ended</>}
+                {(callStatus === "active" || callStatus === "connected") && <><PhoneOff className="w-4 h-4" /> Hang Up · {callTimer}</>}
+                {(callStatus === "ended" || callStatus === "call ended") && <><Check className="w-4 h-4" /> Call Ended</>}
               </button>
             </div>
 

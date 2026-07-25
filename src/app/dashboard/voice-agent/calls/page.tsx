@@ -64,11 +64,14 @@ interface VoiceCall {
 // ── Status styles ──────────────────────────────────────────────────────────────
 
 const STATUS_STYLES: Record<string, string> = {
-  initiated: "bg-primary/15 text-primary",
-  ringing:   "bg-blue-500/15 text-blue-400",
-  active:    "bg-emerald-500/15 text-emerald-400",
-  completed: "bg-emerald-500/15 text-emerald-400",
-  failed:    "bg-destructive/15 text-destructive",
+  initiated:   "bg-primary/15 text-primary",
+  ringing:     "bg-blue-500/15 text-blue-400",
+  connected:   "bg-emerald-500/15 text-emerald-400",
+  active:      "bg-emerald-500/15 text-emerald-400",
+  "call ended":"bg-emerald-500/15 text-emerald-400",
+  completed:   "bg-emerald-500/15 text-emerald-400",
+  ended:       "bg-emerald-500/15 text-emerald-400",
+  failed:      "bg-destructive/15 text-destructive",
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -351,7 +354,7 @@ function CallRow({ call }: { call: VoiceCall }) {
               <Waves className="w-4 h-4 text-muted-foreground shrink-0 animate-pulse" />
               <p className="text-xs text-muted-foreground">Loading recording…</p>
             </div>
-          ) : call.status === "completed" ? (
+          ) : (call.status === "completed" || call.status === "call ended" || call.status === "ended") ? (
             <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-xl">
               <Waves className="w-4 h-4 text-muted-foreground shrink-0" />
               <p className="text-xs text-muted-foreground">

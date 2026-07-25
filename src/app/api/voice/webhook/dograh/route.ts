@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
       metadata,
     } = payload;
 
-    const runId = workflow_run_id ?? run_id ?? payload?.run?.id;
+    const runId = workflow_run_id ?? run_id ?? payload?.run?.id ?? payload?.call_id ?? payload?.id ?? payload?.metadata?.workflow_run_id ?? payload?.metadata?.run_id;
     if (!runId) {
       // Not a run event we care about
       return NextResponse.json({ ok: true, skipped: true });
@@ -62,11 +62,11 @@ export async function POST(req: NextRequest) {
 
     const supabase = await createAdminClient();
 
-    // ── Find matching voice_call by livekit_sip_call_id = runId ─────────────
+    // ── Find matching voice_call by livekit_sip_call_id, room_name, or id ─────────────
     let { data: call } = await supabase
       .from("voice_calls")
       .select("id, status")
-      .eq("livekit_sip_call_id", String(runId))
+      .or(`livekit_sip_call_id.eq.${String(runId)},livekit_room_name.eq.run-${String(runId)},livekit_room_name.eq.${String(runId)},id.eq.${String(runId)}`)
       .maybeSingle();
 
     if (!call) {
@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
                 phone_number: fromPhone,
                 agent_type: "inbound",
                 voice_id: "inbound",
-                status: "completed",
+                status: "connected",
                 livekit_room_name: `run-${runId}`,
                 livekit_sip_call_id: String(runId),
               })
@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
               .single();
 
             if (!insertErr && newCall) {
-              call = { id: newCall.id, status: "completed" };
+              call = { id: newCall.id, status: "connected" };
               console.log(`[dograh webhook] Created inbound voice_call ${call.id}`);
             } else {
               console.error("[dograh webhook] Failed to insert inbound call:", insertErr);
@@ -133,11 +133,24 @@ export async function POST(req: NextRequest) {
     // ── Determine final status ────────────────────────────────────────────────
     let finalStatus = "completed";
     if (
-      event === "run.failed" ||
-      status === "failed" ||
-      status === "error"
+      event === "call.connected" || event === "call.answered" || event === "call.started" || event === "run.started" ||
+      status === "connected" || status === "active" || status === "in_progress"
+    ) {
+      finalStatus = "connected";
+    } else if (
+      event === "call.ended" || event === "run.completed" || event === "call.completed" ||
+      status === "completed" || status === "ended" || status === "call ended"
+    ) {
+      finalStatus = "call ended";
+    } else if (
+      event === "run.failed" || event === "call.failed" ||
+      status === "failed" || status === "error"
     ) {
       finalStatus = "failed";
+    } else if (
+      event === "call.ringing" || status === "ringing"
+    ) {
+      finalStatus = "ringing";
     }
 
     const durationSecs = duration_seconds ??
