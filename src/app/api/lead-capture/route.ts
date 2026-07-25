@@ -1,15 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
+import { getTenant } from "@/lib/tenant";
 import { syncActiveSheets } from "@/services/lead-capture";
 
 export async function GET() {
   try {
+    const { workspaceId } = await getTenant();
     const supabase = await createAdminClient();
 
     // Return ALL settings (multi-workflow support)
     const { data: settingsList, error: settingsError } = await supabase
       .from("lead_capture_settings")
       .select("*")
+      .eq("workspace_id", workspaceId)
       .order("created_at", { ascending: true });
 
     if (settingsError) throw settingsError;
@@ -18,6 +21,7 @@ export async function GET() {
     const { data: leads, error: leadsError } = await supabase
       .from("lead_capture_leads")
       .select("*")
+      .eq("workspace_id", workspaceId)
       .order("created_at", { ascending: false })
       .limit(200);
 
@@ -124,6 +128,7 @@ export async function POST(req: NextRequest) {
     };
 
     let result;
+    const { workspaceId } = await getTenant();
 
     if (id) {
       // Update existing workflow
@@ -131,6 +136,7 @@ export async function POST(req: NextRequest) {
         .from("lead_capture_settings")
         .update(settingsPayload)
         .eq("id", id)
+        .eq("workspace_id", workspaceId)
         .select()
         .single();
     } else {
@@ -138,7 +144,7 @@ export async function POST(req: NextRequest) {
       const { updated_at, ...insertPayload } = settingsPayload;
       result = await supabase
         .from("lead_capture_settings")
-        .insert(insertPayload)
+        .insert({ ...insertPayload, workspace_id: workspaceId })
         .select()
         .single();
     }
@@ -173,11 +179,13 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Workflow ID is required" }, { status: 400 });
     }
 
+    const { workspaceId } = await getTenant();
     const supabase = await createAdminClient();
     const { error } = await supabase
       .from("lead_capture_settings")
       .delete()
-      .eq("id", id);
+      .eq("id", id)
+      .eq("workspace_id", workspaceId);
 
     if (error) throw error;
 
