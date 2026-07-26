@@ -49,7 +49,7 @@ export function DashboardShell({ workspaceData, children }: Props) {
           <div
             className={cn(
               "flex flex-1 flex-col h-screen overflow-hidden transition-all duration-300",
-              isSidebarOpen ? "pl-[240px]" : "pl-[72px]"
+              isSidebarOpen ? "pl-[240px]" : "pl-[64px]"
             )}
           >
             <Topbar />

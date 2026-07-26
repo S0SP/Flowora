@@ -125,25 +125,25 @@ export function Sidebar() {
       >
         {/* Logo / workspace */}
         <div className={cn(
-          "flex items-center h-12 border-b border-sidebar-border flex-shrink-0 px-4 justify-between",
+          "flex items-center h-16 border-b border-sidebar-border flex-shrink-0 px-4 justify-between",
           !isSidebarOpen && "px-0 justify-center"
         )}>
           {!isSidebarOpen ? (
             <button
               onClick={toggleSidebar}
               title="Expand sidebar"
-              className="w-12 h-12 flex items-center justify-center relative group transition-transform active:scale-95"
+              className="w-16 h-16 flex items-center justify-center relative group transition-transform active:scale-95"
             >
-              <img src="/image/flowra.png" alt="Logo" className="w-10 h-auto object-contain group-hover:opacity-0 transition-opacity" />
-              <ChevronRight className="absolute inset-0 m-auto h-4 w-4 text-sidebar-primary-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+              <img src="/image/flowra.png" alt="Logo" className="w-14 h-auto object-contain group-hover:opacity-0 transition-opacity" />
+              <ChevronRight className="absolute inset-0 m-auto h-5 w-5 text-sidebar-primary-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
             </button>
           ) : (
             <div className="flex items-center gap-2 flex-1 min-w-0">
               <div className="flex items-center justify-center flex-shrink-0">
                 {workspace.logo_url ? (
-                  <img src={workspace.logo_url} alt={workspace.name} className="w-7 h-7 rounded-lg object-cover" />
+                  <img src={workspace.logo_url} alt={workspace.name} className="w-8 h-8 rounded-lg object-cover" />
                 ) : (
-                  <img src="/image/flowra.png" alt="Logo" className="h-6 w-auto object-contain" />
+                  <img src="/image/flowra.png" alt="Logo" className="h-10 w-auto object-contain" />
                 )}
               </div>
               {workspace.logo_url && (

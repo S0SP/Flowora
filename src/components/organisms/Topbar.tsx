@@ -74,7 +74,7 @@ export function Topbar() {
   }))
 
   return (
-    <header className="sticky top-0 z-30 flex h-12 w-full items-center justify-between border-b border-border bg-white/90 dark:bg-zinc-950/90 backdrop-blur-md px-5 flex-shrink-0">
+    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-border bg-white/90 dark:bg-zinc-950/90 backdrop-blur-md px-5 flex-shrink-0">
       {/* Breadcrumbs */}
       <nav className="flex items-center gap-1.5 text-[13px]">
         {crumbs.map((crumb, i) => (
