@@ -121,9 +121,8 @@ function SignupForm() {
           {/* Logo */}
           <div className="flex items-center gap-3 mb-12">
             <div className="flex items-center justify-center">
-              <img src="/image/flowra.png" alt="Flowora Logo" className="h-12 w-auto object-contain scale-[1.3] origin-left" />
+              <img src="/image/flowra.png" alt="Flowra Logo" className="h-10 w-auto object-contain" />
             </div>
-            <span className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Flowora</span>
           </div>
 
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white leading-tight mb-4">
@@ -153,11 +152,8 @@ function SignupForm() {
       <div className="flex-1 flex items-center justify-center p-6 sm:p-12 lg:pr-20 xl:pr-32">
         <div className="w-full max-w-[440px] bg-card border border-border shadow-sm rounded-2xl p-8 sm:p-10">
           {/* Mobile logo */}
-          <div className="flex items-center gap-3 justify-center mb-6 lg:hidden">
-            <div className="flex items-center justify-center">
-              <img src="/image/flowra.png" alt="Flowora Logo" className="h-10 w-auto object-contain scale-[1.3] origin-left" />
-            </div>
-            <span className="text-lg font-bold text-foreground">Flowora</span>
+          <div className="flex items-center justify-center mb-6 lg:hidden">
+            <img src="/image/flowra.png" alt="Flowra Logo" className="h-10 w-auto object-contain" />
           </div>
 
           {/* Step indicator */}

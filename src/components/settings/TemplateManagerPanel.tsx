@@ -434,7 +434,7 @@ export function TemplateManagerPanel() {
           </button>
           <button
             onClick={openCreate}
-            className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary/95 text-gray-900 font-semibold text-[13px] rounded-lg shadow-sm"
+            className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary/95 text-white font-semibold text-[13px] rounded-lg shadow-sm"
           >
             <Plus className="size-4" />
             New Template
@@ -853,7 +853,7 @@ export function TemplateManagerPanel() {
               <button
                 onClick={handleSubmit}
                 disabled={submitting || form.category === "Authentication"}
-                className="flex-1 py-2 bg-primary text-gray-900 rounded-lg text-[14px] font-semibold hover:bg-primary/95 disabled:opacity-50 transition-all flex items-center justify-center gap-1.5"
+                className="flex-1 py-2 bg-primary text-white rounded-lg text-[14px] font-semibold hover:bg-primary/95 disabled:opacity-50 transition-all flex items-center justify-center gap-1.5"
               >
                 {submitting ? (
                   <>

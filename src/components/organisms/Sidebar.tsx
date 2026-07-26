@@ -132,23 +132,25 @@ export function Sidebar() {
             <button
               onClick={toggleSidebar}
               title="Expand sidebar"
-              className="w-8 h-8 flex items-center justify-center relative group transition-transform active:scale-95"
+              className="w-12 h-12 flex items-center justify-center relative group transition-transform active:scale-95"
             >
-              <img src="/image/flowra.png" alt="Logo" className="w-6 h-auto object-contain scale-[1.3] group-hover:opacity-0 transition-opacity" />
+              <img src="/image/flowra.png" alt="Logo" className="w-10 h-auto object-contain group-hover:opacity-0 transition-opacity" />
               <ChevronRight className="absolute inset-0 m-auto h-4 w-4 text-sidebar-primary-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
             </button>
           ) : (
             <div className="flex items-center gap-2 flex-1 min-w-0">
-              <div className="w-7 h-7 flex items-center justify-center flex-shrink-0">
+              <div className="flex items-center justify-center flex-shrink-0">
                 {workspace.logo_url ? (
-                  <img src={workspace.logo_url} alt={workspace.name} className="w-full h-full rounded-lg object-cover" />
+                  <img src={workspace.logo_url} alt={workspace.name} className="w-7 h-7 rounded-lg object-cover" />
                 ) : (
-                  <img src="/image/flowra.png" alt="Logo" className="w-6 h-auto object-contain scale-[1.3]" />
+                  <img src="/image/flowra.png" alt="Logo" className="h-6 w-auto object-contain" />
                 )}
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-bold text-sidebar-foreground truncate leading-tight tracking-tight">{workspace.name}</p>
-              </div>
+              {workspace.logo_url && (
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-bold text-sidebar-foreground truncate leading-tight tracking-tight">{workspace.name}</p>
+                </div>
+              )}
               <button
                 onClick={toggleSidebar}
                 className="p-1 rounded-md text-sidebar-foreground/50 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors flex-shrink-0"

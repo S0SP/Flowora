@@ -86,11 +86,8 @@ export default function InvitePage() {
       <div className="w-full max-w-md">
         {/* Logo / Brand */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 mb-2">
-            <div className="flex items-center justify-center">
-              <img src="/image/flowra.png" alt="Flowora Logo" className="h-12 w-auto object-contain scale-[1.3] origin-left" />
-            </div>
-            <span className="text-[22px] font-black text-foreground">Flowra</span>
+          <div className="inline-flex items-center justify-center">
+            <img src="/image/flowra.png" alt="Flowra Logo" className="h-12 w-auto object-contain" />
           </div>
         </div>
 

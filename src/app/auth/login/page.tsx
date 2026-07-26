@@ -52,11 +52,8 @@ function LoginForm() {
       {/* Left panel — branding */}
       <div className="hidden lg:flex flex-col justify-between w-[480px] bg-zinc-50 dark:bg-black border-r border-border dark:border-transparent p-12 flex-shrink-0">
         {/* Logo */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center">
-            <img src="/image/flowra.png" alt="Flowora Logo" className="h-10 w-auto object-contain scale-[1.3] origin-left" />
-          </div>
-          <span className="text-gray-900 dark:text-white font-extrabold text-xl tracking-wide">Flowora</span>
+        <div className="flex items-center">
+          <img src="/image/flowra.png" alt="Flowra Logo" className="h-12 w-auto object-contain" />
         </div>
 
         {/* Main copy */}
@@ -93,11 +90,8 @@ function LoginForm() {
       <div className="flex-1 flex items-center justify-center p-6 sm:p-12 lg:pr-20 xl:pr-32">
         <div className="w-full max-w-[440px] bg-card border border-border shadow-sm rounded-2xl p-8 sm:p-10 space-y-7">
           {/* Mobile logo */}
-          <div className="lg:hidden flex items-center gap-3 justify-center mb-2">
-            <div className="flex items-center justify-center">
-              <img src="/image/flowra.png" alt="Flowora Logo" className="h-8 w-auto object-contain scale-[1.3] origin-left" />
-            </div>
-            <span className="font-extrabold text-lg text-foreground tracking-wide">Flowora</span>
+          <div className="lg:hidden flex items-center justify-center mb-2">
+            <img src="/image/flowra.png" alt="Flowra Logo" className="h-10 w-auto object-contain" />
           </div>
 
           <div className="text-center lg:text-left">

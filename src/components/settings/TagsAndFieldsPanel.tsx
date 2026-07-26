@@ -388,7 +388,7 @@ export function TagsAndFieldsPanel() {
                 <button
                   onClick={handleCreateField}
                   disabled={fieldCreating || !newFieldName.trim()}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary/95 text-gray-900 font-semibold text-[13px] rounded-lg shadow-sm disabled:opacity-50 shrink-0"
+                  className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary/95 text-white font-semibold text-[13px] rounded-lg shadow-sm disabled:opacity-50 shrink-0"
                 >
                   {fieldCreating ? <Loader2 className="size-3.5 animate-spin" /> : <Plus className="size-3.5" />}
                   Add Field

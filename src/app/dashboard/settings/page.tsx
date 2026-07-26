@@ -646,7 +646,7 @@ export default function SettingsPage() {
                 <button
                   onClick={handleSave}
                   disabled={isSaving}
-                  className="px-6 py-2 bg-primary hover:bg-primary/90 text-gray-900 font-semibold text-[14px] rounded-lg shadow-sm disabled:opacity-50 transition-all"
+                  className="px-6 py-2 bg-primary hover:bg-primary/90 text-white font-semibold text-[14px] rounded-lg shadow-sm disabled:opacity-50 transition-all"
                 >
                   {isSaving ? "Saving..." : "Save General Settings"}
                 </button>
@@ -722,7 +722,7 @@ export default function SettingsPage() {
                 <button
                   onClick={handleSave}
                   disabled={isSaving}
-                  className="px-6 py-2 bg-primary hover:bg-primary/90 text-gray-900 font-semibold text-[14px] rounded-lg shadow-sm disabled:opacity-50 transition-all"
+                  className="px-6 py-2 bg-primary hover:bg-primary/90 text-white font-semibold text-[14px] rounded-lg shadow-sm disabled:opacity-50 transition-all"
                 >
                   {isSaving ? "Saving..." : "Save Email Settings"}
                 </button>
@@ -787,7 +787,7 @@ export default function SettingsPage() {
                 <button
                   onClick={handleSave}
                   disabled={isSaving}
-                  className="px-6 py-2 bg-primary hover:bg-primary/90 text-gray-900 font-semibold text-[14px] rounded-lg shadow-sm disabled:opacity-50 transition-all"
+                  className="px-6 py-2 bg-primary hover:bg-primary/90 text-white font-semibold text-[14px] rounded-lg shadow-sm disabled:opacity-50 transition-all"
                 >
                   {isSaving ? "Saving..." : "Save Voice Settings"}
                 </button>
@@ -1274,7 +1274,7 @@ export default function SettingsPage() {
             <button 
               onClick={handleSave}
               disabled={isSaving}
-              className="px-6 py-2 bg-primary hover:bg-primary/90 text-gray-900 font-semibold text-[14px] rounded-lg shadow-sm shadow-primary/20 disabled:opacity-50 transition-all"
+              className="px-6 py-2 bg-primary hover:bg-primary/90 text-white font-semibold text-[14px] rounded-lg shadow-sm shadow-primary/20 disabled:opacity-50 transition-all"
             >
               {isSaving ? "Saving..." : "Save Changes"}
             </button>
