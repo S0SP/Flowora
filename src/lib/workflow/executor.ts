@@ -47,6 +47,33 @@ export async function executeWorkflowSynchronously({
   const visited = new Set<string>(visitedNodeIds);
   const executedNodes: string[] = [];
 
+  // Inject canonical keys from the trigger node's column mapping into triggerData.
+  // The google_sheet trigger node stores phoneColumn/nameColumn/emailColumn (user-defined).
+  // e.g. phoneColumn="bud" means triggerData["bud"] is the phone number.
+  // We add "phone"/"name"/"email" canonical keys so that {{phone}} templates and
+  // fallback lookups in action nodes work without the user needing to configure toPhone.
+  let enrichedTriggerData: any = triggerData ? { ...triggerData } : {};
+  const triggerNode = nodes.find(n =>
+    n.type === "trigger" || n.type === "google_sheet" ||
+    n.data?.subtype === "google_sheet" || n.data?.type === "google_sheet"
+  );
+  if (triggerNode) {
+    const td = triggerNode.data ?? {};
+    const phoneCol = td.phoneColumn ?? td.phone_column ?? "";
+    const nameCol  = td.nameColumn  ?? td.name_column  ?? "";
+    const emailCol = td.emailColumn ?? td.email_column ?? "";
+    if (phoneCol && enrichedTriggerData[phoneCol] !== undefined && enrichedTriggerData.phone === undefined) {
+      enrichedTriggerData.phone  = enrichedTriggerData[phoneCol];
+      enrichedTriggerData.mobile = enrichedTriggerData[phoneCol];
+    }
+    if (nameCol  && enrichedTriggerData[nameCol]  !== undefined && enrichedTriggerData.name  === undefined) enrichedTriggerData.name  = enrichedTriggerData[nameCol];
+    if (emailCol && enrichedTriggerData[emailCol] !== undefined && enrichedTriggerData.email === undefined) enrichedTriggerData.email = enrichedTriggerData[emailCol];
+  }
+
+
+
+
+
   while (workQueue.length > 0) {
     const nodeId = workQueue.shift()!;
     if (visited.has(nodeId)) continue;
@@ -91,13 +118,13 @@ export async function executeWorkflowSynchronously({
     let execResult: any = {};
 
     if (nodeType === "condition") {
-      condResult = evaluateCondition(nodeData, { triggerData });
+      condResult = evaluateCondition(nodeData, { triggerData: enrichedTriggerData });
       execResult = { condition: condResult };
       console.log(`[executeWorkflowSynchronously] Condition node ${nodeId}: result=${condResult}`);
     } else {
       try {
         console.log(`[executeWorkflowSynchronously] Executing node ${nodeId} type=${nodeType}`);
-        execResult = await executeNode(currentNode, triggerData, workspaceId, admin);
+        execResult = await executeNode(currentNode, enrichedTriggerData, workspaceId, admin);
         console.log(`[executeWorkflowSynchronously] Node ${nodeId} result:`, JSON.stringify(execResult));
       } catch (err: any) {
         console.error(`[executeWorkflowSynchronously] Node ${nodeId} error:`, err.message);
@@ -117,7 +144,7 @@ export async function executeWorkflowSynchronously({
           node_id:      nodeId,
           node_type:    nodeType,
           status:       execResult?.error ? "failed" : (execResult?.skipped ? "skipped" : "completed"),
-          input:        { triggerData },
+          input:        { triggerData: enrichedTriggerData },
           output:       execResult,
           created_at:   new Date().toISOString(),
         });
@@ -288,11 +315,14 @@ async function executeNode(node: any, triggerData: any, workspaceId: string, adm
 
   function sub(str: string): string {
     if (!str) return "";
-    return str.replace(/\{\{(\w+(?:\.\w+)*)\}\}/g, (_, key) => {
-      const simple = key.split(".").pop();
-      return triggerData?.[key] ?? triggerData?.[simple] ?? "";
+    return str.replace(/\{\{([^}]+)\}\}/g, (_, key) => {
+      const trimmed = key.trim();
+      // Try exact key first, then the last dot-segment for nested paths
+      const simple = trimmed.split(".").pop() ?? trimmed;
+      return String(triggerData?.[trimmed] ?? triggerData?.[simple] ?? "");
     });
   }
+
 
   async function getWAConn() {
     const credentials = await getWhatsAppCredentials(workspaceId, admin);
@@ -302,13 +332,29 @@ async function executeNode(node: any, triggerData: any, workspaceId: string, adm
     };
   }
 
+  /** Resolve phone number using the node's configured toPhone template.
+   * The user sets e.g. toPhone = "{{bud}}" in the Voice/WhatsApp node panel.
+   * sub() resolves {{bud}} -> triggerData["bud"] regardless of the column name.
+   * Fallback to triggerData.phone / triggerData.mobile covers webhook/form triggers
+   * that already send a canonical "phone" key.
+   */
+  function resolvePhone(): string {
+    const fromConfig = sub(data.toPhone ?? "");
+    if (fromConfig) return fromConfig.replace(/\D/g, "");
+    // Fallback for webhook/form triggers that send canonical keys
+    const fallback = triggerData?.phone ?? triggerData?.mobile ?? "";
+    return String(fallback).replace(/\D/g, "");
+  }
+
+
   switch (nodeType) {
     case "trigger": case "google_sheet": case "webhook": case "form":
       return { triggered: true };
 
     case "whatsapp":
     case "whatsapp_message": {
-      const phone = sub(data.toPhone ?? triggerData?.phone ?? "").replace(/\D/g, "");
+      const phone = resolvePhone();
+
       if (!phone) return { skipped: "no phone" };
 
       const { phoneNumId, token } = await getWAConn();
@@ -374,7 +420,7 @@ async function executeNode(node: any, triggerData: any, workspaceId: string, adm
 
     case "voice": case "voice_call": {
       const { initiateVoiceCall } = await import("@/services/voice");
-      const phone = sub(data.toPhone ?? triggerData?.phone ?? "").replace(/\D/g, "");
+      const phone = resolvePhone();
       if (!phone) return { skipped: "no phone" };
 
       try {
@@ -395,7 +441,7 @@ async function executeNode(node: any, triggerData: any, workspaceId: string, adm
     }
 
     case "update_crm": case "crm": {
-      const phone = (triggerData?.phone ?? "").replace(/\D/g, "");
+      const phone = resolvePhone();
       if (!phone) return { skipped: "no phone" };
       await admin.from("contacts").upsert({
         workspace_id: workspaceId,

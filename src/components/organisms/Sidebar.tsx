@@ -132,22 +132,18 @@ export function Sidebar() {
             <button
               onClick={toggleSidebar}
               title="Expand sidebar"
-              className="w-8 h-8 rounded-lg bg-sidebar-primary flex items-center justify-center relative group transition-transform active:scale-95"
+              className="w-8 h-8 flex items-center justify-center relative group transition-transform active:scale-95"
             >
-              <svg viewBox="0 0 32 32" className="w-4 h-4 text-sidebar-primary-foreground group-hover:opacity-0 transition-opacity" fill="currentColor">
-                <path d="M16 2L6 8v12l10 6 10-6V8L16 2zm0 3.2L23.5 10l-7.5 4.5L8.5 10 16 5.2zM8 11.5l7 4.2v8.5L8 20V11.5zm9 12.7v-8.5l7-4.2V20l-7 4.2z"/>
-              </svg>
+              <img src="/image/flowra.png" alt="Logo" className="w-6 h-auto object-contain scale-[1.3] group-hover:opacity-0 transition-opacity" />
               <ChevronRight className="absolute inset-0 m-auto h-4 w-4 text-sidebar-primary-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
             </button>
           ) : (
             <div className="flex items-center gap-2 flex-1 min-w-0">
-              <div className="w-7 h-7 rounded-lg bg-sidebar-primary flex items-center justify-center flex-shrink-0">
+              <div className="w-7 h-7 flex items-center justify-center flex-shrink-0">
                 {workspace.logo_url ? (
                   <img src={workspace.logo_url} alt={workspace.name} className="w-full h-full rounded-lg object-cover" />
                 ) : (
-                  <svg viewBox="0 0 32 32" className="w-3.5 h-3.5" fill="currentColor" style={{ color: 'var(--sidebar-primary-foreground)' }}>
-                    <path d="M16 2L6 8v12l10 6 10-6V8L16 2zm0 3.2L23.5 10l-7.5 4.5L8.5 10 16 5.2zM8 11.5l7 4.2v8.5L8 20V11.5zm9 12.7v-8.5l7-4.2V20l-7 4.2z"/>
-                  </svg>
+                  <img src="/image/flowra.png" alt="Logo" className="w-6 h-auto object-contain scale-[1.3]" />
                 )}
               </div>
               <div className="flex-1 min-w-0">

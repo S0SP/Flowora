@@ -120,8 +120,8 @@ function SignupForm() {
         <div>
           {/* Logo */}
           <div className="flex items-center gap-3 mb-12">
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-              <Zap className="w-5 h-5 text-primary-foreground" />
+            <div className="flex items-center justify-center">
+              <img src="/image/flowra.png" alt="Flowora Logo" className="h-12 w-auto object-contain scale-[1.3] origin-left" />
             </div>
             <span className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Flowora</span>
           </div>
@@ -154,8 +154,8 @@ function SignupForm() {
         <div className="w-full max-w-[440px] bg-card border border-border shadow-sm rounded-2xl p-8 sm:p-10">
           {/* Mobile logo */}
           <div className="flex items-center gap-3 justify-center mb-6 lg:hidden">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <Zap className="w-4 h-4 text-primary-foreground" />
+            <div className="flex items-center justify-center">
+              <img src="/image/flowra.png" alt="Flowora Logo" className="h-10 w-auto object-contain scale-[1.3] origin-left" />
             </div>
             <span className="text-lg font-bold text-foreground">Flowora</span>
           </div>

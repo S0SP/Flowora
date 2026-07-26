@@ -60,36 +60,105 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
 
     if (error) throw error;
 
-    // For Gemini presets: sync the updated voice into the Dograh workflow's
-    // workflow_configurations so inbound calls use the new voice.
-    if (data && (data.agent_type === "gemini") && body.voiceId && data.dograh_workflow_id) {
-      if (DOGRAH_API_URL && DOGRAH_SECRET) {
-        const syncRes = await fetch(
-          `${DOGRAH_API_URL}/api/v1/workflow/${data.dograh_workflow_id}`,
+    // Sync updates to Dograh workflow if it exists
+    if (data && data.dograh_workflow_id && DOGRAH_API_URL && DOGRAH_SECRET) {
+      try {
+        // 1. Fetch current workflow definition from Dograh
+        const getRes = await fetch(
+          `${DOGRAH_API_URL}/api/v1/workflow/fetch/${data.dograh_workflow_id}`,
           {
-            method: "PUT",
             headers: {
-              "Content-Type": "application/json",
               "X-Flowra-Secret": DOGRAH_SECRET,
               "Authorization": `Bearer ${DOGRAH_SECRET}`,
             },
-            body: JSON.stringify({
-              workflow_configurations: {
-                model_overrides: {
-                  is_realtime: true,
-                  realtime: {
-                    provider: "google_realtime",
-                    voice: body.voiceId,
-                    // No model — use org's configured model
-                  },
-                },
-              },
-            }),
           }
         );
-        if (!syncRes.ok) {
-          console.warn(`[agents/${data.dograh_workflow_id}] Failed to sync voice override: ${await syncRes.text()}`);
+
+        if (getRes.ok) {
+          const workflowData = await getRes.json();
+          const workflowDefinition = workflowData.workflow_definition;
+          let workflowConfigs = workflowData.workflow_configurations || {};
+
+          // 2. Update the startCall node with new prompt/voice
+          if (workflowDefinition && workflowDefinition.nodes) {
+            workflowDefinition.nodes = workflowDefinition.nodes.map((node: any) => {
+              if (node.type === "startCall") {
+                return {
+                  ...node,
+                  data: {
+                    ...node.data,
+                    prompt: body.systemPrompt !== undefined ? body.systemPrompt : node.data.prompt,
+                    voice_id: body.voiceId !== undefined ? body.voiceId : node.data.voice_id,
+                    first_message: body.firstMessage !== undefined ? body.firstMessage : node.data.first_message,
+                  },
+                };
+              }
+              return node;
+            });
+          }
+
+          // 3. Update model overrides for Gemini if needed
+          if (data.agent_type === "gemini" && body.voiceId) {
+            workflowConfigs = {
+              ...workflowConfigs,
+              model_overrides: {
+                ...(workflowConfigs.model_overrides || {}),
+                is_realtime: true,
+                realtime: {
+                  provider: "google_realtime",
+                  voice: body.voiceId,
+                },
+              },
+            };
+          } else {
+            // If we switched away from gemini, we could optionally strip the overrides
+            if (workflowConfigs.model_overrides?.realtime) {
+               delete workflowConfigs.model_overrides.realtime;
+            }
+          }
+
+          // 4. PUT updated definition & configs to Dograh (creates draft)
+          const updateRes = await fetch(
+            `${DOGRAH_API_URL}/api/v1/workflow/${data.dograh_workflow_id}`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                "X-Flowra-Secret": DOGRAH_SECRET,
+                "Authorization": `Bearer ${DOGRAH_SECRET}`,
+              },
+              body: JSON.stringify({
+                workflow_definition: workflowDefinition,
+                workflow_configurations: workflowConfigs,
+              }),
+            }
+          );
+
+          if (!updateRes.ok) {
+            console.warn(`[agents/${data.dograh_workflow_id}] Failed to update workflow draft: ${await updateRes.text()}`);
+          } else {
+            // 5. POST publish to make the draft live
+            const publishRes = await fetch(
+              `${DOGRAH_API_URL}/api/v1/workflow/${data.dograh_workflow_id}/publish`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "X-Flowra-Secret": DOGRAH_SECRET,
+                  "Authorization": `Bearer ${DOGRAH_SECRET}`,
+                },
+              }
+            );
+
+            if (!publishRes.ok) {
+              console.warn(`[agents/${data.dograh_workflow_id}] Failed to publish workflow: ${await publishRes.text()}`);
+            }
+          }
+        } else {
+          console.warn(`[agents/${data.dograh_workflow_id}] Failed to fetch workflow from Dograh: ${await getRes.text()}`);
         }
+      } catch (e) {
+        console.error(`[agents/${data.dograh_workflow_id}] Error syncing to Dograh:`, e);
       }
     }
 

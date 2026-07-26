@@ -53,10 +53,8 @@ function LoginForm() {
       <div className="hidden lg:flex flex-col justify-between w-[480px] bg-zinc-50 dark:bg-black border-r border-border dark:border-transparent p-12 flex-shrink-0">
         {/* Logo */}
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center">
-            <svg viewBox="0 0 32 32" className="w-5 h-5" fill="white">
-              <path d="M16 2L6 8v12l10 6 10-6V8L16 2zm0 3.2L23.5 10l-7.5 4.5L8.5 10 16 5.2zM8 11.5l7 4.2v8.5L8 20V11.5zm9 12.7v-8.5l7-4.2V20l-7 4.2z"/>
-            </svg>
+          <div className="flex items-center justify-center">
+            <img src="/image/flowra.png" alt="Flowora Logo" className="h-10 w-auto object-contain scale-[1.3] origin-left" />
           </div>
           <span className="text-gray-900 dark:text-white font-extrabold text-xl tracking-wide">Flowora</span>
         </div>
@@ -96,10 +94,8 @@ function LoginForm() {
         <div className="w-full max-w-[440px] bg-card border border-border shadow-sm rounded-2xl p-8 sm:p-10 space-y-7">
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-3 justify-center mb-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <svg viewBox="0 0 32 32" className="w-4 h-4" fill="white">
-                <path d="M16 2L6 8v12l10 6 10-6V8L16 2zm0 3.2L23.5 10l-7.5 4.5L8.5 10 16 5.2zM8 11.5l7 4.2v8.5L8 20V11.5zm9 12.7v-8.5l7-4.2V20l-7 4.2z"/>
-              </svg>
+            <div className="flex items-center justify-center">
+              <img src="/image/flowra.png" alt="Flowora Logo" className="h-8 w-auto object-contain scale-[1.3] origin-left" />
             </div>
             <span className="font-extrabold text-lg text-foreground tracking-wide">Flowora</span>
           </div>
