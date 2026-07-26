@@ -3,6 +3,7 @@
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Eye, EyeOff, Loader2, CheckCircle, Zap } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -116,12 +117,17 @@ function SignupForm() {
   return (
     <div className="min-h-screen bg-background flex">
       {/* Left panel — branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-zinc-50 dark:bg-black border-r border-border dark:border-transparent flex-col justify-between p-12">
+      <div className="hidden lg:flex lg:w-1/2 bg-zinc-50 dark:bg-black border-r border-border dark:border-transparent flex-col justify-between p-12 relative">
+        {/* Theme Toggle (Desktop) */}
+        <div className="absolute top-8 right-8">
+          <ThemeToggle />
+        </div>
+
         <div>
           {/* Logo */}
           <div className="flex items-center gap-3 mb-12">
             <div className="flex items-center justify-center">
-              <img src="/image/flowra.png" alt="Flowra Logo" className="h-10 w-auto object-contain" />
+              <img src="/image/flowra.png" alt="Flowra Logo" className="h-24 w-auto object-contain dark:drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]" />
             </div>
           </div>
 
@@ -151,9 +157,10 @@ function SignupForm() {
       {/* Right panel — form */}
       <div className="flex-1 flex items-center justify-center p-6 sm:p-12 lg:pr-20 xl:pr-32">
         <div className="w-full max-w-[440px] bg-card border border-border shadow-sm rounded-2xl p-8 sm:p-10">
-          {/* Mobile logo */}
-          <div className="flex items-center justify-center mb-6 lg:hidden">
-            <img src="/image/flowra.png" alt="Flowra Logo" className="h-10 w-auto object-contain" />
+          {/* Mobile Theme Toggle & Logo */}
+          <div className="flex items-center justify-between mb-6 lg:hidden">
+            <img src="/image/flowra.png" alt="Flowra Logo" className="h-16 w-auto object-contain dark:drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]" />
+            <ThemeToggle />
           </div>
 
           {/* Step indicator */}

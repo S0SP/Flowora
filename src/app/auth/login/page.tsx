@@ -4,6 +4,7 @@ import { useState, Suspense } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
+import { ThemeToggle } from "@/components/ThemeToggle"
 import { Mail, Lock, Eye, EyeOff, Chrome, ArrowRight, Sparkles } from "lucide-react"
 import { toast } from "sonner"
 
@@ -50,10 +51,15 @@ function LoginForm() {
   return (
     <div className="min-h-screen bg-background flex">
       {/* Left panel — branding */}
-      <div className="hidden lg:flex flex-col justify-between w-[480px] bg-zinc-50 dark:bg-black border-r border-border dark:border-transparent p-12 flex-shrink-0">
+      <div className="hidden lg:flex flex-col justify-between w-[480px] bg-zinc-50 dark:bg-black border-r border-border dark:border-transparent p-12 flex-shrink-0 relative">
+        {/* Theme Toggle (Desktop) */}
+        <div className="absolute top-8 right-8">
+          <ThemeToggle />
+        </div>
+
         {/* Logo */}
         <div className="flex items-center">
-          <img src="/image/flowra.png" alt="Flowra Logo" className="h-12 w-auto object-contain" />
+          <img src="/image/flowra.png" alt="Flowra Logo" className="h-24 w-auto object-contain dark:drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]" />
         </div>
 
         {/* Main copy */}
@@ -89,9 +95,10 @@ function LoginForm() {
       {/* Right panel — form */}
       <div className="flex-1 flex items-center justify-center p-6 sm:p-12 lg:pr-20 xl:pr-32">
         <div className="w-full max-w-[440px] bg-card border border-border shadow-sm rounded-2xl p-8 sm:p-10 space-y-7">
-          {/* Mobile logo */}
-          <div className="lg:hidden flex items-center justify-center mb-2">
-            <img src="/image/flowra.png" alt="Flowra Logo" className="h-10 w-auto object-contain" />
+          {/* Mobile Theme Toggle & Logo */}
+          <div className="lg:hidden flex items-center justify-between mb-4">
+            <img src="/image/flowra.png" alt="Flowra Logo" className="h-16 w-auto object-contain dark:drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]" />
+            <ThemeToggle />
           </div>
 
           <div className="text-center lg:text-left">

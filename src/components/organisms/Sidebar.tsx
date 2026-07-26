@@ -134,7 +134,7 @@ export function Sidebar() {
               title="Expand sidebar"
               className="w-16 h-16 flex items-center justify-center relative group transition-transform active:scale-95"
             >
-              <img src="/image/flowra.png" alt="Logo" className="w-14 h-auto object-contain group-hover:opacity-0 transition-opacity" />
+              <img src="/image/flowra.png" alt="Logo" className="w-14 h-auto object-contain group-hover:opacity-0 transition-opacity dark:drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]" />
               <ChevronRight className="absolute inset-0 m-auto h-5 w-5 text-sidebar-primary-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
             </button>
           ) : (
@@ -143,7 +143,7 @@ export function Sidebar() {
                 {workspace.logo_url ? (
                   <img src={workspace.logo_url} alt={workspace.name} className="w-8 h-8 rounded-lg object-cover" />
                 ) : (
-                  <img src="/image/flowra.png" alt="Logo" className="h-10 w-auto object-contain" />
+                  <img src="/image/flowra.png" alt="Logo" className="h-10 w-auto object-contain dark:drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]" />
                 )}
               </div>
               {workspace.logo_url && (

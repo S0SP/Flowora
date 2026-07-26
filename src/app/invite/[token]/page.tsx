@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Loader2, Users, Check, X, AlertTriangle } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
+import { ThemeToggle } from "@/components/ThemeToggle"
 
 type InviteInfo = {
   role: string
@@ -83,11 +84,16 @@ export default function InvitePage() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md relative">
+        {/* Theme Toggle */}
+        <div className="absolute -top-16 right-0">
+          <ThemeToggle />
+        </div>
+
         {/* Logo / Brand */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center">
-            <img src="/image/flowra.png" alt="Flowra Logo" className="h-12 w-auto object-contain" />
+            <img src="/image/flowra.png" alt="Flowra Logo" className="h-16 w-auto object-contain dark:drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]" />
           </div>
         </div>
 
