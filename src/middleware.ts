@@ -91,9 +91,31 @@ export async function middleware(request: NextRequest) {
     }
 
     if (onboardingCompleted && pathname === "/onboarding") {
-      const url = request.nextUrl.clone();
-      url.pathname = "/dashboard";
-      return NextResponse.redirect(url);
+      // Before redirecting to /dashboard, verify the user actually has an
+      // active workspace. If not (e.g. workspace deleted after onboarding),
+      // stay on /onboarding so they can re-create one.
+      // Without this check: /onboarding → /dashboard → resolveWorkspace (no ws)
+      // → /onboarding → … causes ERR_TOO_MANY_REDIRECTS.
+      let hasWorkspace = false;
+      try {
+        const { data: membership } = await supabase
+          .from("workspace_members")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("status", "active")
+          .limit(1)
+          .maybeSingle();
+        hasWorkspace = !!membership;
+      } catch (e) {
+        console.error("Middleware workspace check error:", e);
+      }
+
+      if (hasWorkspace) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/dashboard";
+        return NextResponse.redirect(url);
+      }
+      // No active workspace — fall through to render /onboarding
     }
 
     // Call resolveWorkspaceForMiddleware to set the fw_ws cookie

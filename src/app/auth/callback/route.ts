@@ -22,14 +22,20 @@ export async function GET(request: NextRequest) {
             return cookieStore.getAll()
           },
           setAll(cookiesToSet: any[]) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }: any) => {
+            // Set on response FIRST (always succeeds) so auth cookies are
+            // included in the redirect even if the cookie store throws.
+            cookiesToSet.forEach(({ name, value, options }: any) => {
+              response.cookies.set(name, value, options)
+            })
+            // Best-effort write to the Next.js cookie store (may fail in
+            // some edge-runtime contexts — safe to ignore).
+            cookiesToSet.forEach(({ name, value, options }: any) => {
+              try {
                 cookieStore.set(name, value, options)
-                response.cookies.set(name, value, options)
-              })
-            } catch (err) {
-              console.error("setAll error in callback:", err)
-            }
+              } catch {
+                // Intentionally ignored
+              }
+            })
           },
         },
       }
