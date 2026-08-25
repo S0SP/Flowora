@@ -16,6 +16,8 @@ interface Props {
   children: React.ReactNode;
 }
 
+import { HardPaywallOverlay } from "@/components/billing/HardPaywallOverlay";
+
 export function DashboardShell({ workspaceData, children }: Props) {
   const { isSidebarOpen, isDark, setDark } = useUIStore();
   const pathname = usePathname();
@@ -61,7 +63,9 @@ export function DashboardShell({ workspaceData, children }: Props) {
                   : "overflow-y-auto"
               )}
             >
-              {children}
+              <HardPaywallOverlay>
+                {children}
+              </HardPaywallOverlay>
             </main>
           </div>
         </div>
@@ -69,4 +73,5 @@ export function DashboardShell({ workspaceData, children }: Props) {
     </WorkspaceProvider>
   );
 }
+
 

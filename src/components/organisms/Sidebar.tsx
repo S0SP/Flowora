@@ -121,43 +121,45 @@ export function Sidebar() {
         initial={false}
         animate={{ width: isSidebarOpen ? 240 : 64 }}
         transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
-        className="fixed left-0 top-0 z-40 flex h-screen flex-col bg-sidebar-background overflow-hidden border-r border-sidebar-border"
+        className="fixed left-0 top-0 z-40 flex h-screen flex-col bg-sidebar overflow-visible border-r border-sidebar-border"
       >
+        {/* Toggle Button */}
+        <button
+          onClick={toggleSidebar}
+          className="absolute -right-3 top-5 flex h-6 w-6 items-center justify-center rounded-full bg-sidebar border border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent shadow-sm z-50 transition-transform hover:scale-110"
+        >
+          {isSidebarOpen ? (
+            <ChevronLeft className="h-3 w-3" />
+          ) : (
+            <ChevronRight className="h-3 w-3" />
+          )}
+        </button>
+
         {/* Logo / workspace */}
         <div className={cn(
-          "flex items-center h-16 border-b border-sidebar-border flex-shrink-0 px-4 justify-between",
-          !isSidebarOpen && "px-0 justify-center"
+          "flex items-center h-16 border-b border-sidebar-border flex-shrink-0 justify-center",
+          isSidebarOpen ? "px-5" : "px-0"
         )}>
           {!isSidebarOpen ? (
-            <button
-              onClick={toggleSidebar}
-              title="Expand sidebar"
-              className="w-16 h-16 flex items-center justify-center relative group transition-transform active:scale-95"
-            >
-              <img src="/image/flowra.png" alt="Logo" className="w-14 h-auto object-contain group-hover:opacity-0 transition-opacity dark:drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]" />
-              <ChevronRight className="absolute inset-0 m-auto h-5 w-5 text-sidebar-primary-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-            </button>
-          ) : (
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <div className="flex items-center justify-center flex-shrink-0">
-                {workspace.logo_url ? (
-                  <img src={workspace.logo_url} alt={workspace.name} className="w-8 h-8 rounded-lg object-cover" />
-                ) : (
-                  <img src="/image/flowra.png" alt="Logo" className="h-10 w-auto object-contain dark:drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]" />
-                )}
+            <div className="w-16 h-16 flex items-center justify-center">
+              <div className="dark:bg-white/95 dark:p-1 dark:rounded-lg flex items-center justify-center transition-colors">
+                <img src="/image/flowra.png" alt="Logo" className="w-10 h-auto object-contain" />
               </div>
-              {workspace.logo_url && (
-                <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-bold text-sidebar-foreground truncate leading-tight tracking-tight">{workspace.name}</p>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center w-full h-full py-2">
+              {workspace.logo_url ? (
+                <>
+                  <img src={workspace.logo_url} alt={workspace.name} className="w-8 h-8 rounded-lg object-cover flex-shrink-0" />
+                  <div className="flex-1 min-w-0 ml-2 text-left">
+                    <p className="text-[13px] font-bold text-sidebar-foreground truncate leading-tight tracking-tight">{workspace.name}</p>
+                  </div>
+                </>
+              ) : (
+                <div className="w-full h-full dark:bg-white/95 dark:rounded-xl flex items-center justify-center p-1.5 transition-colors">
+                  <img src="/image/flowra.png" alt="Logo" className="w-full h-full object-contain" />
                 </div>
               )}
-              <button
-                onClick={toggleSidebar}
-                className="p-1 rounded-md text-sidebar-foreground/50 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors flex-shrink-0"
-                title="Collapse sidebar"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
             </div>
           )}
         </div>

@@ -6,105 +6,68 @@
  * ───────────────────────────────────────────────────────────────
  *  DARK MODE GLOBAL OVERRIDES
  *
- *  Many pages use hardcoded Tailwind color classes (text-gray-900,
- *  bg-white, etc.) without dark: variants. These rules force correct
- *  contrast across ALL dashboard pages in dark mode.
+ *  Forces a unified, ultra-premium Dark Mode across all pages.
+ *  Eliminates muddy blue tints in favor of sleek, deep zincs.
  * ───────────────────────────────────────────────────────────────
- */
-
-/*
- * ═══════════════════════════════════════════════════════
- *  FLOWORA — Premium SaaS Color System (Stripe/Linear Inspired)
- *
- *  Primary:   Emerald      #10B981  hsl(160 84% 39%)
- *  Neutral:   Slate/Zinc   #111827  hsl(221 39% 11%)
- *  Surface:   Off-White    #F9FAFB  hsl(210 40% 98%)
- *
- *  A high-density, professional aesthetic emphasizing stark 
- *  data presentation and subtle, unified borders.
- * ═══════════════════════════════════════════════════════
  */
 
 @layer base {
   :root {
     /* — surfaces (crisp whites & light grays) — */
-    --background:              210 40% 98%;           /* Gray 50 #F9FAFB */
-    --foreground:              221 39% 11%;           /* Gray 900 #111827 */
-    --card:                    0 0% 100%;             /* White */
+    --background:              210 40% 98%;          /* Gray 50 #F9FAFB */
+    --foreground:              221 39% 11%;          /* Gray 900 #111827 */
+    --card:                    0 0% 100%;            /* White */
     --card-foreground:         221 39% 11%;
     --popover:                 0 0% 100%;
     --popover-foreground:      221 39% 11%;
 
     /* — brand primary: WhatsApp Emerald — */
-    --primary:                 160 84% 39%;           /* Emerald 500 #10B981 */
-    --primary-foreground:      0 0% 100%;             /* White text on Emerald */
+    --primary:                 160 84% 39%;          /* Emerald 500 #10B981 */
+    --primary-foreground:      0 0% 100%;            /* White text on Emerald */
 
     /* — secondary / muted (slate grays) — */
-    --secondary:               220 14% 96%;           /* Gray 100 #F3F4F6 */
-    --secondary-foreground:    215 16% 47%;           /* Gray 500 #6B7280 */
+    --secondary:               220 14% 96%;          /* Gray 100 #F3F4F6 */
+    --secondary-foreground:    215 16% 47%;          /* Gray 500 #6B7280 */
     --muted:                   220 14% 96%;
     --muted-foreground:        215 16% 47%;
-    --accent:                  160 84% 96%;           /* 10% Emerald tint */
-    --accent-foreground:       160 84% 39%;           /* Emerald 500 */
+    --accent:                  160 84% 96%;          /* 10% Emerald tint */
+    --accent-foreground:       160 84% 39%;          /* Emerald 500 */
 
     /* — destructive: crisp red — */
-    --destructive:             348 83% 47%;           /* Rose 600 #E11D48 */
+    --destructive:             348 83% 47%;          /* Rose 600 #E11D48 */
     --destructive-foreground:  0 0% 100%;
 
     /* — borders / inputs (subtle dividers) — */
-    --border:                  220 13% 91%;           /* Gray 200 #E5E7EB */
+    --border:                  220 13% 91%;          /* Gray 200 #E5E7EB */
     --input:                   220 13% 91%;
     --ring:                    160 84% 39%;
-    --radius:                  0.5rem;                /* Slightly tighter radius for professional feel */
+    --radius:                  0.5rem; 
 
     /* — charts — */
-    --chart-1: 160 84% 39%;   /* Emerald */
-    --chart-2: 221 39% 11%;   /* Slate */
-    --chart-3: 215 16% 47%;   /* Gray */
-    --chart-4: 217 91% 60%;   /* Blue */
-    --chart-5: 348 83% 47%;   /* Red */
+    --chart-1: 160 84% 39%;
+    --chart-2: 221 39% 11%;
+    --chart-3: 215 16% 47%;
+    --chart-4: 217 91% 60%;
+    --chart-5: 348 83% 47%;
 
-    /* — sidebar: Light Theme Default — */
-    --sidebar-background:          220 14% 96%;       /* Gray 100 */
-    --sidebar-foreground:          215 14% 34%;       /* Gray 700 */
-    --sidebar-primary:             160 84% 39%;       /* Emerald */
+    /* — sidebar: Light Theme — */
+    --sidebar-background:          240 10% 4%;       /* Zinc 950 */
+    --sidebar-foreground:          240 5% 65%;       /* Zinc 400 */
+    --sidebar-primary:             160 84% 39%;
     --sidebar-primary-foreground:  0 0% 100%;
-    --sidebar-accent:              220 13% 91%;       /* Gray 200 (hover state) */
-    --sidebar-accent-foreground:   221 39% 11%;       /* Gray 900 */
-    --sidebar-border:              220 13% 91%;       /* Gray 200 */
+    --sidebar-accent:              240 4% 16%;       /* Zinc 900 */
+    --sidebar-accent-foreground:   210 40% 98%;      /* Gray 50 */
+    --sidebar-border:              240 4% 16%;
     --sidebar-ring:                160 84% 39%;
-
-    /* — Node Canvas (Light) — */
-    --canvas-bg: #F9FAFB;
-    --node-bg: #FFFFFF;
-    --node-border: #E5E7EB;
-    --panel-bg: #FFFFFF;
-    --node-shadow: 0 1px 2px rgba(0,0,0,0.05);
-    
-    --text-primary: #111827;
-    --text-secondary: #6B7280;
-    --text-tertiary: #9CA3AF;
-    --minimap-mask: rgba(250, 250, 249, 0.85);
-
-    --node-whatsapp: #10B981;
-    --node-voice: #6366F1;
-    --node-delay: #F59E0B;
-    --node-form: #3B82F6;
-    --node-webhook: #0EA5E9;
-    --node-sheets: #059669;
-    --node-condition: #E11D48;
-    --node-reminder: #D97706;
-    --node-email: #2563EB;
-    --node-default: #4B5563;
   }
 
   .dark {
-    /* — surfaces (deep slate/zinc) — */
-    --background:              240 10% 4%;            /* Zinc 950 #09090B */
-    --foreground:              210 40% 98%;           /* Gray 50 #F9FAFB */
-    --card:                    240 5% 10%;            /* Very dark zinc */
+    /* — surfaces (Ultra-Premium Deep Zinc, matching the sidebar) — */
+    --background:              240 10% 4%;           /* Zinc 950 #09090B - Unified True Dark */
+    --foreground:              210 40% 98%;          /* Gray 50 #F9FAFB */
+    --card:                    240 10% 6%;           /* Just a hair lighter than bg for sleek depth */
     --card-foreground:         210 40% 98%;
-    --popover:                 240 5% 10%;
+    --popover:                 240 10% 6%;
     --popover-foreground:      210 40% 98%;
 
     /* — primary: Emerald remains vibrant — */
@@ -112,20 +75,20 @@
     --primary-foreground:      0 0% 100%;
 
     /* — secondary / muted — */
-    --secondary:               240 4% 16%;            /* Zinc 900 */
-    --secondary-foreground:    240 5% 65%;            /* Zinc 400 */
-    --muted:                   240 4% 16%;
+    --secondary:               240 5% 12%;           /* Subtle elevation */
+    --secondary-foreground:    240 5% 65%;           /* Zinc 400 */
+    --muted:                   240 5% 12%;
     --muted-foreground:        240 5% 65%;
-    --accent:                  160 84% 15%;           /* Dark Emerald tint */
+    --accent:                  160 84% 10%;          /* Extremely subtle Emerald tint */
     --accent-foreground:       160 84% 50%;
 
     /* — destructive — */
     --destructive:             348 83% 47%;
     --destructive-foreground:  0 0% 100%;
 
-    /* — borders / inputs — */
-    --border:                  240 4% 16%;            /* Zinc 900 */
-    --input:                   240 4% 16%;
+    /* — borders / inputs (Crisp, barely-there lines) — */
+    --border:                  240 5% 14%;           /* Very subtle zinc border */
+    --input:                   240 5% 14%;
     --ring:                    160 84% 39%;
 
     /* — charts — */
@@ -136,37 +99,14 @@
     --chart-5: 348 83% 55%;
 
     /* — sidebar — */
-    --sidebar-background:          240 10% 4%;        /* Zinc 950 */
-    --sidebar-foreground:          240 5% 65%;        /* Zinc 400 */
+    --sidebar-background:          240 10% 4%;       /* Zinc 950 - Matches Background Now */
+    --sidebar-foreground:          240 5% 65%;       /* Zinc 400 */
     --sidebar-primary:             160 84% 39%;
     --sidebar-primary-foreground:  0 0% 100%;
-    --sidebar-accent:              240 4% 16%;        /* Zinc 900 */
-    --sidebar-accent-foreground:   210 40% 98%;       /* Gray 50 */
-    --sidebar-border:              240 4% 16%;
+    --sidebar-accent:              240 5% 12%;       /* Elevated hover */
+    --sidebar-accent-foreground:   210 40% 98%;      /* Gray 50 */
+    --sidebar-border:              240 5% 14%;
     --sidebar-ring:                160 84% 39%;
-
-    /* — Node Canvas (Dark) — */
-    --canvas-bg: #000000;
-    --node-bg: #111114;
-    --node-border: #27272A;
-    --panel-bg: #111114;
-    --node-shadow: none;
-
-    --text-primary: #F9FAFB;
-    --text-secondary: #9CA3AF;
-    --text-tertiary: #52525B;
-    --minimap-mask: rgba(0, 0, 0, 0.7);
-
-    --node-whatsapp: #10B981;
-    --node-voice: #818CF8;
-    --node-delay: #FBBF24;
-    --node-form: #60A5FA;
-    --node-webhook: #38BDF8;
-    --node-sheets: #34D399;
-    --node-condition: #FB7185;
-    --node-reminder: #FACC15;
-    --node-email: #60A5FA;
-    --node-default: #9CA3AF;
   }
 }
 
@@ -229,7 +169,6 @@
     animation: shimmer 2s linear infinite;
   }
 
-  /* Hide scrollbar but keep scroll functionality */
   .no-scrollbar {
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -241,85 +180,89 @@
 
 /* ══════════════════════════════════════════════════════════════════
    GLOBAL DARK MODE FIXES
-   Override hardcoded Tailwind classes that lack dark: variants.
-   These rules target the .dark class (set on <html> by next-themes).
+   Overrides hardcoded Tailwind classes for a unified premium feel.
    ══════════════════════════════════════════════════════════════════ */
 
 /* ── Text color overrides ─────────────────────────────────────── */
-.dark .text-gray-900 { color: hsl(210 40% 96%) !important; }
+.dark .text-gray-900 { color: hsl(210 40% 98%) !important; }
 .dark .text-gray-800 { color: hsl(210 40% 90%) !important; }
 .dark .text-gray-700 { color: hsl(210 20% 82%) !important; }
 .dark .text-gray-600 { color: hsl(210 15% 72%) !important; }
 .dark .text-gray-500 { color: hsl(215 12% 60%) !important; }
 .dark .text-gray-400 { color: hsl(215 12% 50%) !important; }
 
-/* ── Background overrides ─────────────────────────────────────── */
+/* ── Background overrides (Fixing the muddy blues) ────────────── */
 .dark .bg-white {
-  background-color: hsl(240 5% 10%) !important;
+  background-color: hsl(240 10% 6%) !important; /* Premium dark card bg */
 }
 .dark .bg-gray-50 {
-  background-color: hsl(240 5% 12%) !important;
+  background-color: hsl(240 10% 8%) !important; /* Slight elevation */
 }
 .dark .bg-gray-100 {
-  background-color: hsl(240 4% 16%) !important;
+  background-color: hsl(240 5% 12%) !important;
 }
 .dark .bg-gray-100\/30 {
-  background-color: hsl(240 4% 16% / 0.3) !important;
+  background-color: hsl(240 5% 12% / 0.3) !important;
 }
 .dark .bg-gray-100\/10 {
-  background-color: hsl(240 4% 16% / 0.1) !important;
+  background-color: hsl(240 5% 12% / 0.1) !important;
 }
 .dark .bg-gray-100\/40 {
-  background-color: hsl(240 4% 16% / 0.4) !important;
+  background-color: hsl(240 5% 12% / 0.4) !important;
 }
 .dark .bg-gray-200 {
-  background-color: hsl(240 4% 20%) !important;
+  background-color: hsl(240 5% 14%) !important;
 }
 
-/* ── Border overrides ─────────────────────────────────────────── */
-.dark .border-gray-200 { border-color: hsl(240 4% 22%) !important; }
-.dark .border-gray-100 { border-color: hsl(240 4% 18%) !important; }
+/* ── Border overrides (Crisp, thin lines) ─────────────────────── */
+.dark .border-gray-200 { border-color: hsl(240 5% 14%) !important; }
+.dark .border-gray-100 { border-color: hsl(240 5% 12%) !important; }
 
 /* ── Hover overrides ──────────────────────────────────────────── */
-.dark .hover\:bg-gray-100:hover  { background-color: hsl(240 4% 18%) !important; }
-.dark .hover\:bg-gray-50:hover   { background-color: hsl(240 5% 14%) !important; }
-.dark .hover\:text-gray-900:hover { color: hsl(210 40% 96%) !important; }
+.dark .hover\:bg-gray-100:hover  { background-color: hsl(240 5% 14%) !important; }
+.dark .hover\:bg-gray-50:hover   { background-color: hsl(240 5% 10%) !important; }
+.dark .hover\:text-gray-900:hover { color: hsl(210 40% 100%) !important; }
 
 /* ── Inbox / Chat message area ────────────────────────────────── */
 .dark .bg-\[\#DCF8C6\] {
-  /* outbound whatsapp bubble */
   background-color: hsl(145 40% 18%) !important;
 }
-/* Inbound message bubble in dark */
 .dark .bg-white.border.border-border\/60 {
-  background-color: hsl(240 4% 16%) !important;
+  background-color: hsl(240 5% 12%) !important;
 }
 .dark .text-gray-900.whitespace-pre-wrap {
-  color: hsl(210 40% 96%) !important;
+  color: hsl(210 40% 98%) !important;
 }
 
 /* ── Contacts page table / cards ──────────────────────────────── */
-.dark .divide-y > * { border-color: hsl(240 4% 18%) !important; }
+.dark .divide-y > * { border-color: hsl(240 5% 14%) !important; }
 
 /* ── Input / textarea fields ──────────────────────────────────── */
 .dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
 .dark textarea,
 .dark select {
-  background-color: hsl(240 4% 16%);
-  color: hsl(210 40% 96%);
-  border-color: hsl(240 4% 22%);
+  background-color: hsl(240 10% 4%);
+  color: hsl(210 40% 98%);
+  border-color: hsl(240 5% 16%);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.5) inset;
 }
 .dark input::placeholder,
 .dark textarea::placeholder {
   color: hsl(215 12% 50%);
 }
+.dark input:focus, 
+.dark textarea:focus {
+  border-color: hsl(160 84% 39%) !important; /* Emerald focus ring */
+}
 
-/* ── Modals & drawers ─────────────────────────────────────────── */
+/* ── Modals & drawers (Like the Checkout Cart) ────────────────── */
 .dark .bg-white.rounded-xl,
 .dark .bg-white.rounded-\[12px\],
 .dark .bg-white.rounded-2xl,
 .dark .bg-white.rounded-lg {
-  background-color: hsl(240 5% 10%) !important;
+  background-color: hsl(240 10% 6%) !important; /* Matches --card */
+  border: 1px solid hsl(240 5% 14%);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
 }
 
 /* ── Heading / label weight boost for dark headings ──────────── */
@@ -331,52 +274,68 @@
 .dark span.font-bold.text-gray-900,
 .dark span.font-semibold.text-gray-900 {
   color: hsl(0 0% 100%) !important;
-  font-weight: 700;
+  font-weight: 600;
+  letter-spacing: -0.02em; /* Tighter letter spacing for a modern look */
 }
 
 /* ── Scrollbar in dark mode ───────────────────────────────────── */
 .dark ::-webkit-scrollbar-thumb {
-  background-color: hsl(240 4% 24%);
+  background-color: hsl(240 5% 20%);
 }
 .dark ::-webkit-scrollbar-thumb:hover {
-  background-color: hsl(240 4% 30%);
+  background-color: hsl(240 5% 30%);
 }
 
 /* ── Stats strip and table header bg in dark ──────────────────── */
 .dark .sticky.bg-white {
-  background-color: hsl(240 5% 10%) !important;
+  background-color: hsl(240 10% 6%) !important;
 }
 
-/* Composer input bg in dark */
+/* ── Composer input bg in dark ────────────────────────────────── */
 .dark .bg-gray-100.rounded-xl,
 .dark .bg-gray-100.flex-1 {
-  background-color: hsl(240 4% 18%) !important;
-  color: hsl(210 40% 96%);
+  background-color: hsl(240 5% 12%) !important;
+  color: hsl(210 40% 98%);
 }
-
-/* ── amber/note bubble extra contrast ─────────────────────────── */
-.dark .bg-amber-50 {
-  background-color: hsl(38 50% 12%) !important;
-}
-.dark .border-amber-200 { border-color: hsl(38 60% 22%) !important; }
-.dark .text-amber-900 { color: hsl(38 90% 80%) !important; }
-.dark .text-amber-800 { color: hsl(38 90% 75%) !important; }
-
-/* ── Template / blue accent areas ────────────────────────────── */
-.dark .bg-blue-50 { background-color: hsl(220 50% 12%) !important; }
-.dark .border-blue-200 { border-color: hsl(220 50% 22%) !important; }
-.dark .text-blue-700 { color: hsl(210 90% 72%) !important; }
-
-/* ── emerald window indicator ─────────────────────────────────── */
-.dark .bg-emerald-50 { background-color: hsl(160 40% 10%) !important; }
-.dark .text-emerald-700 { color: hsl(160 60% 55%) !important; }
-
-/* ── red window expired ───────────────────────────────────────── */
-.dark .bg-red-50 { background-color: hsl(0 40% 12%) !important; }
-.dark .text-red-600 { color: hsl(0 80% 65%) !important; }
 
 /* ── AvatarFallback ───────────────────────────────────────────── */
 .dark .bg-gray-100.text-gray-900 {
-  background-color: hsl(240 4% 22%) !important;
-  color: hsl(210 40% 96%) !important;
+  background-color: hsl(240 5% 16%) !important;
+  color: hsl(210 40% 98%) !important;
+}
+
+/* ── Modals, Dialogs, and Overlays (Fixing the Upgrade Modal) ────────── */
+
+/* 1. Target hardcoded Slate/Gray modal backgrounds */
+.dark .bg-gray-900,
+.dark .bg-slate-900,
+.dark .bg-slate-800 {
+  background-color: hsl(240 10% 6%) !important; /* Unified premium card color */
+  border: 1px solid hsl(240 5% 14%) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7) !important;
+}
+
+/* 2. Fix the lock icon container (usually a slightly lighter gray) */
+.dark .bg-gray-800 {
+  background-color: hsl(240 5% 12%) !important;
+}
+
+/* 3. Premium Modal Backdrop (The dark overlay behind the modal) */
+/* This targets standard Tailwind/Radix overlay classes and gives them a sleek, modern feel */
+.dark .fixed.inset-0.bg-black\/50,
+.dark .fixed.inset-0.bg-gray-900\/50,
+.dark .fixed.inset-0.bg-black\/80,
+.dark [data-state="open"] > .fixed.inset-0,
+.dark .bg-black\/40 {
+  background-color: rgba(9, 9, 11, 0.75) !important; /* Deep zinc semi-transparent */
+  backdrop-filter: blur(4px) !important; /* Adds a premium frosted glass effect */
+  -webkit-backdrop-filter: blur(4px) !important;
+}
+
+/* 4. Fix for the top header if it gets stuck in light mode while sidebar is dark */
+/* If your top nav is using bg-white, this ensures it matches the canvas in dark mode */
+.dark header.bg-white,
+.dark .sticky.top-0.bg-white {
+  background-color: hsl(240 10% 4%) !important; /* Matches --background */
+  border-bottom-color: hsl(240 5% 14%) !important;
 }
