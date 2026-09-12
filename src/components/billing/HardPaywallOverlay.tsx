@@ -72,7 +72,7 @@ export function HardPaywallOverlay({ children }: HardPaywallOverlayProps) {
   const router = useRouter();
   
   // For demonstration, we assume free user. In production, fetch from context or API
-  const [isFreeUser, setIsFreeUser] = useState(true);
+  const [isFreeUser, setIsFreeUser] = useState(false);
 
   // Allowed routes for a free user
   const isAllowedRoute = 
