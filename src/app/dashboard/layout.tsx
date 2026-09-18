@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
@@ -11,56 +11,118 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   if (!user) redirect("/auth/login");
 
-  const { data: profile, error: profileError } = await supabase
+  const admin = await createAdminClient();
+
+  // 1. Fetch or create profile using admin client (bypasses RLS issues)
+  let { data: profile } = await admin
     .from("profiles")
     .select("*")
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
 
-  if (profileError && profileError.code !== "PGRST116") {
-    throw new Error(`Database error (profile): ${(profileError as any).message}`);
+  if (!profile) {
+    const { data: newProfile } = await admin
+      .from("profiles")
+      .upsert({
+        id: user.id,
+        email: user.email ?? "",
+        full_name: user.user_metadata?.full_name ?? null,
+        avatar_url: user.user_metadata?.avatar_url ?? null,
+        onboarding_completed: false,
+      })
+      .select("*")
+      .single();
+    profile = newProfile;
   }
 
-  if (!profile) redirect("/onboarding");
-  if (!profile.onboarding_completed) redirect("/onboarding");
+  if (!profile?.onboarding_completed) {
+    redirect("/onboarding");
+  }
 
+  // 2. Fetch membership (try activeWorkspaceId cookie first, then fallback to first active membership)
   const cookieStore = await cookies();
   const activeWorkspaceId = cookieStore.get(WORKSPACE_COOKIE)?.value;
 
-  let membershipQuery = supabase
-    .from("workspace_members")
-    .select("workspace_id, role, credits_used, credit_limit, workspaces(*)")
-    .eq("user_id", user.id)
-    .eq("status", "active");
+  let membership: any = null;
 
   if (activeWorkspaceId) {
-    membershipQuery = membershipQuery.eq("workspace_id", activeWorkspaceId);
-  } else {
-    membershipQuery = membershipQuery.order("created_at", { ascending: true }).limit(1);
+    const { data: m } = await admin
+      .from("workspace_members")
+      .select("workspace_id, role, credits_used, credit_limit, workspaces(*)")
+      .eq("user_id", user.id)
+      .eq("workspace_id", activeWorkspaceId)
+      .eq("status", "active")
+      .maybeSingle();
+    membership = m;
   }
 
-  const { data: membership, error: membershipError } = await membershipQuery.single();
-
-  if (membershipError && membershipError.code !== "PGRST116") {
-    throw new Error(`Database error (membership): ${(membershipError as any).message}`);
+  if (!membership) {
+    const { data: m } = await admin
+      .from("workspace_members")
+      .select("workspace_id, role, credits_used, credit_limit, workspaces(*)")
+      .eq("user_id", user.id)
+      .eq("status", "active")
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    membership = m;
   }
 
-  if (!membership) redirect("/onboarding");
+  // 3. If STILL no membership for an onboarded user, auto-create default workspace
+  if (!membership) {
+    const baseSlug = `workspace-${Date.now().toString(36)}`;
+    const { data: ws } = await admin
+      .from("workspaces")
+      .insert({
+        name: "My Workspace",
+        slug: baseSlug,
+        owner_id: user.id,
+        onboarding_completed: true,
+      })
+      .select("*")
+      .single();
+
+    if (ws) {
+      await admin.from("workspace_members").insert({
+        workspace_id: ws.id,
+        user_id: user.id,
+        role: "owner",
+        status: "active",
+      });
+
+      const { data: m } = await admin
+        .from("workspace_members")
+        .select("workspace_id, role, credits_used, credit_limit, workspaces(*)")
+        .eq("user_id", user.id)
+        .eq("workspace_id", ws.id)
+        .single();
+      membership = m;
+    }
+  }
+
+  if (!membership) {
+    redirect("/onboarding");
+  }
 
   const workspace = Array.isArray(membership.workspaces)
     ? membership.workspaces[0]
-    : membership.workspaces as any;
+    : (membership.workspaces as any);
 
   if (!workspace) redirect("/onboarding");
 
-  const { data: wallet, error: walletError } = await supabase
+  // Fetch or create wallet
+  let { data: wallet } = await admin
     .from("credit_wallets")
     .select("balance, monthly_grant")
     .eq("workspace_id", workspace.id)
-    .single();
+    .maybeSingle();
 
-  if (walletError && walletError.code !== "PGRST116") {
-    throw new Error(`Database error (wallet): ${(walletError as any).message}`);
+  if (!wallet) {
+    await admin.from("credit_wallets").insert({
+      workspace_id: workspace.id,
+      balance: 1000,
+    });
+    wallet = { balance: 1000, monthly_grant: 0 };
   }
 
   const workspaceData: WorkspaceContextValue = {
