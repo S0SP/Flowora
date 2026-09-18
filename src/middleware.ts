@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { resolveWorkspaceForMiddleware } from "@/lib/tenant";
+import { createAdminClient } from "@/lib/supabase/server";
 
 const PUBLIC_PATHS = [
   "/auth/login",
@@ -71,11 +72,12 @@ export async function middleware(request: NextRequest) {
   if (user && (pathname.startsWith("/dashboard") || pathname === "/onboarding")) {
     let onboardingCompleted = false;
     try {
-      const { data: profile } = await supabase
+      const admin = await createAdminClient();
+      const { data: profile } = await admin
         .from("profiles")
         .select("onboarding_completed")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
       
       if (profile?.onboarding_completed) {
         onboardingCompleted = true;
@@ -92,13 +94,11 @@ export async function middleware(request: NextRequest) {
 
     if (onboardingCompleted && pathname === "/onboarding") {
       // Before redirecting to /dashboard, verify the user actually has an
-      // active workspace. If not (e.g. workspace deleted after onboarding),
-      // stay on /onboarding so they can re-create one.
-      // Without this check: /onboarding → /dashboard → resolveWorkspace (no ws)
-      // → /onboarding → … causes ERR_TOO_MANY_REDIRECTS.
+      // active workspace.
       let hasWorkspace = false;
       try {
-        const { data: membership } = await supabase
+        const admin = await createAdminClient();
+        const { data: membership } = await admin
           .from("workspace_members")
           .select("id")
           .eq("user_id", user.id)

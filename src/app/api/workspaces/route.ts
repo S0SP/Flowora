@@ -158,15 +158,62 @@ export async function PATCH(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: "Unauthenticated" }, { status: 401 })
 
-  const body = await req.json()
-  const { workspaceId } = body
-  if (!workspaceId) return NextResponse.json({ error: "workspaceId required" }, { status: 400 })
+  const body = await req.json().catch(() => ({}))
+  let { workspaceId } = body
 
   const admin = await createAdminClient()
-  await admin.from("workspaces").update({ onboarding_completed: true }).eq("id", workspaceId).eq("owner_id", user.id)
-  await admin.from("profiles").update({ onboarding_completed: true }).eq("id", user.id)
 
-  const response = NextResponse.json({ ok: true })
-  response.cookies.set("fw_ws", workspaceId, { path: "/", httpOnly: false, sameSite: "lax" })
+  if (!workspaceId) {
+    // Find active workspace for user
+    const { data: membership } = await admin
+      .from("workspace_members")
+      .select("workspace_id")
+      .eq("user_id", user.id)
+      .eq("status", "active")
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle()
+
+    if (membership?.workspace_id) {
+      workspaceId = membership.workspace_id
+    }
+  }
+
+  // If still no workspace exists for user, create a default workspace
+  if (!workspaceId) {
+    const baseSlug = `workspace-${Date.now().toString(36)}`
+    const { data: ws } = await admin.from("workspaces").insert({
+      name: "My Workspace",
+      slug: baseSlug,
+      owner_id: user.id,
+      onboarding_completed: true,
+    }).select("id").single()
+
+    if (ws) {
+      workspaceId = ws.id
+      await admin.from("workspace_members").insert({
+        workspace_id: workspaceId,
+        user_id: user.id,
+        role: "owner",
+        status: "active",
+      })
+    }
+  }
+
+  if (workspaceId) {
+    await admin.from("workspaces").update({ onboarding_completed: true }).eq("id", workspaceId)
+  }
+
+  await admin.from("profiles").upsert({
+    id: user.id,
+    email: user.email ?? "",
+    onboarding_completed: true,
+  })
+
+  const response = NextResponse.json({ ok: true, workspaceId })
+  if (workspaceId) {
+    response.cookies.set("fw_ws", workspaceId, { path: "/", httpOnly: false, sameSite: "lax" })
+  }
   return response
 }
+

@@ -12,6 +12,8 @@ import { toast } from "sonner"
 import { createClient } from "@/lib/supabase/client"
 import { cn } from "@/lib/utils"
 import Papa from "papaparse"
+import { ThemeToggle } from "@/components/ThemeToggle"
+
 
 const STEPS = [
   { id: 1, label: "Workspace", icon: Building2, description: "Tell us about your company" },
@@ -230,12 +232,11 @@ export default function OnboardingPage() {
       {/* Header */}
       <header className="h-14 bg-card border-b border-border flex items-center px-6">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
-            <Zap className="w-4 h-4 text-primary-foreground" />
-          </div>
-          <span className="font-extrabold text-foreground tracking-wide">Flowora</span>
+          <img src="/image/flowra_expanded_transparent.png" alt="Flowra Logo" className="h-8 w-auto object-contain dark:hidden" />
+          <img src="/image/flowra_expanded_dark.png" alt="Flowra Logo" className="h-8 w-auto object-contain hidden dark:block" />
         </div>
         <div className="ml-auto flex items-center gap-3">
+          <ThemeToggle />
           <span className="text-xs text-muted-foreground hidden sm:inline">Step {step} of {STEPS.length}</span>
           <button
             onClick={handleSkipToDashboard}
