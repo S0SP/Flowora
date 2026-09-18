@@ -70,51 +70,38 @@ export async function middleware(request: NextRequest) {
 
   // Check onboarding status for dashboard and onboarding routes
   if (user && (pathname.startsWith("/dashboard") || pathname === "/onboarding")) {
-    let onboardingCompleted = false;
+    let hasActiveWorkspace = false;
     try {
       const admin = await createAdminClient();
-      const { data: profile } = await admin
-        .from("profiles")
-        .select("onboarding_completed")
-        .eq("id", user.id)
+      const { data: membership } = await admin
+        .from("workspace_members")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("status", "active")
+        .limit(1)
         .maybeSingle();
 
-      if (profile?.onboarding_completed) {
-        onboardingCompleted = true;
-      } else {
-        // If user has an active workspace membership, they are already onboarded!
-        const { data: membership } = await admin
-          .from("workspace_members")
-          .select("id")
-          .eq("user_id", user.id)
-          .eq("status", "active")
-          .limit(1)
-          .maybeSingle();
-
-        if (membership) {
-          onboardingCompleted = true;
-          // Sync profile onboarding_completed in background
-          admin.from("profiles").update({ onboarding_completed: true }).eq("id", user.id).then();
-        }
+      if (membership) {
+        hasActiveWorkspace = true;
       }
     } catch (e) {
-      console.error("Middleware profile fetch error:", e);
+      console.error("Middleware workspace check error:", e);
     }
 
-    if (!onboardingCompleted && pathname !== "/onboarding") {
+    if (!hasActiveWorkspace && pathname !== "/onboarding") {
       const url = request.nextUrl.clone();
       url.pathname = "/onboarding";
       return NextResponse.redirect(url);
     }
 
-    if (onboardingCompleted && pathname === "/onboarding") {
+    if (hasActiveWorkspace && pathname === "/onboarding") {
       const url = request.nextUrl.clone();
       url.pathname = "/dashboard";
       return NextResponse.redirect(url);
     }
 
     // Call resolveWorkspaceForMiddleware to set the fw_ws cookie
-    if (onboardingCompleted && pathname.startsWith("/dashboard")) {
+    if (hasActiveWorkspace && pathname.startsWith("/dashboard")) {
       return await resolveWorkspaceForMiddleware(request, user.id, response);
     }
   }
