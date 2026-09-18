@@ -49,10 +49,10 @@ module.exports = {
         sm: "calc(var(--radius) - 4px)",
       },
       boxShadow: {
-        card: "0 2px 8px -2px rgba(27, 27, 27, 0.05), 0 1px 4px -1px rgba(27, 27, 27, 0.03)",
-        card_hover: "0 8px 24px -4px rgba(27, 27, 27, 0.08), 0 4px 12px -2px rgba(27, 27, 27, 0.04)",
-        dropdown: "0 12px 32px -4px rgba(27, 27, 27, 0.12), 0 0 0 1px rgba(27, 27, 27, 0.05)",
-        node_selected: "0 0 0 2px #FFE27C, 0 4px 16px rgba(255, 226, 124, 0.4)",
+        card: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+        card_hover: "0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05)",
+        dropdown: "0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05)",
+        node_selected: "0 0 0 2px #FFE27C, 0 4px 16px rgba(255, 226, 124, 0.2)",
       },
       transitionTimingFunction: {
         "easing-entrance": "cubic-bezier(0.16, 1, 0.3, 1)",

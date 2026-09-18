@@ -60,10 +60,13 @@ export default function DashboardPage() {
   }
 
   const trend = analytics?.messages.daily_trend ?? []
-  const chartData = trend.map(d => ({
-    date: new Date(d.date).toLocaleDateString("en", { weekday: "short" }),
-    messages: d.count,
-  }))
+  const chartData = trend.map(d => {
+    const dObj = new Date(d.date)
+    return {
+      date: isNaN(dObj.getTime()) ? d.date : dObj.toLocaleDateString("en", { weekday: "short" }),
+      messages: d.count,
+    }
+  })
 
   const role = member?.role || "agent"
   const isManagerOrAbove = ["owner", "admin", "manager"].includes(role)
@@ -106,10 +109,10 @@ export default function DashboardPage() {
       
       {/* Command Bar (Quick Actions) & Refresh */}
       <div className="flex items-center justify-between gap-4 w-full">
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 -mb-1">
+        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pb-1 -mb-1">
           {quickActions.map(a => (
-            <Link key={a.label} href={a.href} className="flex items-center gap-2 px-3 py-1.5 bg-card border border-border hover:border-primary/50 hover:bg-muted/50 rounded-full text-[12px] font-semibold text-foreground transition-all whitespace-nowrap">
-              <a.icon className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={2.5} />
+            <Link key={a.label} href={a.href} className="flex items-center gap-2 px-3 py-1.5 hover:bg-muted/50 rounded-lg text-[12px] font-medium text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">
+              <a.icon className="w-4 h-4 text-muted-foreground/70" strokeWidth={2} />
               {a.label}
             </Link>
           ))}
@@ -135,7 +138,7 @@ export default function DashboardPage() {
                 <m.icon className="w-3.5 h-3.5 text-muted-foreground/40 group-hover:text-primary/60 transition-colors" />
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-foreground leading-none tracking-tight">
+                <span className="text-2xl font-bold text-foreground leading-none tracking-tighter">
                   {typeof m.value === "number" ? m.value.toLocaleString() : m.value}
                 </span>
               </div>
@@ -220,8 +223,11 @@ export default function DashboardPage() {
                         <img src={r.avatar_url} className="w-7 h-7 rounded-full object-cover" alt={r.full_name || r.email} />
                       ) : (
                         <div
-                          className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-bold"
-                          style={{ background: `hsl(${hue}, 55%, 55%)` }}
+                          className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold"
+                          style={{ 
+                            background: `hsl(${hue}, 40%, 85%)`,
+                            color: `hsl(${hue}, 60%, 30%)` 
+                          }}
                         >
                           {initials}
                         </div>

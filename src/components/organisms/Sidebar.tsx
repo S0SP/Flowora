@@ -142,7 +142,7 @@ export function Sidebar() {
         )}>
           {!isSidebarOpen ? (
             <div className="w-16 h-16 flex items-center justify-center">
-              <div className="dark:bg-white/95 dark:p-1 dark:rounded-lg flex items-center justify-center transition-colors">
+              <div className="flex items-center justify-center transition-colors">
                 <img src="/image/flowra.png" alt="Logo" className="w-10 h-auto object-contain" />
               </div>
             </div>
@@ -156,7 +156,7 @@ export function Sidebar() {
                   </div>
                 </>
               ) : (
-                <div className="w-full h-full dark:bg-white/95 dark:rounded-xl flex items-center justify-center p-1.5 transition-colors">
+                <div className="w-full h-full flex items-center justify-center p-1.5 transition-colors">
                   <img src="/image/flowra.png" alt="Logo" className="w-full h-full object-contain" />
                 </div>
               )}
@@ -192,7 +192,7 @@ export function Sidebar() {
                       title={!isSidebarOpen ? item.name : undefined}
                       className={cn(
                         "flex items-center transition-colors relative group",
-                        isSidebarOpen ? "px-5 py-1.5 gap-3" : "px-0 py-2.5 justify-center mx-2 rounded-lg",
+                        isSidebarOpen ? "px-5 py-1 gap-3" : "px-0 py-2 justify-center mx-2 rounded-lg",
                         isActive
                           ? isSidebarOpen 
                             ? "bg-sidebar-accent/60 text-sidebar-foreground" 
