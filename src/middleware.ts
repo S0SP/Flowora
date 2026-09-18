@@ -78,9 +78,24 @@ export async function middleware(request: NextRequest) {
         .select("onboarding_completed")
         .eq("id", user.id)
         .maybeSingle();
-      
+
       if (profile?.onboarding_completed) {
         onboardingCompleted = true;
+      } else {
+        // If user has an active workspace membership, they are already onboarded!
+        const { data: membership } = await admin
+          .from("workspace_members")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("status", "active")
+          .limit(1)
+          .maybeSingle();
+
+        if (membership) {
+          onboardingCompleted = true;
+          // Sync profile onboarding_completed in background
+          admin.from("profiles").update({ onboarding_completed: true }).eq("id", user.id).then();
+        }
       }
     } catch (e) {
       console.error("Middleware profile fetch error:", e);
@@ -93,29 +108,9 @@ export async function middleware(request: NextRequest) {
     }
 
     if (onboardingCompleted && pathname === "/onboarding") {
-      // Before redirecting to /dashboard, verify the user actually has an
-      // active workspace.
-      let hasWorkspace = false;
-      try {
-        const admin = await createAdminClient();
-        const { data: membership } = await admin
-          .from("workspace_members")
-          .select("id")
-          .eq("user_id", user.id)
-          .eq("status", "active")
-          .limit(1)
-          .maybeSingle();
-        hasWorkspace = !!membership;
-      } catch (e) {
-        console.error("Middleware workspace check error:", e);
-      }
-
-      if (hasWorkspace) {
-        const url = request.nextUrl.clone();
-        url.pathname = "/dashboard";
-        return NextResponse.redirect(url);
-      }
-      // No active workspace — fall through to render /onboarding
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
+      return NextResponse.redirect(url);
     }
 
     // Call resolveWorkspaceForMiddleware to set the fw_ws cookie

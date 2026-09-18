@@ -26,8 +26,11 @@ export async function createClient() {
 }
 
 export async function createAdminClient() {
-  return createBaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://mock.supabase.co";
+  const serviceKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    "mock-anon-key";
+
+  return createBaseClient(url, serviceKey);
 }

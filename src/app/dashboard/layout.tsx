@@ -13,33 +13,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const admin = await createAdminClient();
 
-  // 1. Fetch or create profile using admin client (bypasses RLS issues)
-  let { data: profile } = await admin
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  if (!profile) {
-    const { data: newProfile } = await admin
-      .from("profiles")
-      .upsert({
-        id: user.id,
-        email: user.email ?? "",
-        full_name: user.user_metadata?.full_name ?? null,
-        avatar_url: user.user_metadata?.avatar_url ?? null,
-        onboarding_completed: false,
-      })
-      .select("*")
-      .single();
-    profile = newProfile;
-  }
-
-  if (!profile?.onboarding_completed) {
-    redirect("/onboarding");
-  }
-
-  // 2. Fetch membership (try activeWorkspaceId cookie first, then fallback to first active membership)
+  // 1. Fetch membership (try activeWorkspaceId cookie first, then fallback to first active membership)
   const cookieStore = await cookies();
   const activeWorkspaceId = cookieStore.get(WORKSPACE_COOKIE)?.value;
 
@@ -68,7 +42,40 @@ export default async function DashboardLayout({ children }: { children: React.Re
     membership = m;
   }
 
-  // 3. If STILL no membership for an onboarded user, auto-create default workspace
+  // 2. Fetch or create profile using admin client
+  let { data: profile } = await admin
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (!profile) {
+    const { data: newProfile } = await admin
+      .from("profiles")
+      .upsert({
+        id: user.id,
+        email: user.email ?? "",
+        full_name: user.user_metadata?.full_name ?? null,
+        avatar_url: user.user_metadata?.avatar_url ?? null,
+        onboarding_completed: true,
+      })
+      .select("*")
+      .single();
+    profile = newProfile;
+  }
+
+  // If user has an active workspace membership OR has onboarding_completed, ensure profile is marked true
+  if (membership || profile?.onboarding_completed) {
+    if (profile && !profile.onboarding_completed) {
+      await admin.from("profiles").update({ onboarding_completed: true }).eq("id", user.id);
+      profile.onboarding_completed = true;
+    }
+  } else {
+    // Only redirect if NO workspace membership AND profile not onboarded
+    redirect("/onboarding");
+  }
+
+  // 3. If STILL no membership, auto-create default workspace
   if (!membership) {
     const baseSlug = `workspace-${Date.now().toString(36)}`;
     const { data: ws } = await admin
@@ -133,7 +140,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       avatar_url: profile.avatar_url,
       phone: profile.phone,
       timezone: profile.timezone ?? "Asia/Kolkata",
-      onboarding_completed: profile.onboarding_completed,
+      onboarding_completed: true,
     },
     workspace: {
       id: workspace.id,

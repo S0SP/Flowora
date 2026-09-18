@@ -70,6 +70,10 @@ export default function OnboardingPage() {
           setWorkspaceId(data.activeWorkspace.id)
           setCompanyName(data.activeWorkspace.name)
           document.cookie = `fw_ws=${data.activeWorkspace.id}; path=/; samesite=lax`
+          if (data.activeWorkspace.onboarding_completed) {
+            window.location.href = "/dashboard"
+            return
+          }
           setStep(prev => (prev === 1 ? 2 : prev))
         }
       })
