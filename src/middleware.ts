@@ -70,11 +70,11 @@ export async function middleware(request: NextRequest) {
 
   // Check onboarding status for dashboard and onboarding routes
   if (user && (pathname.startsWith("/dashboard") || pathname === "/onboarding")) {
-    let isUserOnboarded = false;
+    let hasActiveWorkspace = false;
+    let profileOnboarded = false;
     try {
       const admin = await createAdminClient();
 
-      // 1. Check profile onboarding status
       const { data: profile } = await admin
         .from("profiles")
         .select("onboarding_completed")
@@ -82,25 +82,25 @@ export async function middleware(request: NextRequest) {
         .maybeSingle();
 
       if (profile?.onboarding_completed) {
-        isUserOnboarded = true;
-      } else {
-        // 2. Check workspace membership as fallback
-        const { data: membership } = await admin
-          .from("workspace_members")
-          .select("id")
-          .eq("user_id", user.id)
-          .eq("status", "active")
-          .limit(1)
-          .maybeSingle();
+        profileOnboarded = true;
+      }
 
-        if (membership) {
-          isUserOnboarded = true;
-          admin.from("profiles").update({ onboarding_completed: true }).eq("id", user.id).then();
-        }
+      const { data: membership } = await admin
+        .from("workspace_members")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("status", "active")
+        .limit(1)
+        .maybeSingle();
+
+      if (membership) {
+        hasActiveWorkspace = true;
       }
     } catch (e) {
       console.error("Middleware onboarding check error:", e);
     }
+
+    const isUserOnboarded = profileOnboarded || hasActiveWorkspace;
 
     if (!isUserOnboarded && pathname !== "/onboarding") {
       const url = request.nextUrl.clone();

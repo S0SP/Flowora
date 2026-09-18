@@ -81,13 +81,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     profile.onboarding_completed = true;
   }
 
-  // Only redirect if truly no membership and not onboarded
-  if (!membership && !profile?.onboarding_completed) {
-    console.log("[DashboardLayout] REDIRECTING to /onboarding — no membership and not onboarded");
-    redirect("/onboarding");
-  }
-
-  // 3. If no membership but profile IS onboarded, auto-create workspace
+  // 3. If no membership, auto-create a default workspace for user
   if (!membership) {
     console.log("[DashboardLayout] no membership, auto-creating workspace");
     const baseSlug = `workspace-${Date.now().toString(36)}`;
@@ -103,35 +97,64 @@ export default async function DashboardLayout({ children }: { children: React.Re
       .single();
 
     if (ws) {
-      await admin.from("workspace_members").insert({
+      await admin.from("workspace_members").upsert({
         workspace_id: ws.id,
         user_id: user.id,
         role: "owner",
         status: "active",
-      });
+      }, { onConflict: "workspace_id,user_id" });
 
       const { data: m } = await admin
         .from("workspace_members")
         .select("workspace_id, role, credits_used, credit_limit, workspaces(*)")
         .eq("user_id", user.id)
         .eq("workspace_id", ws.id)
-        .single();
+        .maybeSingle();
       membership = m;
     }
   }
 
-  if (!membership) {
-    console.log("[DashboardLayout] STILL no membership after auto-create, redirecting to /onboarding");
-    redirect("/onboarding");
+  let workspace = Array.isArray(membership?.workspaces)
+    ? membership.workspaces[0]
+    : (membership?.workspaces as any);
+
+  // Fallback: if relation query didn't populate workspace, fetch it directly
+  if (!workspace && membership?.workspace_id) {
+    const { data: ws } = await admin
+      .from("workspaces")
+      .select("*")
+      .eq("id", membership.workspace_id)
+      .maybeSingle();
+    workspace = ws;
   }
 
-  const workspace = Array.isArray(membership.workspaces)
-    ? membership.workspaces[0]
-    : (membership.workspaces as any);
-
+  // Final safety fallback: create workspace if still null
   if (!workspace) {
-    console.log("[DashboardLayout] workspace is null, redirecting to /onboarding");
-    redirect("/onboarding");
+    console.log("[DashboardLayout] creating emergency workspace fallback");
+    const baseSlug = `workspace-${Date.now().toString(36)}`;
+    const { data: ws } = await admin
+      .from("workspaces")
+      .insert({
+        name: "My Workspace",
+        slug: baseSlug,
+        owner_id: user.id,
+        onboarding_completed: true,
+      })
+      .select("*")
+      .single();
+
+    if (ws) {
+      await admin.from("workspace_members").upsert({
+        workspace_id: ws.id,
+        user_id: user.id,
+        role: "owner",
+        status: "active",
+      }, { onConflict: "workspace_id,user_id" });
+      workspace = ws;
+      if (!membership) {
+        membership = { workspace_id: ws.id, role: "owner", credits_used: 0, credit_limit: null };
+      }
+    }
   }
 
   // Fetch or create wallet
