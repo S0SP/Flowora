@@ -127,14 +127,31 @@ export async function resolveWorkspaceForMiddleware(
       .maybeSingle()
 
     if (!membership) {
-      // No workspace at all — redirect to onboarding
-      const url = request.nextUrl.clone()
-      url.pathname = '/onboarding'
-      return NextResponse.redirect(url)
+      // Auto-create default workspace for user so they are never stuck in a redirect loop
+      const baseSlug = `workspace-${Date.now().toString(36)}`
+      const { data: ws } = await admin.from('workspaces').insert({
+        name: 'My Workspace',
+        slug: baseSlug,
+        owner_id: userId,
+        onboarding_completed: true,
+      }).select('id').single()
+
+      if (ws) {
+        await admin.from('workspace_members').insert({
+          workspace_id: ws.id,
+          user_id: userId,
+          role: 'owner',
+          status: 'active',
+        })
+        workspaceId = ws.id
+      }
+    } else {
+      workspaceId = membership.workspace_id
     }
 
-    // Set the cookie and continue — do NOT check onboarding_completed on workspace row
-    response.cookies.set(WORKSPACE_COOKIE, membership.workspace_id, { path: '/', httpOnly: false, sameSite: 'lax' })
+    if (workspaceId) {
+      response.cookies.set(WORKSPACE_COOKIE, workspaceId, { path: '/', httpOnly: false, sameSite: 'lax' })
+    }
   }
 
   return response

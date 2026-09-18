@@ -70,38 +70,52 @@ export async function middleware(request: NextRequest) {
 
   // Check onboarding status for dashboard and onboarding routes
   if (user && (pathname.startsWith("/dashboard") || pathname === "/onboarding")) {
-    let hasActiveWorkspace = false;
+    let isUserOnboarded = false;
     try {
       const admin = await createAdminClient();
-      const { data: membership } = await admin
-        .from("workspace_members")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("status", "active")
-        .limit(1)
+
+      // 1. Check profile onboarding status
+      const { data: profile } = await admin
+        .from("profiles")
+        .select("onboarding_completed")
+        .eq("id", user.id)
         .maybeSingle();
 
-      if (membership) {
-        hasActiveWorkspace = true;
+      if (profile?.onboarding_completed) {
+        isUserOnboarded = true;
+      } else {
+        // 2. Check workspace membership as fallback
+        const { data: membership } = await admin
+          .from("workspace_members")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("status", "active")
+          .limit(1)
+          .maybeSingle();
+
+        if (membership) {
+          isUserOnboarded = true;
+          admin.from("profiles").update({ onboarding_completed: true }).eq("id", user.id).then();
+        }
       }
     } catch (e) {
-      console.error("Middleware workspace check error:", e);
+      console.error("Middleware onboarding check error:", e);
     }
 
-    if (!hasActiveWorkspace && pathname !== "/onboarding") {
+    if (!isUserOnboarded && pathname !== "/onboarding") {
       const url = request.nextUrl.clone();
       url.pathname = "/onboarding";
       return NextResponse.redirect(url);
     }
 
-    if (hasActiveWorkspace && pathname === "/onboarding") {
+    if (isUserOnboarded && pathname === "/onboarding") {
       const url = request.nextUrl.clone();
       url.pathname = "/dashboard";
       return NextResponse.redirect(url);
     }
 
-    // Call resolveWorkspaceForMiddleware to set the fw_ws cookie
-    if (hasActiveWorkspace && pathname.startsWith("/dashboard")) {
+    // Call resolveWorkspaceForMiddleware to set the fw_ws cookie and load dashboard
+    if (pathname.startsWith("/dashboard")) {
       return await resolveWorkspaceForMiddleware(request, user.id, response);
     }
   }
