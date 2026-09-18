@@ -38,8 +38,8 @@
     --destructive-foreground:  0 0% 100%;
 
     /* — borders / inputs (subtle dividers) — */
-    --border:                  0 0% 95%;             /* Very subtle border for crisp edges */
-    --input:                   0 0% 95%;
+    --border:                  220 13% 90%;          /* Crisp, visible borders in light mode */
+    --input:                   220 13% 90%;
     --ring:                    160 84% 39%;
     --radius:                  0.5rem; 
 

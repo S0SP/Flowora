@@ -159,8 +159,39 @@ export async function resolveWorkspaceForMiddleware(
       .limit(1)
       .maybeSingle()
 
+    // Check user's profile onboarding status
+    const { data: profile } = await admin
+      .from('profiles')
+      .select('onboarding_completed')
+      .eq('id', userId)
+      .maybeSingle()
+
+    const isProfileOnboarded = !!profile?.onboarding_completed
+
     if (!membership) {
-      // No workspace — if already requesting onboarding, allow rendering
+      if (isProfileOnboarded) {
+        // Auto create default workspace for onboarded user
+        const baseSlug = `workspace-${Date.now().toString(36)}`
+        const { data: ws } = await admin.from('workspaces').insert({
+          name: 'My Workspace',
+          slug: baseSlug,
+          owner_id: userId,
+          onboarding_completed: true,
+        }).select('id').single()
+
+        if (ws) {
+          await admin.from('workspace_members').insert({
+            workspace_id: ws.id,
+            user_id: userId,
+            role: 'owner',
+            status: 'active',
+          })
+          response.cookies.set(WORKSPACE_COOKIE, ws.id, { path: '/', httpOnly: false, sameSite: 'lax' })
+          return response
+        }
+      }
+
+      // No workspace and profile not onboarded — redirect to /onboarding
       if (request.nextUrl.pathname === '/onboarding') {
         return response
       }
@@ -170,7 +201,8 @@ export async function resolveWorkspaceForMiddleware(
     }
 
     const ws = membership.workspaces as unknown as { onboarding_completed: boolean } | null
-    if (!ws?.onboarding_completed) {
+
+    if (!ws?.onboarding_completed && !isProfileOnboarded) {
       if (request.nextUrl.pathname === '/onboarding') {
         response.cookies.set(WORKSPACE_COOKIE, membership.workspace_id, { path: '/', httpOnly: false, sameSite: 'lax' })
         return response
@@ -180,6 +212,11 @@ export async function resolveWorkspaceForMiddleware(
       const redirect = NextResponse.redirect(url)
       redirect.cookies.set(WORKSPACE_COOKIE, membership.workspace_id, { path: '/', httpOnly: false, sameSite: 'lax' })
       return redirect
+    }
+
+    // If profile is onboarded but workspace flag was false/null, sync it now
+    if (isProfileOnboarded && !ws?.onboarding_completed) {
+      await admin.from('workspaces').update({ onboarding_completed: true }).eq('id', membership.workspace_id)
     }
 
     // Set the cookie and continue

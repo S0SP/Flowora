@@ -22,7 +22,7 @@ export function ThemeToggle({ className }: { className?: string }) {
   // Prevent hydration mismatch
   if (!mounted) {
     return (
-      <div className={cn("w-[48px] h-[26px] bg-gray-100/60 dark:bg-zinc-800/80 border border-border/80 rounded-full", className)} />
+      <div className={cn("w-[48px] h-[26px] bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-full", className)} />
     )
   }
 
@@ -30,14 +30,14 @@ export function ThemeToggle({ className }: { className?: string }) {
     <button
       onClick={toggleDark}
       className={cn(
-        "relative flex items-center justify-between w-[48px] h-[26px] bg-gray-100/60 dark:bg-zinc-800/80 border border-border/80 rounded-full p-1 cursor-pointer transition-all hover:bg-gray-100/80 focus:outline-none shrink-0",
+        "relative flex items-center justify-between w-[48px] h-[26px] bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-full p-1 cursor-pointer transition-all hover:bg-zinc-300/80 dark:hover:bg-zinc-700/80 focus:outline-none shrink-0",
         className
       )}
       title={isDark ? "Switch to light mode" : "Switch to dark mode"}
     >
       {/* Animated Thumb */}
       <motion.div
-        className="absolute top-[2px] left-[2px] w-[20px] h-[20px] bg-white dark:bg-zinc-950 border border-border/10 rounded-full shadow-sm z-10"
+        className="absolute top-[2px] left-[2px] w-[20px] h-[20px] bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-700 rounded-full shadow-md z-10"
         animate={{ x: isDark ? 22 : 0 }}
         transition={{ type: "spring", stiffness: 350, damping: 22 }}
       />

@@ -98,12 +98,16 @@ export default function OnboardingPage() {
         const data = await res.json()
         if (data.workspaceId) activeWsId = data.workspaceId
       }
-      if (activeWsId) {
-        await fetch("/api/workspaces", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ workspaceId: activeWsId }),
-        })
+      const patchRes = await fetch("/api/workspaces", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspaceId: activeWsId }),
+      })
+      const patchData = await patchRes.json()
+      if (!patchRes.ok) throw new Error(patchData.error ?? "Failed to complete onboarding")
+      const finalWsId = patchData.workspaceId || activeWsId
+      if (finalWsId) {
+        document.cookie = `fw_ws=${finalWsId}; path=/; samesite=lax`
       }
       window.location.href = "/dashboard"
     } catch (err: any) {
@@ -210,16 +214,22 @@ export default function OnboardingPage() {
   const handleComplete = async () => {
     setSaving(true)
     try {
-      await fetch("/api/workspaces", {
+      const res = await fetch("/api/workspaces", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ workspaceId }),
       })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? "Failed to complete onboarding")
+      const finalWsId = data.workspaceId || workspaceId
+      if (finalWsId) {
+        document.cookie = `fw_ws=${finalWsId}; path=/; samesite=lax`
+      }
       toast.success("🎉 Your workspace is live!")
-      await new Promise(r => setTimeout(r, 800))
+      await new Promise(r => setTimeout(r, 400))
       window.location.href = "/dashboard"
     } catch (err: any) {
-      toast.error(err.message)
+      toast.error(err.message ?? "Failed to complete onboarding")
     } finally {
       setSaving(false)
     }
@@ -266,24 +276,24 @@ export default function OnboardingPage() {
 
       <div className="flex-1 flex">
         {/* Left stepper */}
-        <div className="hidden md:flex flex-col w-64 bg-zinc-950 p-8 gap-3">
-          <p className="text-xs text-white/40 uppercase tracking-widest font-semibold mb-4">Setup guide</p>
+        <div className="hidden md:flex flex-col w-64 bg-card border-r border-border p-8 gap-3">
+          <p className="text-xs text-muted-foreground uppercase tracking-widest font-semibold mb-4">Setup guide</p>
           {STEPS.map((s) => {
             const Icon = s.icon
             const done = step > s.id
             const active = step === s.id
             return (
-              <div key={s.id} className={`flex items-start gap-3 p-3 rounded-xl transition-all ${active ? "bg-white/10" : ""}`}>
+              <div key={s.id} className={`flex items-start gap-3 p-3 rounded-xl transition-all ${active ? "bg-primary/10 border border-primary/20" : "border border-transparent"}`}>
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all
-                  ${done ? "bg-primary" : active ? "bg-primary text-primary-foreground" : "bg-white/10"}`}>
+                  ${done ? "bg-primary text-primary-foreground" : active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
                   {done
-                    ? <Check className="w-4 h-4 text-white" />
-                    : <Icon className={`w-4 h-4 ${active ? "text-primary-foreground" : "text-white/50"}`} />
+                    ? <Check className="w-4 h-4 text-primary-foreground" />
+                    : <Icon className={`w-4 h-4 ${active ? "text-primary-foreground" : "text-muted-foreground"}`} />
                   }
                 </div>
                 <div>
-                  <p className={`text-sm font-semibold ${active ? "text-white" : done ? "text-white/80" : "text-white/50"}`}>{s.label}</p>
-                  <p className="text-xs text-white/55 mt-0.5">{s.description}</p>
+                  <p className={`text-sm font-semibold ${active ? "text-foreground" : done ? "text-foreground/80" : "text-muted-foreground"}`}>{s.label}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{s.description}</p>
                 </div>
               </div>
             )
@@ -509,7 +519,7 @@ export default function OnboardingPage() {
                     <button
                       onClick={handleComplete}
                       disabled={saving}
-                      className="w-full flex items-center justify-center gap-2 bg-zinc-950 hover:bg-zinc-800 text-white font-semibold py-4 rounded-xl transition-all text-base shadow-lg disabled:opacity-60"
+                      className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-4 rounded-xl transition-all text-base shadow-[0_2px_8px_rgba(16,185,129,0.3)] disabled:opacity-60"
                     >
                       {saving ? "Launching..." : "Go to Dashboard"}
                       <ArrowRight className="w-5 h-5" />

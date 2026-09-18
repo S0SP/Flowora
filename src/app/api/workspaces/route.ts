@@ -203,12 +203,13 @@ export async function PATCH(req: NextRequest) {
   if (workspaceId) {
     await admin.from("workspaces").update({ onboarding_completed: true }).eq("id", workspaceId)
   }
+  await admin.from("workspaces").update({ onboarding_completed: true }).eq("owner_id", user.id)
 
   await admin.from("profiles").upsert({
     id: user.id,
     email: user.email ?? "",
     onboarding_completed: true,
-  })
+  }, { onConflict: "id" })
 
   const response = NextResponse.json({ ok: true, workspaceId })
   if (workspaceId) {
