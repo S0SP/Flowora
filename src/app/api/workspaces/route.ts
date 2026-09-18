@@ -55,14 +55,14 @@ export async function POST(req: NextRequest) {
   const slug = `${baseSlug}-${Date.now().toString(36)}`
 
   try {
-    // 1. Ensure profile exists first (to satisfy workspaces_owner_id_fkey reference to profiles table)
+    // Ensure profile exists — use ignoreDuplicates so we don't accidentally reset
+    // onboarding_completed if the user already has a profile from a prior session.
     const { error: profileError } = await admin.from("profiles").upsert({
       id: user.id,
       email: user.email ?? "",
       full_name: user.user_metadata?.full_name ?? null,
       avatar_url: user.user_metadata?.avatar_url ?? null,
-      onboarding_completed: false,
-    })
+    }, { onConflict: "id", ignoreDuplicates: true })
 
     if (profileError) {
       throw profileError
