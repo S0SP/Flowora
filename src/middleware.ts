@@ -102,19 +102,14 @@ export async function middleware(request: NextRequest) {
 
     const isUserOnboarded = profileOnboarded || hasActiveWorkspace;
 
-    if (!isUserOnboarded && pathname !== "/onboarding") {
+    // Not onboarded users attempting to access /dashboard get sent to /onboarding
+    if (!isUserOnboarded && pathname.startsWith("/dashboard")) {
       const url = request.nextUrl.clone();
       url.pathname = "/onboarding";
       return NextResponse.redirect(url);
     }
 
-    if (isUserOnboarded && pathname === "/onboarding") {
-      const url = request.nextUrl.clone();
-      url.pathname = "/dashboard";
-      return NextResponse.redirect(url);
-    }
-
-    // Call resolveWorkspaceForMiddleware to set the fw_ws cookie and load dashboard
+    // Call resolveWorkspaceForMiddleware to set the fw_ws cookie for dashboard routes
     if (pathname.startsWith("/dashboard")) {
       return await resolveWorkspaceForMiddleware(request, user.id, response);
     }
