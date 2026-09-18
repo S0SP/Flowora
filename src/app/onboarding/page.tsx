@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -59,6 +59,57 @@ export default function OnboardingPage() {
   const [isImporting, setIsImporting] = useState(false)
 
   const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    fetch("/api/workspaces")
+      .then(res => res.json())
+      .then(data => {
+        if (data.activeWorkspace) {
+          setWorkspaceId(data.activeWorkspace.id)
+          setCompanyName(data.activeWorkspace.name)
+          document.cookie = `fw_ws=${data.activeWorkspace.id}; path=/; samesite=lax`
+          setStep(prev => (prev === 1 ? 2 : prev))
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  const handleSkipToDashboard = async () => {
+    let activeWsId = workspaceId
+    setSaving(true)
+    try {
+      if (!activeWsId && companyName.trim()) {
+        const res = await fetch("/api/workspaces", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: companyName.trim(), industry }),
+        })
+        const data = await res.json()
+        if (data.workspaceId) activeWsId = data.workspaceId
+      }
+      if (!activeWsId) {
+        const res = await fetch("/api/workspaces", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: "My Workspace" }),
+        })
+        const data = await res.json()
+        if (data.workspaceId) activeWsId = data.workspaceId
+      }
+      if (activeWsId) {
+        await fetch("/api/workspaces", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ workspaceId: activeWsId }),
+        })
+      }
+      window.location.href = "/dashboard"
+    } catch (err: any) {
+      toast.error(err.message ?? "Failed to skip onboarding")
+    } finally {
+      setSaving(false)
+    }
+  }
 
   const handleCreateWorkspace = async () => {
     if (!companyName.trim()) { toast.error("Company name is required"); return }
@@ -184,11 +235,18 @@ export default function OnboardingPage() {
           </div>
           <span className="font-extrabold text-foreground tracking-wide">Flowora</span>
         </div>
-        <div className="ml-auto flex items-center gap-4">
-          <span className="text-sm text-muted-foreground">Step {step} of {STEPS.length}</span>
+        <div className="ml-auto flex items-center gap-3">
+          <span className="text-xs text-muted-foreground hidden sm:inline">Step {step} of {STEPS.length}</span>
+          <button
+            onClick={handleSkipToDashboard}
+            disabled={saving}
+            className="text-xs font-medium text-foreground/80 hover:text-primary transition-colors border border-border rounded-lg px-3 py-1.5 hover:bg-muted"
+          >
+            Skip setup →
+          </button>
           <button
             onClick={handleSignOut}
-            className="text-xs font-semibold text-destructive hover:text-destructive/80 transition-colors border border-destructive/20 hover:border-destructive/40 rounded-lg px-2.5 py-1"
+            className="text-xs font-semibold text-destructive hover:text-destructive/80 transition-colors border border-destructive/20 hover:border-destructive/40 rounded-lg px-2.5 py-1.5"
           >
             Sign Out
           </button>

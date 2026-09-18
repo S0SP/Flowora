@@ -157,10 +157,13 @@ export async function resolveWorkspaceForMiddleware(
       .eq('status', 'active')
       .order('created_at', { ascending: true })
       .limit(1)
-      .single()
+      .maybeSingle()
 
     if (!membership) {
-      // No workspace — redirect to onboarding
+      // No workspace — if already requesting onboarding, allow rendering
+      if (request.nextUrl.pathname === '/onboarding') {
+        return response
+      }
       const url = request.nextUrl.clone()
       url.pathname = '/onboarding'
       return NextResponse.redirect(url)
@@ -168,15 +171,19 @@ export async function resolveWorkspaceForMiddleware(
 
     const ws = membership.workspaces as unknown as { onboarding_completed: boolean } | null
     if (!ws?.onboarding_completed) {
+      if (request.nextUrl.pathname === '/onboarding') {
+        response.cookies.set(WORKSPACE_COOKIE, membership.workspace_id, { path: '/', httpOnly: false, sameSite: 'lax' })
+        return response
+      }
       const url = request.nextUrl.clone()
       url.pathname = '/onboarding'
       const redirect = NextResponse.redirect(url)
-      redirect.cookies.set(WORKSPACE_COOKIE, membership.workspace_id, { path: '/', httpOnly: true, sameSite: 'lax' })
+      redirect.cookies.set(WORKSPACE_COOKIE, membership.workspace_id, { path: '/', httpOnly: false, sameSite: 'lax' })
       return redirect
     }
 
     // Set the cookie and continue
-    response.cookies.set(WORKSPACE_COOKIE, membership.workspace_id, { path: '/', httpOnly: true, sameSite: 'lax' })
+    response.cookies.set(WORKSPACE_COOKIE, membership.workspace_id, { path: '/', httpOnly: false, sameSite: 'lax' })
   }
 
   return response

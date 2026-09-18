@@ -8,6 +8,30 @@ const createWorkspaceSchema = z.object({
   timezone: z.string().default("Asia/Kolkata"),
 })
 
+// GET /api/workspaces — get user's active workspaces
+export async function GET() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: "Unauthenticated" }, { status: 401 })
+
+  const admin = await createAdminClient()
+  const { data: memberships } = await admin
+    .from("workspace_members")
+    .select("role, status, workspace_id, workspaces(id, name, slug, logo_url, onboarding_completed)")
+    .eq("user_id", user.id)
+    .eq("status", "active")
+    .order("created_at", { ascending: true })
+
+  const workspaces = (memberships ?? []).map((m: any) => ({
+    role: m.role,
+    ...m.workspaces,
+  })).filter((w: any) => w.id)
+
+  const activeWorkspace = workspaces[0] ?? null
+
+  return NextResponse.json({ workspaces, activeWorkspace })
+}
+
 // POST /api/workspaces — create workspace + default pipeline + seed data
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
@@ -119,14 +143,16 @@ export async function POST(req: NextRequest) {
       ])
     }
 
-    return NextResponse.json({ workspaceId, slug }, { status: 201 })
+    const response = NextResponse.json({ workspaceId, slug }, { status: 201 })
+    response.cookies.set("fw_ws", workspaceId, { path: "/", httpOnly: false, sameSite: "lax" })
+    return response
   } catch (err: any) {
     console.error("[api/workspaces] create failed", err)
     return NextResponse.json({ error: err.message ?? "Failed to create workspace" }, { status: 500 })
   }
 }
 
-// PATCH /api/workspaces/[id]/complete-onboarding
+// PATCH /api/workspaces — complete onboarding
 export async function PATCH(req: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -140,5 +166,7 @@ export async function PATCH(req: NextRequest) {
   await admin.from("workspaces").update({ onboarding_completed: true }).eq("id", workspaceId).eq("owner_id", user.id)
   await admin.from("profiles").update({ onboarding_completed: true }).eq("id", user.id)
 
-  return NextResponse.json({ ok: true })
+  const response = NextResponse.json({ ok: true })
+  response.cookies.set("fw_ws", workspaceId, { path: "/", httpOnly: false, sameSite: "lax" })
+  return response
 }

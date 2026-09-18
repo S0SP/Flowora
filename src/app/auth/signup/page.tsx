@@ -100,13 +100,22 @@ function SignupForm() {
         body: JSON.stringify({ name: workspaceName, industry }),
       });
 
+      const data = await res.json();
       if (!res.ok) {
-        const data = await res.json();
         throw new Error(data.error ?? "Failed to create workspace");
       }
 
-      toast.success("Workspace created! Redirecting…");
-      router.push("/onboarding");
+      if (data.workspaceId) {
+        document.cookie = `fw_ws=${data.workspaceId}; path=/; samesite=lax`;
+        await fetch("/api/workspaces", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ workspaceId: data.workspaceId }),
+        });
+      }
+
+      toast.success("Workspace created! Launching platform…");
+      window.location.href = "/dashboard";
     } catch (err: any) {
       toast.error(err.message ?? "Failed to create workspace");
     } finally {
