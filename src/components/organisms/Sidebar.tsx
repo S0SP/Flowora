@@ -40,39 +40,39 @@ const navGroups = [
     label: "Core",
     roles: ["owner", "admin", "manager", "agent"],
     items: [
-      { name: "Dashboard",    href: "/dashboard",               icon: LayoutDashboard },
-      { name: "Shared Inbox", href: "/dashboard/inbox",         icon: Inbox },
-      { name: "Tickets",      href: "/dashboard/tickets",       icon: Ticket },
-      { name: "Contacts",     href: "/dashboard/contacts",      icon: Users },
-      { name: "Leads CRM",    href: "/dashboard/leads",         icon: KanbanSquare },
+      { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+      { name: "Shared Inbox", href: "/dashboard/inbox", icon: Inbox },
+      { name: "Tickets", href: "/dashboard/tickets", icon: Ticket },
+      { name: "Contacts", href: "/dashboard/contacts", icon: Users },
+      { name: "Leads CRM", href: "/dashboard/leads", icon: KanbanSquare },
     ],
   },
   {
     label: "Automation",
     roles: ["owner", "admin", "manager"],
     items: [
-      { name: "Workflows",    href: "/dashboard/workflows",     icon: Workflow },
-      { name: "Campaigns",    href: "/dashboard/campaigns",     icon: Megaphone },
-      { name: "Broadcasts",   href: "/dashboard/broadcasts",    icon: Radio },
-      { name: "Lead Capture", href: "/dashboard/lead-capture",  icon: Target },
+      { name: "Workflows", href: "/dashboard/workflows", icon: Workflow },
+      { name: "Campaigns", href: "/dashboard/campaigns", icon: Megaphone },
+      { name: "Broadcasts", href: "/dashboard/broadcasts", icon: Radio },
+      { name: "Lead Capture", href: "/dashboard/lead-capture", icon: Target },
     ],
   },
   {
     label: "Intelligence",
     roles: ["owner", "admin", "manager"],
     items: [
-      { name: "AI Chatbot",   href: "/dashboard/chatbot",       icon: Bot },
-      { name: "Voice Agent",  href: "/dashboard/voice-agent",   icon: Mic },
-      { name: "Knowledge",    href: "/dashboard/knowledge",     icon: Brain },
-      { name: "Analytics",    href: "/dashboard/analytics",     icon: BarChart3 },
+      { name: "AI Chatbot", href: "/dashboard/chatbot", icon: Bot },
+      { name: "Voice Agent", href: "/dashboard/voice-agent", icon: Mic },
+      { name: "Knowledge", href: "/dashboard/knowledge", icon: Brain },
+      { name: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
     ],
   },
   {
     label: "Workspace",
     roles: ["owner", "admin", "manager"],
     items: [
-      { name: "Team",         href: "/dashboard/team",          icon: UsersRound },
-      { name: "Settings",     href: "/dashboard/settings",      icon: Settings },
+      { name: "Team", href: "/dashboard/team", icon: UsersRound },
+      { name: "Settings", href: "/dashboard/settings", icon: Settings },
     ],
   },
 ]
@@ -126,7 +126,7 @@ export function Sidebar() {
         {/* Toggle Button */}
         <button
           onClick={toggleSidebar}
-          className="absolute -right-3 top-5 flex h-6 w-6 items-center justify-center rounded-full bg-sidebar border border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent shadow-sm z-50 transition-transform hover:scale-110"
+          className="absolute -right-3 top-5 flex h-6 w-6 items-center justify-center rounded-full bg-card border border-border text-foreground hover:bg-muted shadow-md z-50 transition-transform hover:scale-110"
         >
           {isSidebarOpen ? (
             <ChevronLeft className="h-3 w-3" />
@@ -137,17 +137,16 @@ export function Sidebar() {
 
         {/* Logo / workspace */}
         <div className={cn(
-          "flex items-center h-16 border-b border-sidebar-border flex-shrink-0 justify-center",
-          isSidebarOpen ? "px-5" : "px-0"
+          "flex items-center h-16 border-b border-sidebar-border flex-shrink-0",
+          isSidebarOpen ? "px-5 justify-start" : "px-0 justify-center"
         )}>
           {!isSidebarOpen ? (
-            <div className="w-16 h-16 flex items-center justify-center">
-              <div className="flex items-center justify-center transition-colors">
-                <img src="/image/flowra.png" alt="Logo" className="w-10 h-auto object-contain" />
-              </div>
+            <div className="w-8 h-8 flex items-center justify-center">
+              <img src="/image/flowra_icon.png" alt="Flowra" className="h-9 w-auto object-contain dark:hidden" />
+              <img src="/image/flowra_icon_dark.png" alt="Flowra" className="h-9 w-auto object-contain hidden dark:block" />
             </div>
           ) : (
-            <div className="flex items-center justify-center w-full h-full py-2">
+            <div className="flex items-center justify-start w-full h-full py-1">
               {workspace.logo_url ? (
                 <>
                   <img src={workspace.logo_url} alt={workspace.name} className="w-8 h-8 rounded-lg object-cover flex-shrink-0" />
@@ -156,8 +155,9 @@ export function Sidebar() {
                   </div>
                 </>
               ) : (
-                <div className="w-full h-full flex items-center justify-center p-1.5 transition-colors">
-                  <img src="/image/flowra.png" alt="Logo" className="w-full h-full object-contain" />
+                <div className="flex items-center justify-start w-full h-full transition-colors">
+                  <img src="/image/flowra_expanded_transparent.png" alt="Flowra Logo" className="h-[36px] w-auto object-contain dark:hidden" />
+                  <img src="/image/flowra_expanded_dark.png" alt="Flowra Logo" className="h-[36px] w-auto object-contain hidden dark:block" />
                 </div>
               )}
             </div>
@@ -165,19 +165,19 @@ export function Sidebar() {
         </div>
 
         {/* Nav */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden py-4 no-scrollbar">
+        <div className="flex-1 w-full overflow-y-auto overflow-x-hidden pt-2 pb-4 no-scrollbar">
           {navGroups.filter(g => g.roles.includes(member.role)).map((group, i) => (
-            <div key={group.label} className={cn("mb-5", !isSidebarOpen && "mb-3")}>
+            <div key={group.label} className={cn("w-full", i > 0 ? "mt-5 mb-2" : "mt-1 mb-2", !isSidebarOpen && "mt-0 mb-2")}>
               {isSidebarOpen && (
-                <div className="px-5 mb-1.5">
-                  <span className="text-[11px] font-semibold text-sidebar-foreground/40 uppercase tracking-widest">
+                <div className="px-4 mb-1.5">
+                  <span className="text-[11px] font-semibold text-sidebar-foreground/45 uppercase tracking-[0.12em]">
                     {group.label}
                   </span>
                 </div>
               )}
-              {!isSidebarOpen && i > 0 && <div className="h-px mx-4 bg-sidebar-border my-2" />}
+              {!isSidebarOpen && i > 0 && <div className="h-px mx-3 bg-sidebar-border my-2" />}
 
-              <nav className="flex flex-col gap-0.5">
+              <nav className={cn("flex flex-col gap-1 w-full", isSidebarOpen ? "px-3" : "px-2")}>
                 {group.items.map((item) => {
                   const isActive =
                     pathname === item.href ||
@@ -191,26 +191,22 @@ export function Sidebar() {
                       href={item.href}
                       title={!isSidebarOpen ? item.name : undefined}
                       className={cn(
-                        "flex items-center transition-colors relative group",
-                        isSidebarOpen ? "px-5 py-1 gap-3" : "px-0 py-2 justify-center mx-2 rounded-lg",
+                        "flex items-center transition-all relative group w-full",
+                        isSidebarOpen ? "px-3 py-2 gap-3.5 rounded-xl" : "px-0 py-2 justify-center rounded-lg",
                         isActive
-                          ? isSidebarOpen 
-                            ? "bg-sidebar-accent/60 text-sidebar-foreground" 
+                          ? isSidebarOpen
+                            ? "bg-sidebar-accent/80 text-sidebar-foreground"
                             : "bg-sidebar-accent text-sidebar-foreground"
-                          : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+                          : "text-sidebar-foreground/65 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
                       )}
                     >
-                      {isActive && isSidebarOpen && (
-                        <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-sidebar-primary" />
-                      )}
-
                       <div className="relative flex-shrink-0">
                         <item.icon className={cn(
-                          "h-[16px] w-[16px] transition-colors",
+                          "h-[17px] w-[17px] transition-colors",
                           isActive
                             ? "text-sidebar-foreground"
                             : "text-sidebar-foreground/50 group-hover:text-sidebar-foreground"
-                        )} strokeWidth={isActive ? 2.5 : 2} />
+                        )} strokeWidth={isActive ? 2 : 1.75} />
                         {showBadge && (
                           <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] px-1 rounded-full bg-sidebar-primary text-sidebar-primary-foreground text-[8px] font-bold flex items-center justify-center">
                             {unreadCount > 99 ? "99+" : unreadCount}
@@ -220,8 +216,8 @@ export function Sidebar() {
 
                       {isSidebarOpen && (
                         <span className={cn(
-                          "text-[13px] truncate",
-                          isActive ? "font-semibold" : "font-medium text-sidebar-foreground/70"
+                          "text-[13px] truncate transition-colors flex-1 min-w-0",
+                          isActive ? "font-medium text-sidebar-foreground" : "font-normal text-sidebar-foreground/75 group-hover:text-sidebar-foreground"
                         )}>
                           {item.name}
                         </span>
@@ -236,7 +232,7 @@ export function Sidebar() {
 
         {/* Flat AI Credits */}
         {isSidebarOpen && (
-          <div className="px-5 mb-4">
+          <div className="px-4 mb-4 w-full flex-shrink-0">
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-1.5">
                 <Sparkles className="w-3 h-3 text-sidebar-foreground/50" />
@@ -246,7 +242,7 @@ export function Sidebar() {
                 {credits.balance.toLocaleString()}
               </span>
             </div>
-            <div className="h-1 bg-sidebar-border rounded-full overflow-hidden mb-1">
+            <div className="h-1 bg-sidebar-border rounded-full overflow-hidden mb-1 w-full">
               <div
                 className={cn(
                   "h-full rounded-full transition-all",
@@ -266,14 +262,14 @@ export function Sidebar() {
 
         {/* User profile popover trigger */}
         <div className={cn(
-          "border-t border-sidebar-border flex-shrink-0 relative",
+          "border-t border-sidebar-border flex-shrink-0 relative w-full",
           isSidebarOpen ? "p-3" : "flex justify-center p-2"
         )}>
           <button
             onClick={() => setUserOpen(!userOpen)}
             className={cn(
               "flex items-center gap-2.5 rounded-lg hover:bg-sidebar-accent transition-colors w-full text-left",
-              isSidebarOpen ? "p-2" : "p-1.5"
+              isSidebarOpen ? "p-1.5" : "p-1.5"
             )}
           >
             <div className="w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-bold text-sidebar-primary-foreground flex-shrink-0 overflow-hidden bg-sidebar-primary">
@@ -288,7 +284,7 @@ export function Sidebar() {
                 <p className="text-[13px] font-semibold text-sidebar-foreground leading-tight truncate">
                   {displayName}
                 </p>
-                <p className="text-[11px] text-sidebar-foreground/50 leading-tight capitalize truncate">
+                <p className="text-[11px] text-sidebar-foreground/45 leading-tight truncate mt-0.5">
                   {profile.email}
                 </p>
               </div>

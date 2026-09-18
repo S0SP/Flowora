@@ -48,7 +48,7 @@ export function CustomSelect({
         <SelectPrimitive.Content
           position="popper"
           sideOffset={4}
-          className="relative z-50 overflow-hidden rounded-md border border-gray-200 dark:border-[#27272A] bg-white dark:bg-[#111114] text-gray-900 dark:text-gray-100 shadow-md animate-in fade-in-80"
+          className="relative z-[200] overflow-hidden rounded-md border border-gray-200 dark:border-[#27272A] bg-white dark:bg-[#111114] text-gray-900 dark:text-gray-100 shadow-md animate-in fade-in-80"
         >
           <SelectPrimitive.Viewport className="p-1">
             {options.map((option, index) => {

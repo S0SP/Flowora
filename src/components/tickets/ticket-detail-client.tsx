@@ -579,7 +579,7 @@ function SelectBox({
         </Select.Icon>
       </Select.Trigger>
       <Select.Portal>
-        <Select.Content position="popper" sideOffset={4} className="overflow-hidden bg-white border border-border rounded-xl shadow-lg z-50 animate-in fade-in zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=closed]:zoom-out-95 min-w-[var(--radix-select-trigger-width)]">
+        <Select.Content position="popper" sideOffset={4} className="overflow-hidden bg-white border border-border rounded-xl shadow-lg z-[200] animate-in fade-in zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=closed]:zoom-out-95 min-w-[var(--radix-select-trigger-width)]">
           <Select.Viewport className="p-1 h-[var(--radix-select-content-available-height)] w-full">
             {options.map((o) => (
               <Select.Item

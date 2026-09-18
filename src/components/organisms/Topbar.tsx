@@ -88,7 +88,7 @@ export function Topbar() {
       <div className="flex items-center gap-2.5">
         {/* Global New Campaign Action */}
         <button
-          onClick={() => router.push("/dashboard/campaigns/new")}
+          onClick={() => router.push("/dashboard/campaigns")}
           className="hidden sm:flex items-center gap-1.5 bg-transparent border border-border text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-zinc-800 px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all active:scale-95 shadow-sm"
         >
           <Plus className="w-3.5 h-3.5" />

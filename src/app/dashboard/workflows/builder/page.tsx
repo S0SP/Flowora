@@ -338,7 +338,12 @@ function GoogleSheetPanel({ data, onSave }: { data: any; onSave: (d: any) => voi
           <Label>Trigger On</Label>
           <div className="grid grid-cols-2 gap-2">
             {[["new", "New Row Added"], ["updated", "Row Updated"]].map(([v, l]) => (
-              <label key={v} className={cn("flex items-center gap-2 p-2.5 rounded-lg border-2 cursor-pointer transition-all", form.triggerOn === v ? "border-emerald-500 bg-emerald-50" : "border-border hover:border-emerald-200")}>
+              <label key={v} className={cn(
+                "flex items-center gap-2 p-2.5 rounded-lg border-2 cursor-pointer transition-all",
+                form.triggerOn === v
+                  ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/80 dark:border-emerald-500 text-emerald-900 dark:text-emerald-300 font-semibold"
+                  : "border-border text-gray-700 dark:text-gray-300 hover:border-emerald-500/40"
+              )}>
                 <input type="radio" name="triggerOn" value={v} checked={form.triggerOn === v} onChange={f("triggerOn")} className="accent-emerald-600" />
                 <span className="text-[12px] font-medium">{l}</span>
               </label>
@@ -1463,7 +1468,7 @@ export default function WorkflowBuilderPage() {
  )
 
  return (
- <div className="fixed inset-0 z-50 flex flex-col bg-[var(--canvas-bg)]">
+  <div className="relative flex flex-1 flex-col h-full w-full overflow-hidden bg-[var(--canvas-bg)]">
  {/* Topbar */}
  <div className="h-[52px] bg-[var(--panel-bg)] px-5 flex items-center justify-between shrink-0 z-20 border-b border-[var(--node-border)]">
  <div className="flex items-center gap-4">

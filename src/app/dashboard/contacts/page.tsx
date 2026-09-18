@@ -707,7 +707,7 @@ export default function ContactsPage() {
                         </Select.Icon>
                       </Select.Trigger>
                       <Select.Portal>
-                        <Select.Content className="overflow-hidden bg-white rounded-lg border border-border shadow-lg z-[70] min-w-[120px]">
+                        <Select.Content className="overflow-hidden bg-white rounded-lg border border-border shadow-lg z-[200] min-w-[120px]">
                           <Select.Viewport className="p-1">
                             <Select.Item value="Lead" className="text-xs px-2 py-1.5 outline-none cursor-pointer rounded-md hover:bg-[#10B981]/10 focus:bg-[#10B981]/10 focus:text-[#10B981] font-medium data-[highlighted]:bg-[#10B981]/10 data-[highlighted]:text-[#10B981]">
                               <Select.ItemText>Lead</Select.ItemText>
@@ -833,7 +833,7 @@ export default function ContactsPage() {
                       </Select.Icon>
                     </Select.Trigger>
                     <Select.Portal>
-                      <Select.Content className="overflow-hidden bg-white rounded-lg border border-border shadow-lg z-[70] min-w-[120px]">
+                      <Select.Content className="overflow-hidden bg-white rounded-lg border border-border shadow-lg z-[200] min-w-[120px]">
                         <Select.Viewport className="p-1">
                           <Select.Item value="Lead" className="text-xs px-2 py-1.5 outline-none cursor-pointer rounded-md hover:bg-[#10B981]/10 focus:bg-[#10B981]/10 focus:text-[#10B981] font-medium data-[highlighted]:bg-[#10B981]/10 data-[highlighted]:text-[#10B981]">
                             <Select.ItemText>Lead</Select.ItemText>

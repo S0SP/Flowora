@@ -64,11 +64,11 @@
   .dark {
     /* — surfaces (Ultra-Premium Deep Zinc, matching the sidebar) — */
     --background:              223 20% 7%;           /* Deep Slate #0E1015 */
-    --foreground:              210 40% 98%;          /* Gray 50 #F9FAFB */
+    --foreground:              215 20% 88%;          /* Comfortable off-white #CBD5E1 */
     --card:                    223 18% 9%;           /* #12141A */
-    --card-foreground:         210 40% 98%;
+    --card-foreground:         215 20% 88%;
     --popover:                 223 18% 9%;
-    --popover-foreground:      210 40% 98%;
+    --popover-foreground:      215 20% 88%;
 
     /* — primary: Emerald remains vibrant — */
     --primary:                 160 84% 39%;
@@ -104,7 +104,7 @@
     --sidebar-primary:             160 84% 39%;
     --sidebar-primary-foreground:  0 0% 100%;
     --sidebar-accent:              223 15% 14%;
-    --sidebar-accent-foreground:   210 40% 98%;
+    --sidebar-accent-foreground:   215 20% 88%;
     --sidebar-border:              223 15% 15%;
     --sidebar-ring:                160 84% 39%;
   }
@@ -183,13 +183,50 @@
    Overrides hardcoded Tailwind classes for a unified premium feel.
    ══════════════════════════════════════════════════════════════════ */
 
-/* ── Text color overrides ─────────────────────────────────────── */
-.dark .text-gray-900 { color: hsl(210 40% 98%) !important; }
-.dark .text-gray-800 { color: hsl(210 40% 90%) !important; }
-.dark .text-gray-700 { color: hsl(210 20% 82%) !important; }
-.dark .text-gray-600 { color: hsl(210 15% 72%) !important; }
-.dark .text-gray-500 { color: hsl(215 12% 60%) !important; }
-.dark .text-gray-400 { color: hsl(215 12% 50%) !important; }
+/* ── Text color overrides (Comfortable off-white to reduce eye strain) ── */
+.dark .text-gray-900 { color: hsl(215 20% 88%) !important; }
+.dark .text-gray-800 { color: hsl(215 18% 82%) !important; }
+.dark .text-gray-700 { color: hsl(215 15% 75%) !important; }
+.dark .text-gray-600 { color: hsl(215 12% 66%) !important; }
+.dark .text-gray-500 { color: hsl(215 12% 58%) !important; }
+.dark .text-gray-400 { color: hsl(215 12% 48%) !important; }
+
+/* ── Workflow & Node light color tint overrides in dark mode ── */
+.dark .bg-emerald-50 { background-color: rgba(6, 78, 59, 0.45) !important; color: #a7f3d0 !important; }
+.dark .bg-green-50   { background-color: rgba(20, 83, 45, 0.45) !important; color: #bbf7d0 !important; }
+.dark .bg-blue-50    { background-color: rgba(30, 58, 138, 0.45) !important; color: #bfdbfe !important; }
+.dark .bg-purple-50  { background-color: rgba(88, 28, 135, 0.45) !important; color: #e9d5ff !important; }
+.dark .bg-amber-50   { background-color: rgba(120, 53, 15, 0.45) !important; color: #fde68a !important; }
+.dark .bg-yellow-50  { background-color: rgba(113, 63, 18, 0.45) !important; color: #fef08a !important; }
+.dark .bg-rose-50    { background-color: rgba(136, 19, 55, 0.45) !important; color: #fecdd3 !important; }
+.dark .bg-teal-50    { background-color: rgba(19, 78, 74, 0.45) !important; color: #99f6e4 !important; }
+.dark .bg-sky-50     { background-color: rgba(12, 74, 110, 0.45) !important; color: #bae6fd !important; }
+
+.dark .border-emerald-200 { border-color: rgba(5, 150, 105, 0.4) !important; }
+.dark .border-green-200   { border-color: rgba(34, 197, 94, 0.4) !important; }
+.dark .border-blue-200    { border-color: rgba(59, 130, 246, 0.4) !important; }
+.dark .border-purple-200  { border-color: rgba(168, 85, 247, 0.4) !important; }
+.dark .border-amber-200   { border-color: rgba(245, 158, 11, 0.4) !important; }
+.dark .border-yellow-200  { border-color: rgba(234, 179, 8, 0.4) !important; }
+
+/* ── ReactFlow canvas controls & minimap in dark mode ── */
+.dark .react-flow__minimap {
+  background-color: hsl(223 18% 9%) !important;
+  border-color: hsl(223 15% 15%) !important;
+}
+.dark .react-flow__minimap-mask {
+  fill: rgba(0, 0, 0, 0.6) !important;
+}
+.dark .react-flow__controls {
+  background-color: hsl(223 18% 9%) !important;
+  border-color: hsl(223 15% 15%) !important;
+}
+.dark .react-flow__controls button {
+  background-color: hsl(223 18% 9%) !important;
+  border-bottom-color: hsl(223 15% 15%) !important;
+  fill: hsl(215 20% 88%) !important;
+  color: hsl(215 20% 88%) !important;
+}
 
 /* ── Background overrides (Fixing the muddy blues) ────────────── */
 .dark .bg-white {

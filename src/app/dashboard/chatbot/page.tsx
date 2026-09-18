@@ -35,15 +35,15 @@ function CustomSelect({ value, onChange, options, className }: { value: string, 
   return (
     <div className={cn("relative", className)} ref={ref}>
       <div onClick={() => setIsOpen(!isOpen)}
-        className="w-full border border-border rounded-lg px-3 py-2 text-[13px] bg-white cursor-pointer flex items-center justify-between hover:bg-gray-50 transition-colors">
+        className="w-full border border-border dark:border-zinc-800 rounded-lg px-3 py-2 text-[13px] bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-100 cursor-pointer flex items-center justify-between hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors">
         <span>{selected?.label}</span>
-        <ChevronDown className="h-4 w-4 text-gray-500 opacity-50" />
+        <ChevronDown className="h-4 w-4 text-gray-500 dark:text-zinc-400 opacity-50" />
       </div>
       {isOpen && (
-        <div className="absolute top-full mt-1 left-0 w-full bg-white border border-border rounded-lg shadow-lg z-50 py-1 max-h-48 overflow-y-auto">
+        <div className="absolute top-full mt-1 left-0 w-full bg-white dark:bg-zinc-900 border border-border dark:border-zinc-800 rounded-lg shadow-lg z-50 py-1 max-h-48 overflow-y-auto">
           {options.map(opt => (
             <div key={opt.value} onClick={() => { onChange(opt.value); setIsOpen(false) }}
-              className="px-3 py-2 text-[13px] cursor-pointer hover:bg-gray-100 text-gray-900 transition-colors">
+              className="px-3 py-2 text-[13px] cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-900 dark:text-zinc-100 transition-colors">
               {opt.label}
             </div>
           ))}
@@ -145,17 +145,17 @@ function FAQManager({ workspaceId }: { workspaceId?: string }) {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-[18px] font-bold text-gray-900 mb-1">Fixed FAQ Answers</h2>
-        <p className="text-[13px] text-gray-500">
+        <h2 className="text-[18px] font-bold text-gray-900 dark:text-zinc-100 mb-1">Fixed FAQ Answers</h2>
+        <p className="text-[13px] text-gray-500 dark:text-zinc-400">
           These answers are returned <strong>instantly without AI</strong> when a customer's message matches.
           Useful for pricing, hours, contact info — no LLM cost, zero latency.
         </p>
       </div>
 
       {/* Priority notice */}
-      <div className="flex items-start gap-2 bg-primary/5 border border-primary/20 rounded-xl px-4 py-3">
+      <div className="flex items-start gap-2 bg-primary/5 dark:bg-primary/10 border border-primary/20 dark:border-primary/30 rounded-xl px-4 py-3">
         <Zap className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-        <p className="text-[13px] text-gray-900">
+        <p className="text-[13px] text-gray-900 dark:text-zinc-200">
           FAQs are checked <strong>before the AI knowledge base</strong>. If a question matches, the fixed answer
           is sent instantly — no API call needed.
         </p>
@@ -163,28 +163,28 @@ function FAQManager({ workspaceId }: { workspaceId?: string }) {
 
       {/* FAQ list */}
       {loading ? (
-        <div className="flex items-center gap-2 text-gray-500 py-4">
+        <div className="flex items-center gap-2 text-gray-500 dark:text-zinc-400 py-4">
           <Loader2 className="h-4 w-4 animate-spin" />
           <span className="text-[13px]">Loading FAQs…</span>
         </div>
       ) : (
         <div className="space-y-2">
           {faqs.map((faq, i) => (
-            <div key={faq.id ?? i} className="border border-border rounded-xl p-4">
+            <div key={faq.id ?? i} className="border border-border dark:border-zinc-800 rounded-xl p-4 bg-white dark:bg-zinc-900/40">
               {editingId === faq.id ? (
                 <div className="space-y-3">
                   <div>
-                    <label className="text-[12px] font-medium text-gray-900 block mb-1">Trigger phrase (what customer says)</label>
+                    <label className="text-[12px] font-medium text-gray-900 dark:text-zinc-200 block mb-1">Trigger phrase (what customer says)</label>
                     <input
-                      className="w-full border border-border rounded-lg px-3 py-2 text-[13px] focus:ring-1 focus:ring-primary outline-none"
+                      className="w-full border border-border dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-100 rounded-lg px-3 py-2 text-[13px] focus:ring-1 focus:ring-primary outline-none"
                       defaultValue={faq.question}
                       id={`q-${faq.id}`}
                     />
                   </div>
                   <div>
-                    <label className="text-[12px] font-medium text-gray-900 block mb-1">Reply (what bot says)</label>
+                    <label className="text-[12px] font-medium text-gray-900 dark:text-zinc-200 block mb-1">Reply (what bot says)</label>
                     <textarea rows={3}
-                      className="w-full border border-border rounded-lg px-3 py-2 text-[13px] focus:ring-1 focus:ring-primary outline-none"
+                      className="w-full border border-border dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-100 rounded-lg px-3 py-2 text-[13px] focus:ring-1 focus:ring-primary outline-none"
                       defaultValue={faq.answer}
                       id={`a-${faq.id}`}
                     />
@@ -213,24 +213,24 @@ function FAQManager({ workspaceId }: { workspaceId?: string }) {
                       className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-[13px] font-medium">
                       {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />} Save
                     </button>
-                    <button onClick={() => setEditingId(null)} className="px-3 py-1.5 border border-border rounded-lg text-[13px]">Cancel</button>
+                    <button onClick={() => setEditingId(null)} className="px-3 py-1.5 border border-border dark:border-zinc-800 text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg text-[13px]">Cancel</button>
                   </div>
                 </div>
               ) : (
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[11px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-medium capitalize">{faq.match_type}</span>
-                      {!faq.is_active && <span className="text-[11px] bg-red-100 text-red-600 px-2 py-0.5 rounded font-medium">Disabled</span>}
+                      <span className="text-[11px] bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400 px-2 py-0.5 rounded font-medium capitalize">{faq.match_type}</span>
+                      {!faq.is_active && <span className="text-[11px] bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 px-2 py-0.5 rounded font-medium">Disabled</span>}
                     </div>
-                    <p className="text-[13px] font-semibold text-gray-900 mb-0.5">"{faq.question}"</p>
-                    <p className="text-[13px] text-gray-500 line-clamp-2">{faq.answer}</p>
+                    <p className="text-[13px] font-semibold text-gray-900 dark:text-zinc-100 mb-0.5">"{faq.question}"</p>
+                    <p className="text-[13px] text-gray-500 dark:text-zinc-400 line-clamp-2">{faq.answer}</p>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
-                    <button onClick={() => setEditingId(faq.id ?? null)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-900">
+                    <button onClick={() => setEditingId(faq.id ?? null)} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-100">
                       <Edit className="h-3.5 w-3.5" />
                     </button>
-                    <button onClick={() => faq.id && handleDelete(faq.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-500 hover:text-red-600">
+                    <button onClick={() => faq.id && handleDelete(faq.id)} className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/50 text-gray-500 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400">
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </div>
@@ -240,7 +240,7 @@ function FAQManager({ workspaceId }: { workspaceId?: string }) {
           ))}
 
           {faqs.length === 0 && !showAdd && (
-            <div className="text-center py-8 border-2 border-dashed border-border rounded-xl text-gray-500">
+            <div className="text-center py-8 border-2 border-dashed border-border dark:border-zinc-800 rounded-xl text-gray-500 dark:text-zinc-400">
               <HelpCircle className="h-8 w-8 mx-auto mb-2 opacity-40" />
               <p className="text-[13px]">No FAQs yet — add common customer questions</p>
             </div>
@@ -250,19 +250,19 @@ function FAQManager({ workspaceId }: { workspaceId?: string }) {
 
       {/* Add new FAQ */}
       {showAdd ? (
-        <div className="border-2 border-primary/30 border-dashed rounded-xl p-4 space-y-3 bg-primary/5">
-          <p className="text-[13px] font-semibold text-gray-900">New FAQ Entry</p>
+        <div className="border-2 border-primary/30 border-dashed rounded-xl p-4 space-y-3 bg-primary/5 dark:bg-primary/10 dark:border-primary/40">
+          <p className="text-[13px] font-semibold text-gray-900 dark:text-zinc-100">New FAQ Entry</p>
           <div>
-            <label className="text-[12px] font-medium block mb-1">Customer says (trigger phrase)</label>
+            <label className="text-[12px] font-medium text-gray-900 dark:text-zinc-200 block mb-1">Customer says (trigger phrase)</label>
             <input type="text" value={newFaq.question ?? ""} onChange={e => setNewFaq(p => ({ ...p, question: e.target.value }))}
               placeholder="e.g. what is your price, pricing"
-              className="w-full border border-border rounded-lg px-3 py-2 text-[13px] focus:ring-1 focus:ring-primary outline-none" />
+              className="w-full border border-border dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-100 placeholder:text-gray-400 dark:placeholder:text-zinc-500 rounded-lg px-3 py-2 text-[13px] focus:ring-1 focus:ring-primary outline-none" />
           </div>
           <div>
-            <label className="text-[12px] font-medium block mb-1">Bot replies with</label>
+            <label className="text-[12px] font-medium text-gray-900 dark:text-zinc-200 block mb-1">Bot replies with</label>
             <textarea rows={3} value={newFaq.answer ?? ""} onChange={e => setNewFaq(p => ({ ...p, answer: e.target.value }))}
               placeholder="Our pricing starts at ₹999/month. Visit flowora.io/pricing for details."
-              className="w-full border border-border rounded-lg px-3 py-2 text-[13px] focus:ring-1 focus:ring-primary outline-none" />
+              className="w-full border border-border dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-100 placeholder:text-gray-400 dark:placeholder:text-zinc-500 rounded-lg px-3 py-2 text-[13px] focus:ring-1 focus:ring-primary outline-none" />
           </div>
           <CustomSelect
             value={newFaq.match_type as string}
@@ -278,12 +278,12 @@ function FAQManager({ workspaceId }: { workspaceId?: string }) {
               className="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-[13px] font-bold disabled:opacity-50">
               {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />} Add FAQ
             </button>
-            <button onClick={() => setShowAdd(false)} className="px-4 py-2 border border-border rounded-lg text-[13px]">Cancel</button>
+            <button onClick={() => setShowAdd(false)} className="px-4 py-2 border border-border dark:border-zinc-800 text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg text-[13px]">Cancel</button>
           </div>
         </div>
       ) : (
         <button onClick={() => setShowAdd(true)}
-          className="w-full border-2 border-dashed border-border rounded-xl py-3 flex items-center justify-center gap-2 text-[14px] text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors">
+          className="w-full border-2 border-dashed border-border dark:border-zinc-800 rounded-xl py-3 flex items-center justify-center gap-2 text-[14px] text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-900 hover:text-gray-900 dark:hover:text-zinc-100 transition-colors">
           <Plus className="h-4 w-4" /> Add FAQ Answer
         </button>
       )}
@@ -497,34 +497,34 @@ export default function ChatbotPage() {
   }
 
   return (
-    <div className="flex flex-col h-full flex-1 bg-white relative overflow-hidden">
+    <div className="flex flex-col h-full flex-1 bg-white dark:bg-zinc-950 relative overflow-hidden">
 
       {/* Header */}
-      <div className="flex-shrink-0 p-4 border-b border-border flex items-center justify-between">
+      <div className="flex-shrink-0 p-4 border-b border-border dark:border-zinc-800 flex items-center justify-between bg-white dark:bg-zinc-950">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl font-bold text-gray-900">AI Chatbot</h1>
-            <div className="flex items-center gap-1.5 bg-[#F0FDF4] border border-[#BBF7D0] px-2 py-0.5 rounded-full">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-zinc-100">AI Chatbot</h1>
+            <div className="flex items-center gap-1.5 bg-[#F0FDF4] dark:bg-emerald-950/60 border border-[#BBF7D0] dark:border-emerald-800 px-2 py-0.5 rounded-full">
               <div className="w-2 h-2 rounded-full bg-[#22C55E]" />
-              <span className="text-[12px] font-medium text-[#22C55E]">Active</span>
+              <span className="text-[12px] font-medium text-[#22C55E] dark:text-emerald-400">Active</span>
             </div>
           </div>
-          <p className="text-[14px] text-gray-500">
+          <p className="text-[14px] text-gray-500 dark:text-zinc-400">
             Powered by your knowledge base — answers customer questions autonomously on WhatsApp and Web.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Link href="/dashboard/knowledge" className="flex items-center gap-1.5 text-[13px] text-gray-500 hover:text-gray-900 border border-border rounded-lg px-3 py-2">
+          <Link href="/dashboard/knowledge" className="flex items-center gap-1.5 text-[13px] text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-100 border border-border dark:border-zinc-800 rounded-lg px-3 py-2 hover:bg-gray-50 dark:hover:bg-zinc-900 transition-colors">
             <BookOpen className="h-3.5 w-3.5" /> Knowledge Base
           </Link>
-          <button type="button" onClick={() => setIsTestDrawerOpen(true)} className="flex items-center gap-1.5 px-4 py-2.5 text-[13px] font-bold text-gray-900 bg-white border border-border hover:bg-gray-50 shadow-sm rounded-lg transition-colors">
+          <button type="button" onClick={() => setIsTestDrawerOpen(true)} className="flex items-center gap-1.5 px-4 py-2.5 text-[13px] font-bold text-gray-900 dark:text-zinc-100 bg-white dark:bg-zinc-900 border border-border dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-800 shadow-sm rounded-lg transition-colors">
             🧪 Test Bot
           </button>
           <button onClick={handleSubmit(onSave, (errs) => {
             console.error("Validation errors:", errs);
             toast.error("Could not save. Please check the 'Behavior' tab for invalid fields.");
           })} disabled={savingSettings}
-            className="flex items-center gap-1.5 px-5 py-2.5 text-[14px] font-bold text-gray-900 bg-primary hover:bg-primary/90 shadow-sm rounded-lg transition-colors disabled:opacity-50">
+            className="flex items-center gap-1.5 px-5 py-2.5 text-[14px] font-bold text-gray-900 dark:text-white bg-primary hover:bg-primary/90 shadow-sm rounded-lg transition-colors disabled:opacity-50">
             {savingSettings ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             Save Changes
           </button>
@@ -534,20 +534,20 @@ export default function ChatbotPage() {
       <div className="flex flex-1 overflow-hidden">
 
         {/* Left Nav */}
-        <div className="w-[200px] border-r border-border p-4 flex flex-col gap-1 shrink-0 bg-white">
+        <div className="w-[200px] border-r border-border dark:border-zinc-800 p-4 flex flex-col gap-1 shrink-0 bg-white dark:bg-zinc-950">
           {navItems.map((item) => (
             <button key={item.tab} onClick={() => setActiveTab(item.tab)}
               className={cn("flex items-center gap-2.5 px-3 py-2 rounded-lg text-[14px] font-medium transition-colors w-full",
-                activeTab === item.tab ? "bg-primary/10 text-gray-900" : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                activeTab === item.tab ? "bg-primary/10 dark:bg-primary/20 text-gray-900 dark:text-zinc-100" : "text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-900 hover:text-gray-900 dark:hover:text-zinc-100"
               )}>
-              <item.icon className={cn("h-4 w-4", activeTab === item.tab ? "text-primary" : "text-gray-500")} />
+              <item.icon className={cn("h-4 w-4", activeTab === item.tab ? "text-primary" : "text-gray-500 dark:text-zinc-400")} />
               {item.label}
             </button>
           ))}
         </div>
 
         {/* Center Content */}
-        <div className="flex-1 overflow-y-auto p-8 bg-white">
+        <div className="flex-1 overflow-y-auto p-8 bg-white dark:bg-zinc-950">
           <div className={cn(activeTab === "Widget" ? "w-full" : "max-w-4xl")}>
             <form className="space-y-8" onSubmit={e => e.preventDefault()}>
 
@@ -555,19 +555,19 @@ export default function ChatbotPage() {
               {(activeTab === "Knowledge" || activeTab === "Behavior") && (
                 <section>
                   <div className="mb-4">
-                    <h2 className="text-[18px] font-bold text-gray-900 mb-1">Knowledge Sources</h2>
-                    <p className="text-[13px] text-gray-500">
+                    <h2 className="text-[18px] font-bold text-gray-900 dark:text-zinc-100 mb-1">Knowledge Sources</h2>
+                    <p className="text-[13px] text-gray-500 dark:text-zinc-400">
                       The AI uses your knowledge base (Graph RAG) to answer questions accurately.
                     </p>
                   </div>
-                  <div className="flex items-center justify-between p-4 bg-gray-100/30 rounded-xl border border-border mb-3">
+                  <div className="flex items-center justify-between p-4 bg-gray-100/30 dark:bg-zinc-900/40 rounded-xl border border-border dark:border-zinc-800 mb-3">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                         <Zap className="h-4 w-4 text-primary" />
                       </div>
                       <div>
-                        <p className="text-[14px] font-semibold text-gray-900">Company Knowledge Base</p>
-                        <p className="text-[12px] text-gray-500">Managed in Knowledge Hub → used by chatbot + voice agent</p>
+                        <p className="text-[14px] font-semibold text-gray-900 dark:text-zinc-100">Company Knowledge Base</p>
+                        <p className="text-[12px] text-gray-500 dark:text-zinc-400">Managed in Knowledge Hub → used by chatbot + voice agent</p>
                       </div>
                     </div>
                     <Link href="/dashboard/knowledge" className="text-[13px] text-primary hover:underline font-medium">
@@ -576,30 +576,30 @@ export default function ChatbotPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <input type="checkbox" id="useKb" {...register("useKnowledgeBase")} className="accent-primary" />
-                    <label htmlFor="useKb" className="text-[13px] text-gray-900">Use knowledge base when answering questions</label>
+                    <label htmlFor="useKb" className="text-[13px] text-gray-900 dark:text-zinc-200">Use knowledge base when answering questions</label>
                   </div>
                 </section>
               )}
 
-              {activeTab === "Behavior" && <div className="w-full h-px bg-[#E8E8E4]" />}
+              {activeTab === "Behavior" && <div className="w-full h-px bg-[#E8E8E4] dark:bg-zinc-800" />}
 
               {/* Behavior */}
               {activeTab === "Behavior" && (
                 <section>
-                  <h2 className="text-[18px] font-bold text-gray-900 mb-4">Chatbot Behavior</h2>
+                  <h2 className="text-[18px] font-bold text-gray-900 dark:text-zinc-100 mb-4">Chatbot Behavior</h2>
                   <div className="space-y-5">
                     <div>
-                      <label className="block text-[13px] font-medium mb-1.5">Bot Name (shown to customers)</label>
+                      <label className="block text-[13px] font-medium text-gray-900 dark:text-zinc-200 mb-1.5">Bot Name (shown to customers)</label>
                       <input type="text" {...register("botName")}
-                        className={cn("w-full border rounded-md px-3 py-2 text-[13px] focus:ring-1 focus:ring-primary focus:border-primary outline-none", errors.botName ? "border-destructive" : "border-border")} />
+                        className={cn("w-full border rounded-md px-3 py-2 text-[13px] bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-100 focus:ring-1 focus:ring-primary focus:border-primary outline-none", errors.botName ? "border-destructive" : "border-border dark:border-zinc-800")} />
                     </div>
                     <div>
-                      <label className="block text-[13px] font-medium mb-1.5">Bot Persona / Tone</label>
+                      <label className="block text-[13px] font-medium text-gray-900 dark:text-zinc-200 mb-1.5">Bot Persona / Tone</label>
                       <textarea rows={5} {...register("persona")}
-                        className={cn("w-full border rounded-md px-3 py-2 text-[13px] focus:ring-1 focus:ring-primary focus:border-primary outline-none", errors.persona ? "border-destructive" : "border-border")} />
+                        className={cn("w-full border rounded-md px-3 py-2 text-[13px] bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-100 focus:ring-1 focus:ring-primary focus:border-primary outline-none", errors.persona ? "border-destructive" : "border-border dark:border-zinc-800")} />
                     </div>
                     <div>
-                      <label className="block text-[13px] font-medium mb-1.5">Language</label>
+                      <label className="block text-[13px] font-medium text-gray-900 dark:text-zinc-200 mb-1.5">Language</label>
                       <CustomSelect
                         value={watch("language")}
                         onChange={(val) => setValue("language", val, { shouldDirty: true })}
@@ -612,17 +612,17 @@ export default function ChatbotPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-[13px] font-medium mb-1.5">Response Length</label>
+                      <label className="block text-[13px] font-medium text-gray-900 dark:text-zinc-200 mb-1.5">Response Length</label>
                       <div className="flex items-center gap-4">
-                        <span className="text-[12px] text-gray-500">Concise</span>
+                        <span className="text-[12px] text-gray-500 dark:text-zinc-400">Concise</span>
                         <input type="range" min={0} max={100} {...register("responseLength", { valueAsNumber: true })} className="flex-1 accent-primary" />
-                        <span className="text-[12px] text-gray-500">Detailed</span>
+                        <span className="text-[12px] text-gray-500 dark:text-zinc-400">Detailed</span>
                       </div>
                     </div>
                     <div>
-                      <label className="block text-[13px] font-medium mb-1.5">Out-of-Scope Fallback</label>
+                      <label className="block text-[13px] font-medium text-gray-900 dark:text-zinc-200 mb-1.5">Out-of-Scope Fallback</label>
                       <textarea rows={2} {...register("fallback")}
-                        className={cn("w-full border rounded-md px-3 py-2 text-[13px] focus:ring-1 focus:ring-primary focus:border-primary outline-none", errors.fallback ? "border-destructive" : "border-border")} />
+                        className={cn("w-full border rounded-md px-3 py-2 text-[13px] bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-100 focus:ring-1 focus:ring-primary focus:border-primary outline-none", errors.fallback ? "border-destructive" : "border-border dark:border-zinc-800")} />
                     </div>
                   </div>
                 </section>
@@ -634,42 +634,42 @@ export default function ChatbotPage() {
               {/* Escalation */}
               {activeTab === "Escalation" && (
                 <section>
-                  <h2 className="text-[18px] font-bold text-gray-900 mb-4">Escalation Rules</h2>
+                  <h2 className="text-[18px] font-bold text-gray-900 dark:text-zinc-100 mb-4">Escalation Rules</h2>
                   <div className="space-y-4">
                     <div className="flex flex-col gap-3">
-                      <div className="flex items-center gap-3 p-4 border border-border rounded-xl bg-white shadow-sm transition-shadow hover:shadow-md">
+                      <div className="flex items-center gap-3 p-4 border border-border dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-900/50 shadow-sm transition-shadow hover:shadow-md">
                         <button type="button" className="w-10 h-6 rounded-full flex items-center p-1 cursor-pointer transition-colors bg-[#10B981]">
                           <div className="bg-white w-4 h-4 rounded-full shadow-sm transition-transform duration-200 translate-x-4" />
                         </button>
-                        <span className="text-[13px] font-medium text-gray-900">Escalate if unresolved after</span>
-                        <input type="number" defaultValue={3} className="w-20 border border-border rounded-[6px] px-2 py-1.5 text-[13px] outline-none focus:ring-1 focus:ring-primary" />
-                        <span className="text-[13px] font-medium text-gray-900">user messages.</span>
+                        <span className="text-[13px] font-medium text-gray-900 dark:text-zinc-200">Escalate if unresolved after</span>
+                        <input type="number" defaultValue={3} className="w-20 border border-border dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-100 rounded-[6px] px-2 py-1.5 text-[13px] outline-none focus:ring-1 focus:ring-primary" />
+                        <span className="text-[13px] font-medium text-gray-900 dark:text-zinc-200">user messages.</span>
                       </div>
 
-                      <div className="flex items-center gap-3 p-4 border border-border rounded-xl bg-white shadow-sm transition-shadow hover:shadow-md">
+                      <div className="flex items-center gap-3 p-4 border border-border dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-900/50 shadow-sm transition-shadow hover:shadow-md">
                         <button type="button" className="w-10 h-6 rounded-full flex items-center p-1 cursor-pointer transition-colors bg-[#10B981]">
                           <div className="bg-white w-4 h-4 rounded-full shadow-sm transition-transform duration-200 translate-x-4" />
                         </button>
-                        <span className="text-[13px] font-medium text-gray-900">Escalate if deal value exceeds</span>
+                        <span className="text-[13px] font-medium text-gray-900 dark:text-zinc-200">Escalate if deal value exceeds</span>
                         <CustomSelect value="$" onChange={() => { }} options={[{ value: "$", label: "$" }, { value: "₹", label: "₹" }, { value: "€", label: "€" }]} className="w-20" />
-                        <input type="number" defaultValue={10000} className="w-28 border border-border rounded-[6px] px-2 py-1.5 text-[13px] outline-none focus:ring-1 focus:ring-primary" />
+                        <input type="number" defaultValue={10000} className="w-28 border border-border dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-100 rounded-[6px] px-2 py-1.5 text-[13px] outline-none focus:ring-1 focus:ring-primary" />
                       </div>
 
-                      <div className="flex items-center gap-3 p-4 border border-border rounded-xl bg-white shadow-sm transition-shadow hover:shadow-md">
+                      <div className="flex items-center gap-3 p-4 border border-border dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-900/50 shadow-sm transition-shadow hover:shadow-md">
                         <button type="button" className="w-10 h-6 rounded-full flex items-center p-1 cursor-pointer transition-colors bg-[#10B981]">
                           <div className="bg-white w-4 h-4 rounded-full shadow-sm transition-transform duration-200 translate-x-4" />
                         </button>
-                        <span className="text-[13px] font-medium text-gray-900">Customer explicitly asks for human</span>
+                        <span className="text-[13px] font-medium text-gray-900 dark:text-zinc-200">Customer explicitly asks for human</span>
                       </div>
 
-                      <div className="flex items-center gap-3 p-4 border border-border rounded-xl bg-white shadow-sm transition-shadow hover:shadow-md">
+                      <div className="flex items-center gap-3 p-4 border border-border dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-900/50 shadow-sm transition-shadow hover:shadow-md">
                         <button type="button" className="w-10 h-6 rounded-full flex items-center p-1 cursor-pointer transition-colors bg-[#10B981]">
                           <div className="bg-white w-4 h-4 rounded-full shadow-sm transition-transform duration-200 translate-x-4" />
                         </button>
-                        <span className="text-[13px] font-medium text-gray-900">Sentiment is negative/angry</span>
+                        <span className="text-[13px] font-medium text-gray-900 dark:text-zinc-200">Sentiment is negative/angry</span>
                       </div>
                     </div>
-                    <p className="text-[12px] text-gray-500 mt-2">When escalated, the conversation is assigned to the next available agent in the Shared Inbox.</p>
+                    <p className="text-[12px] text-gray-500 dark:text-zinc-400 mt-2">When escalated, the conversation is assigned to the next available agent in the Shared Inbox.</p>
                   </div>
                 </section>
               )}
@@ -679,40 +679,40 @@ export default function ChatbotPage() {
                 <section className="space-y-6">
                   {/* Channel toggles */}
                   <div>
-                    <h2 className="text-[18px] font-bold text-gray-900 mb-4">Active Channels</h2>
+                    <h2 className="text-[18px] font-bold text-gray-900 dark:text-zinc-100 mb-4">Active Channels</h2>
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="border border-border rounded-lg p-4 flex items-center justify-between bg-gray-100/30">
+                      <div className="border border-border dark:border-zinc-800 rounded-lg p-4 flex items-center justify-between bg-gray-100/30 dark:bg-zinc-900/40">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full flex items-center justify-center bg-[#F0FDF4]">
-                            <MessageSquare className="h-5 w-5 text-[#22C55E]" />
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center bg-[#F0FDF4] dark:bg-emerald-950/60">
+                            <MessageSquare className="h-5 w-5 text-[#22C55E] dark:text-emerald-400" />
                           </div>
                           <div>
-                            <p className="text-[14px] font-bold text-gray-900">WhatsApp Business</p>
-                            <p className="text-[12px] text-gray-500">Auto-reply on WhatsApp</p>
+                            <p className="text-[14px] font-bold text-gray-900 dark:text-zinc-100">WhatsApp Business</p>
+                            <p className="text-[12px] text-gray-500 dark:text-zinc-400">Auto-reply on WhatsApp</p>
                           </div>
                         </div>
                         <button type="button" onClick={() => setValue("whatsappEnabled", !whatsappEnabled)}
-                          className={cn("w-10 h-6 rounded-full flex items-center p-1 cursor-pointer transition-colors", whatsappEnabled ? "bg-[#22C55E]" : "bg-gray-100-foreground/30")}>
+                          className={cn("w-10 h-6 rounded-full flex items-center p-1 cursor-pointer transition-colors", whatsappEnabled ? "bg-[#22C55E]" : "bg-gray-200 dark:bg-zinc-700")}>
                           <div className={cn("bg-white w-4 h-4 rounded-full shadow-sm transition-transform duration-200", whatsappEnabled ? "translate-x-4" : "")} />
                         </button>
                       </div>
-                      <div className="border border-border rounded-lg p-4 flex items-center justify-between bg-gray-100/30">
+                      <div className="border border-border dark:border-zinc-800 rounded-lg p-4 flex items-center justify-between bg-gray-100/30 dark:bg-zinc-900/40">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gray-100">
-                            <Globe className="h-5 w-5 text-gray-900" />
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gray-100 dark:bg-zinc-800">
+                            <Globe className="h-5 w-5 text-gray-900 dark:text-zinc-100" />
                           </div>
                           <div>
-                            <p className="text-[14px] font-bold text-gray-900">Web Widget</p>
-                            <p className="text-[12px] text-gray-500">Chat bubble on your website</p>
+                            <p className="text-[14px] font-bold text-gray-900 dark:text-zinc-100">Web Widget</p>
+                            <p className="text-[12px] text-gray-500 dark:text-zinc-400">Chat bubble on your website</p>
                           </div>
                         </div>
                         <button type="button" onClick={() => setValue("webWidgetEnabled", !webWidgetEnabled)}
-                          className={cn("w-10 h-6 rounded-full flex items-center p-1 cursor-pointer transition-colors", webWidgetEnabled ? "bg-[#22C55E]" : "bg-gray-100-foreground/30")}>
+                          className={cn("w-10 h-6 rounded-full flex items-center p-1 cursor-pointer transition-colors", webWidgetEnabled ? "bg-[#22C55E]" : "bg-gray-200 dark:bg-zinc-700")}>
                           <div className={cn("bg-white w-4 h-4 rounded-full shadow-sm transition-transform duration-200", webWidgetEnabled ? "translate-x-4" : "")} />
                         </button>
                       </div>
                     </div>
-                    <p className="text-[12px] text-gray-500 mt-3">
+                    <p className="text-[12px] text-gray-500 dark:text-zinc-400 mt-3">
                       WhatsApp channel connects via your <Link href="/dashboard/settings" className="text-primary hover:underline">Settings → WhatsApp Business API</Link> credentials.
                     </p>
                   </div>
@@ -755,8 +755,8 @@ export default function ChatbotPage() {
                         {/* Studio Header: Unified bar with Save Widget on far right */}
                         <div className="flex items-center justify-between mb-5">
                           <div>
-                            <h3 className="text-[16px] font-bold text-gray-900">Widget Studio</h3>
-                            <p className="text-[12px] text-gray-500">Customize and preview your chat widget live</p>
+                            <h3 className="text-[16px] font-bold text-gray-900 dark:text-zinc-100">Widget Studio</h3>
+                            <p className="text-[12px] text-gray-500 dark:text-zinc-400">Customize and preview your chat widget live</p>
                           </div>
                         </div>
 
@@ -765,59 +765,59 @@ export default function ChatbotPage() {
 
                           {/* LEFT: customization panel — accordion style, no internal scrollbar */}
                           <div
-                            className="bg-white shadow-sm border border-border rounded-2xl shrink-0 flex flex-col overflow-hidden"
+                            className="bg-white dark:bg-zinc-900 shadow-sm border border-border dark:border-zinc-800 rounded-2xl shrink-0 flex flex-col overflow-hidden"
                             style={{ width: 340 }}
                           >
                             {/* Header Accordion (Open by default) */}
-                            <div className="border-b border-border last:border-b-0">
+                            <div className="border-b border-border dark:border-zinc-800 last:border-b-0">
                               <button type="button" onClick={() => setExpandedWidgetSection(expandedWidgetSection === "header" ? "" : "header")}
-                                className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 transition-colors">
-                                <span className="text-[15px] font-bold text-gray-900 tracking-tight">Header</span>
-                                <ChevronDown className={cn("h-4 w-4 text-gray-500 transition-transform duration-200", expandedWidgetSection === "header" ? "rotate-180" : "")} />
+                                className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-zinc-800/60 transition-colors">
+                                <span className="text-[15px] font-bold text-gray-900 dark:text-zinc-100 tracking-tight">Header</span>
+                                <ChevronDown className={cn("h-4 w-4 text-gray-500 dark:text-zinc-400 transition-transform duration-200", expandedWidgetSection === "header" ? "rotate-180" : "")} />
                               </button>
                               {expandedWidgetSection === "header" && (
                                 <div className="px-4 pb-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
                                   <div>
-                                    <label className="block text-[12px] font-medium text-gray-500 mb-1">Custom Header Icon Image URL</label>
-                                    <input type="text" {...register("widgetCustomHeaderIcon")} placeholder="https://example.com/logo.png" className="w-full border border-border rounded-lg px-3 py-2 text-[13px] focus:ring-1 focus:ring-primary focus:border-primary outline-none bg-white shadow-sm" />
+                                    <label className="block text-[12px] font-medium text-gray-500 dark:text-zinc-400 mb-1">Custom Header Icon Image URL</label>
+                                    <input type="text" {...register("widgetCustomHeaderIcon")} placeholder="https://example.com/logo.png" className="w-full border border-border dark:border-zinc-800 rounded-lg px-3 py-2 text-[13px] focus:ring-1 focus:ring-primary focus:border-primary outline-none bg-white dark:bg-zinc-950 text-gray-900 dark:text-zinc-100 shadow-sm" />
                                   </div>
                                   <div>
-                                    <label className="block text-[12px] font-medium text-gray-500 mb-1">Title</label>
-                                    <input type="text" {...register("widgetTitle")} className="w-full border border-border rounded-lg px-3 py-2 text-[13px] focus:ring-1 focus:ring-primary focus:border-primary outline-none bg-white shadow-sm" />
+                                    <label className="block text-[12px] font-medium text-gray-500 dark:text-zinc-400 mb-1">Title</label>
+                                    <input type="text" {...register("widgetTitle")} className="w-full border border-border dark:border-zinc-800 rounded-lg px-3 py-2 text-[13px] focus:ring-1 focus:ring-primary focus:border-primary outline-none bg-white dark:bg-zinc-950 text-gray-900 dark:text-zinc-100 shadow-sm" />
                                   </div>
                                   <div>
-                                    <label className="block text-[12px] font-medium text-gray-500 mb-1">Subtitle</label>
-                                    <input type="text" {...register("widgetSubtitle")} className="w-full border border-border rounded-lg px-3 py-2 text-[13px] focus:ring-1 focus:ring-primary focus:border-primary outline-none bg-white shadow-sm" />
+                                    <label className="block text-[12px] font-medium text-gray-500 dark:text-zinc-400 mb-1">Subtitle</label>
+                                    <input type="text" {...register("widgetSubtitle")} className="w-full border border-border dark:border-zinc-800 rounded-lg px-3 py-2 text-[13px] focus:ring-1 focus:ring-primary focus:border-primary outline-none bg-white dark:bg-zinc-950 text-gray-900 dark:text-zinc-100 shadow-sm" />
                                   </div>
                                   <div>
-                                    <label className="block text-[12px] font-medium text-gray-500 mb-1">Greeting message</label>
-                                    <textarea rows={2} {...register("widgetGreeting")} className="w-full border border-border rounded-lg px-3 py-2 text-[13px] focus:ring-1 focus:ring-primary focus:border-primary outline-none bg-white resize-none shadow-sm" />
+                                    <label className="block text-[12px] font-medium text-gray-500 dark:text-zinc-400 mb-1">Greeting message</label>
+                                    <textarea rows={2} {...register("widgetGreeting")} className="w-full border border-border dark:border-zinc-800 rounded-lg px-3 py-2 text-[13px] focus:ring-1 focus:ring-primary focus:border-primary outline-none bg-white dark:bg-zinc-950 text-gray-900 dark:text-zinc-100 resize-none shadow-sm" />
                                   </div>
                                   <div>
-                                    <label className="block text-[12px] font-medium text-gray-500 mb-1">Input placeholder</label>
-                                    <input type="text" {...register("widgetPlaceholder")} className="w-full border border-border rounded-lg px-3 py-2 text-[13px] focus:ring-1 focus:ring-primary focus:border-primary outline-none bg-white shadow-sm" />
+                                    <label className="block text-[12px] font-medium text-gray-500 dark:text-zinc-400 mb-1">Input placeholder</label>
+                                    <input type="text" {...register("widgetPlaceholder")} className="w-full border border-border dark:border-zinc-800 rounded-lg px-3 py-2 text-[13px] focus:ring-1 focus:ring-primary focus:border-primary outline-none bg-white dark:bg-zinc-950 text-gray-900 dark:text-zinc-100 shadow-sm" />
                                   </div>
                                 </div>
                               )}
                             </div>
 
                             {/* Theme Accordion */}
-                            <div className="border-b border-border last:border-b-0">
+                            <div className="border-b border-border dark:border-zinc-800 last:border-b-0">
                               <button type="button" onClick={() => setExpandedWidgetSection(expandedWidgetSection === "theme" ? "" : "theme")}
-                                className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 transition-colors">
-                                <span className="text-[14px] font-semibold text-gray-900 tracking-tight">Theme & Style</span>
-                                <ChevronDown className={cn("h-4 w-4 text-gray-500 transition-transform duration-200", expandedWidgetSection === "theme" ? "rotate-180" : "")} />
+                                className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-zinc-800/60 transition-colors">
+                                <span className="text-[14px] font-semibold text-gray-900 dark:text-zinc-100 tracking-tight">Theme & Style</span>
+                                <ChevronDown className={cn("h-4 w-4 text-gray-500 dark:text-zinc-400 transition-transform duration-200", expandedWidgetSection === "theme" ? "rotate-180" : "")} />
                               </button>
                               {expandedWidgetSection === "theme" && (
                                 <div className="px-4 pb-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
                                   <div>
-                                    <label className="block text-[12px] font-medium text-gray-500 mb-2">Primary Color</label>
+                                    <label className="block text-[12px] font-medium text-gray-500 dark:text-zinc-400 mb-2">Primary Color</label>
                                     <div className="flex items-center gap-2 flex-wrap">
                                       <div className="relative flex items-center shadow-sm">
-                                        <input type="color" {...register("widgetPrimaryColor")} className="w-10 h-10 rounded-l-lg border border-border border-r-0 cursor-pointer shrink-0 p-1 bg-white" />
-                                        <input type="text" {...register("widgetPrimaryColor")} className="w-24 h-10 border border-border rounded-r-lg px-2 text-[13px] font-mono outline-none focus:border-primary focus:ring-1 focus:ring-primary uppercase bg-white" placeholder="#000000" />
+                                        <input type="color" {...register("widgetPrimaryColor")} className="w-10 h-10 rounded-l-lg border border-border dark:border-zinc-800 border-r-0 cursor-pointer shrink-0 p-1 bg-white dark:bg-zinc-950" />
+                                        <input type="text" {...register("widgetPrimaryColor")} className="w-24 h-10 border border-border dark:border-zinc-800 rounded-r-lg px-2 text-[13px] font-mono outline-none focus:border-primary focus:ring-1 focus:ring-primary uppercase bg-white dark:bg-zinc-950 text-gray-900 dark:text-zinc-100" placeholder="#000000" />
                                       </div>
-                                      <div className="w-px h-6 bg-border mx-2" />
+                                      <div className="w-px h-6 bg-border dark:bg-zinc-800 mx-2" />
                                       {["#7c3aed", "#2563eb", "#059669", "#ea580c", "#e11d48", "#0891b2", "#4f46e5", "#d97706", "#111827"].map(c => (
                                         <button key={c} type="button" onClick={() => setValue("widgetPrimaryColor", c)}
                                           className={cn("w-7 h-7 rounded-full border-2 transition-transform shrink-0", widgetPrimaryColor === c ? "border-foreground scale-110" : "border-white hover:scale-105 shadow")}
@@ -827,41 +827,41 @@ export default function ChatbotPage() {
                                   </div>
 
                                   <div>
-                                    <label className="block text-[12px] font-medium text-gray-500 mb-2">Widget Style</label>
+                                    <label className="block text-[12px] font-medium text-gray-500 dark:text-zinc-400 mb-2">Widget Style</label>
                                     <div className="grid grid-cols-2 gap-2">
                                       {stylePresets.map(preset => (
                                         <button key={preset.id} type="button" onClick={() => setValue("widgetStyle", preset.id)}
                                           className={cn("p-2.5 border-2 rounded-xl text-left transition-all",
-                                            widgetStyle === preset.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/30 bg-white"
+                                            widgetStyle === preset.id ? "border-primary bg-primary/5 dark:bg-primary/10" : "border-border dark:border-zinc-800 hover:border-primary/30 bg-white dark:bg-zinc-950"
                                           )}>
-                                          <p className="text-[12px] font-semibold text-gray-900">{preset.label}</p>
-                                          <p className="text-[10px] text-gray-500">{preset.desc}</p>
+                                          <p className="text-[12px] font-semibold text-gray-900 dark:text-zinc-100">{preset.label}</p>
+                                          <p className="text-[10px] text-gray-500 dark:text-zinc-400">{preset.desc}</p>
                                         </button>
                                       ))}
                                     </div>
                                   </div>
 
                                   <div>
-                                    <label className="block text-[12px] font-medium text-gray-500 mb-2">Launcher Icon</label>
+                                    <label className="block text-[12px] font-medium text-gray-500 dark:text-zinc-400 mb-2">Launcher Icon</label>
                                     <div className="flex flex-wrap gap-2 mb-4">
                                       {launcherIcons.map(({ id, icon: Icon, label }) => (
                                         <button key={id} type="button" onClick={() => setValue("widgetIconId", id)}
                                           title={label}
                                           className={cn("w-10 h-10 rounded-xl border-2 flex items-center justify-center transition-all",
-                                            widgetIconId === id && !watch("widgetCustomLauncherIcon") ? "border-primary bg-primary/10" : "border-border hover:border-primary/40 bg-white shadow-sm hover:shadow"
+                                            widgetIconId === id && !watch("widgetCustomLauncherIcon") ? "border-primary bg-primary/10 dark:bg-primary/20" : "border-border dark:border-zinc-800 hover:border-primary/40 bg-white dark:bg-zinc-950 shadow-sm hover:shadow"
                                           )}>
-                                          <Icon className={cn("h-5 w-5", widgetIconId === id && !watch("widgetCustomLauncherIcon") ? "text-primary" : "text-gray-500")} />
+                                          <Icon className={cn("h-5 w-5", widgetIconId === id && !watch("widgetCustomLauncherIcon") ? "text-primary" : "text-gray-500 dark:text-zinc-400")} />
                                         </button>
                                       ))}
                                     </div>
-                                    <div className="space-y-3 pt-3 border-t border-border/50">
+                                    <div className="space-y-3 pt-3 border-t border-border/50 dark:border-zinc-800/50">
                                       <div>
-                                        <label className="block text-[11px] font-medium text-gray-500 mb-1">Custom Launcher Icon Image URL (overrides default)</label>
-                                        <input type="text" {...register("widgetCustomLauncherIcon")} placeholder="https://example.com/launcher.png" className="w-full border border-border rounded-lg px-3 py-2 text-[12px] focus:ring-1 focus:ring-primary focus:border-primary outline-none bg-white shadow-sm" />
+                                        <label className="block text-[11px] font-medium text-gray-500 dark:text-zinc-400 mb-1">Custom Launcher Icon Image URL (overrides default)</label>
+                                        <input type="text" {...register("widgetCustomLauncherIcon")} placeholder="https://example.com/launcher.png" className="w-full border border-border dark:border-zinc-800 rounded-lg px-3 py-2 text-[12px] focus:ring-1 focus:ring-primary focus:border-primary outline-none bg-white dark:bg-zinc-950 text-gray-900 dark:text-zinc-100 shadow-sm" />
                                       </div>
                                       <div>
-                                        <label className="block text-[11px] font-medium text-gray-500 mb-1">Custom Bot Message Avatar Image URL</label>
-                                        <input type="text" {...register("widgetCustomBotAvatar")} placeholder="https://example.com/avatar.png" className="w-full border border-border rounded-lg px-3 py-2 text-[12px] focus:ring-1 focus:ring-primary focus:border-primary outline-none bg-white shadow-sm" />
+                                        <label className="block text-[11px] font-medium text-gray-500 dark:text-zinc-400 mb-1">Custom Bot Message Avatar Image URL</label>
+                                        <input type="text" {...register("widgetCustomBotAvatar")} placeholder="https://example.com/avatar.png" className="w-full border border-border dark:border-zinc-800 rounded-lg px-3 py-2 text-[12px] focus:ring-1 focus:ring-primary focus:border-primary outline-none bg-white dark:bg-zinc-950 text-gray-900 dark:text-zinc-100 shadow-sm" />
                                       </div>
                                     </div>
                                   </div>
@@ -870,16 +870,16 @@ export default function ChatbotPage() {
                             </div>
 
                             {/* Position & Branding Accordion */}
-                            <div className="border-b border-border last:border-b-0">
+                            <div className="border-b border-border dark:border-zinc-800 last:border-b-0">
                               <button type="button" onClick={() => setExpandedWidgetSection(expandedWidgetSection === "position" ? "" : "position")}
-                                className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 transition-colors">
-                                <span className="text-[14px] font-semibold text-gray-900 tracking-tight">Position & Options</span>
-                                <ChevronDown className={cn("h-4 w-4 text-gray-500 transition-transform duration-200", expandedWidgetSection === "position" ? "rotate-180" : "")} />
+                                className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-zinc-800/60 transition-colors">
+                                <span className="text-[14px] font-semibold text-gray-900 dark:text-zinc-100 tracking-tight">Position & Options</span>
+                                <ChevronDown className={cn("h-4 w-4 text-gray-500 dark:text-zinc-400 transition-transform duration-200", expandedWidgetSection === "position" ? "rotate-180" : "")} />
                               </button>
                               {expandedWidgetSection === "position" && (
                                 <div className="px-4 pb-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
                                   <div>
-                                    <label className="block text-[12px] font-medium text-gray-500 mb-1.5">Position</label>
+                                    <label className="block text-[12px] font-medium text-gray-500 dark:text-zinc-400 mb-1.5">Position</label>
                                     <CustomSelect
                                       value={watch("widgetPosition") || "right"}
                                       onChange={(val) => setValue("widgetPosition", val as "right" | "left")}
@@ -889,13 +889,13 @@ export default function ChatbotPage() {
                                       ]}
                                     />
                                   </div>
-                                  <div className="flex items-center justify-between w-full p-3 border border-border rounded-xl bg-white shadow-sm mt-3 transition-shadow hover:shadow-md">
+                                  <div className="flex items-center justify-between w-full p-3 border border-border dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-950 shadow-sm mt-3 transition-shadow hover:shadow-md">
                                     <div>
-                                      <p className="text-[13px] font-semibold text-gray-900">Branding</p>
-                                      <p className="text-[11px] text-gray-500 mt-0.5">Show "Powered by Flowra"</p>
+                                      <p className="text-[13px] font-semibold text-gray-900 dark:text-zinc-100">Branding</p>
+                                      <p className="text-[11px] text-gray-500 dark:text-zinc-400 mt-0.5">Show "Powered by Flowra"</p>
                                     </div>
                                     <button type="button" onClick={() => setValue("widgetShowBranding", !widgetShowBranding)}
-                                      className={cn("w-10 h-6 rounded-full relative transition-colors shrink-0", !widgetShowBranding && "bg-slate-200")}
+                                      className={cn("w-10 h-6 rounded-full relative transition-colors shrink-0", !widgetShowBranding && "bg-slate-200 dark:bg-zinc-800")}
                                       style={{ backgroundColor: widgetShowBranding ? (watch("widgetPrimaryColor") || "#7c3aed") : undefined }}>
                                       <div className={cn("absolute top-1 w-4 h-4 rounded-full bg-white transition-transform shadow-sm", widgetShowBranding ? "translate-x-5" : "translate-x-1")} />
                                     </button>
@@ -905,16 +905,16 @@ export default function ChatbotPage() {
                             </div>
 
                             {/* Install Accordion */}
-                            <div className="border-b border-border last:border-b-0 bg-[#F9FAFB]">
+                            <div className="border-b border-border dark:border-zinc-800 last:border-b-0 bg-[#F9FAFB] dark:bg-zinc-900/60">
                               <button type="button" onClick={() => setExpandedWidgetSection(expandedWidgetSection === "install" ? "" : "install")}
-                                className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-100 transition-colors">
-                                <span className="text-[14px] font-semibold text-gray-900 tracking-tight">Install</span>
-                                <ChevronDown className={cn("h-4 w-4 text-gray-500 transition-transform duration-200", expandedWidgetSection === "install" ? "rotate-180" : "")} />
+                                className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors">
+                                <span className="text-[14px] font-semibold text-gray-900 dark:text-zinc-100 tracking-tight">Install</span>
+                                <ChevronDown className={cn("h-4 w-4 text-gray-500 dark:text-zinc-400 transition-transform duration-200", expandedWidgetSection === "install" ? "rotate-180" : "")} />
                               </button>
                               {expandedWidgetSection === "install" && (
                                 <div className="px-4 pb-4 animate-in fade-in slide-in-from-top-2 duration-200">
-                                  <div className="relative bg-foreground rounded-xl p-3 pr-16 overflow-hidden">
-                                    <code className="text-[10px] font-mono text-white/70 break-all leading-relaxed">
+                                  <div className="relative bg-foreground dark:bg-zinc-950 rounded-xl p-3 pr-16 overflow-hidden border dark:border-zinc-800">
+                                    <code className="text-[10px] font-mono text-white/70 dark:text-zinc-300 break-all leading-relaxed">
                                       {`<script src="${origin}/api/widget/embed.js" data-workspace-id="${workspaceId}" async defer></script>`}
                                     </code>
                                     <button type="button" onClick={() => {
@@ -935,7 +935,7 @@ export default function ChatbotPage() {
                             {/* Command Bar — Unified */}
                             <div className="flex items-center gap-2 w-full mb-4">
                               {/* Device segment control */}
-                              <div className="flex items-center bg-gray-100 p-1 rounded-md shrink-0">
+                              <div className="flex items-center bg-gray-100 dark:bg-zinc-900 p-1 rounded-md shrink-0 border dark:border-zinc-800">
                                 {([
                                   { id: "desktop", icon: Monitor, label: "Desktop" },
                                   { id: "tablet", icon: Tablet, label: "Tablet" },
@@ -944,7 +944,7 @@ export default function ChatbotPage() {
                                   <button key={id} type="button" onClick={() => setPreviewDevice(id)}
                                     title={label}
                                     className={cn("flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] font-medium rounded transition-colors",
-                                      previewDevice === id ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-900"
+                                      previewDevice === id ? "bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 shadow-sm" : "text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-100"
                                     )}>
                                     <Icon className="h-3.5 w-3.5" />
                                     <span className="hidden sm:inline">{label}</span>
@@ -955,7 +955,7 @@ export default function ChatbotPage() {
                               {/* Widget open/close toggle */}
                               <button type="button" onClick={() => setWidgetOpen(p => !p)}
                                 className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-md border text-[12px] font-medium transition-colors shrink-0",
-                                  widgetOpen ? "border-primary bg-primary text-white hover:bg-primary/90" : "border-gray-200 bg-white text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                                  widgetOpen ? "border-primary bg-primary text-white hover:bg-primary/90" : "border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-100 hover:bg-gray-50 dark:hover:bg-zinc-800"
                                 )}>
                                 <MessageSquare className="h-3.5 w-3.5" />
                                 {widgetOpen ? "Widget Open" : "Widget Closed"}
@@ -976,24 +976,24 @@ export default function ChatbotPage() {
 
                             {/* Dot Grid Canvas — unclamped container */}
                             <div
-                              className="relative w-full flex-1 flex flex-col items-center justify-start transition-all duration-300 bg-[#F9FAFB] rounded-xl border border-gray-100 overflow-hidden pt-6 pb-20 min-h-[700px]"
+                              className="relative w-full flex-1 flex flex-col items-center justify-start transition-all duration-300 bg-[#F9FAFB] dark:bg-zinc-950 text-gray-300/60 dark:text-zinc-800/80 rounded-xl border border-gray-100 dark:border-zinc-800 overflow-hidden pt-6 pb-20 min-h-[700px]"
                               style={{
-                                backgroundImage: "radial-gradient(#E5E7EB 1px, transparent 1px)",
+                                backgroundImage: "radial-gradient(currentColor 1px, transparent 1px)",
                                 backgroundSize: "20px 20px",
                               }}
                             >
                               {/* Locked Device Viewport with dynamic scaling so it doesn't overflow */}
                               <div
-                                className={cn("relative flex flex-col bg-white shadow-2xl border border-gray-200 transition-all duration-300 origin-top",
-                                  previewDevice === "phone" ? "w-[375px] h-[812px] rounded-[2.5rem] border-[8px] border-gray-100 shrink-0 scale-[0.75]" :
-                                    previewDevice === "tablet" ? "w-[768px] h-[1024px] rounded-3xl border-[8px] border-gray-100 shrink-0 scale-[0.6]" :
+                                className={cn("relative flex flex-col bg-white dark:bg-zinc-900 shadow-2xl border border-gray-200 dark:border-zinc-800 transition-all duration-300 origin-top",
+                                  previewDevice === "phone" ? "w-[375px] h-[812px] rounded-[2.5rem] border-[8px] border-gray-100 dark:border-zinc-800 shrink-0 scale-[0.75]" :
+                                    previewDevice === "tablet" ? "w-[768px] h-[1024px] rounded-3xl border-[8px] border-gray-100 dark:border-zinc-800 shrink-0 scale-[0.6]" :
                                       "w-full h-full min-h-[600px] border-x-0"
                                 )}
                               >
                                 {/* Browser Bar (Interactive URL) */}
-                                <div className="bg-gray-50 px-4 py-2 flex items-center gap-2 border-b border-gray-200 shrink-0">
-                                  <div className="flex-1 flex items-center bg-white rounded-md px-3 py-1.5 border border-gray-200 focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20 transition-all shadow-sm">
-                                    <Globe className="h-4 w-4 text-gray-500 mr-2 shrink-0" />
+                                <div className="bg-gray-50 dark:bg-zinc-950 px-4 py-2 flex items-center gap-2 border-b border-gray-200 dark:border-zinc-800 shrink-0">
+                                  <div className="flex-1 flex items-center bg-white dark:bg-zinc-900 rounded-md px-3 py-1.5 border border-gray-200 dark:border-zinc-800 focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20 transition-all shadow-sm">
+                                    <Globe className="h-4 w-4 text-gray-500 dark:text-zinc-400 mr-2 shrink-0" />
                                     <input
                                       type="text"
                                       value={previewUrlInput}
@@ -1005,13 +1005,13 @@ export default function ChatbotPage() {
                                         }
                                       }}
                                       placeholder="Enter website URL to preview (e.g. yourwebsite.com) and press Enter"
-                                      className="flex-1 text-[13px] bg-transparent outline-none text-gray-900 placeholder:text-gray-500"
+                                      className="flex-1 text-[13px] bg-transparent outline-none text-gray-900 dark:text-zinc-100 placeholder:text-gray-500 dark:placeholder:text-zinc-500"
                                     />
                                   </div>
                                 </div>
 
                                 {/* Page content / iframe */}
-                                <div className="flex-1 relative bg-white flex flex-col min-h-0 overflow-hidden">
+                                <div className="flex-1 relative bg-white dark:bg-zinc-950 flex flex-col min-h-0 overflow-hidden">
                                   {previewUrl ? (
                                     <iframe
                                       key={previewUrl}
@@ -1023,8 +1023,8 @@ export default function ChatbotPage() {
                                       onError={() => setPreviewUrlLoading(false)}
                                     />
                                   ) : (
-                                    <div className="w-full h-full flex flex-col items-center justify-center text-gray-500 opacity-40 p-8 text-center bg-gray-50/50">
-                                      <Globe className="h-16 w-16 mb-4 text-gray-300" />
+                                    <div className="w-full h-full flex flex-col items-center justify-center text-gray-500 dark:text-zinc-400 opacity-40 p-8 text-center bg-gray-50/50 dark:bg-zinc-900/30">
+                                      <Globe className="h-16 w-16 mb-4 text-gray-300 dark:text-zinc-700" />
                                       <p className="text-[14px] max-w-[250px] leading-relaxed">Enter a URL in the browser bar above to preview the widget on your live site.</p>
                                     </div>
                                   )}
@@ -1032,14 +1032,14 @@ export default function ChatbotPage() {
                                   {/* Floating Chat Widget — overlaid on page */}
                                   {widgetOpen && (
                                     <div
-                                      className="absolute bottom-20 flex flex-col text-left transition-all duration-300 bg-white overflow-hidden min-w-[300px] min-h-[400px] max-w-[600px] max-h-[800px]"
+                                      className="absolute bottom-20 flex flex-col text-left transition-all duration-300 bg-white dark:bg-zinc-900 overflow-hidden min-w-[300px] min-h-[400px] max-w-[600px] max-h-[800px]"
                                       style={{
                                         [widgetPosition === "right" ? "right" : "left"]: "20px",
                                         width: widgetSize.width,
                                         height: widgetSize.height,
                                         borderRadius: currentStyle.borderRadius,
-                                        boxShadow: "0 24px 48px -12px rgba(0,0,0,0.18)",
-                                        border: "1px solid rgba(0,0,0,0.05)",
+                                        boxShadow: "0 24px 48px -12px rgba(0,0,0,0.25)",
+                                        border: "1px solid rgba(120,120,120,0.2)",
                                       }}
                                     >
                                       {/* Custom Drag Handle */}
@@ -1049,8 +1049,8 @@ export default function ChatbotPage() {
                                           widgetPosition === "left" ? "right-0 cursor-nesw-resize" : "left-0 cursor-nwse-resize"
                                         )}
                                       >
-                                        <div className="w-2.5 h-2.5 rounded-full bg-black/5 backdrop-blur-sm shadow-sm opacity-0 group-hover:opacity-100 hover:bg-black/10 transition-all flex items-center justify-center border border-black/10">
-                                          <div className="w-1 h-1 rounded-full bg-black/40" />
+                                        <div className="w-2.5 h-2.5 rounded-full bg-black/5 dark:bg-white/10 backdrop-blur-sm shadow-sm opacity-0 group-hover:opacity-100 hover:bg-black/10 transition-all flex items-center justify-center border border-black/10">
+                                          <div className="w-1 h-1 rounded-full bg-black/40 dark:bg-white/40" />
                                         </div>
                                       </div>
 
@@ -1075,7 +1075,7 @@ export default function ChatbotPage() {
                                       </div>
 
                                       {/* Messages */}
-                                      <div className="flex-1 bg-[#F9FAFB] p-4 overflow-y-auto space-y-4">
+                                      <div className="flex-1 bg-[#F9FAFB] dark:bg-zinc-950 p-4 overflow-y-auto space-y-4">
                                         <div className="flex items-start gap-2 max-w-[85%]">
                                           <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] shrink-0 shadow-sm mt-1 overflow-hidden" style={{ backgroundColor: widgetPrimaryColor }}>
                                             {watch("widgetCustomBotAvatar") ? (
@@ -1084,8 +1084,8 @@ export default function ChatbotPage() {
                                               <LauncherIcon className="h-3.5 w-3.5" />
                                             )}
                                           </div>
-                                          <div className="bg-white border border-black/5 p-3 shadow-sm text-left relative" style={{ borderRadius: currentStyle.borderRadius }}>
-                                            <p className="text-[13px] text-gray-900 leading-relaxed">{widgetGreeting || "Hi! How can I help?"}</p>
+                                          <div className="bg-white dark:bg-zinc-900 border border-black/5 dark:border-zinc-800 p-3 shadow-sm text-left relative" style={{ borderRadius: currentStyle.borderRadius }}>
+                                            <p className="text-[13px] text-gray-900 dark:text-zinc-100 leading-relaxed">{widgetGreeting || "Hi! How can I help?"}</p>
                                           </div>
                                         </div>
                                         {/* Dummy user message */}
@@ -1102,23 +1102,23 @@ export default function ChatbotPage() {
                                               <LauncherIcon className="h-3.5 w-3.5" />
                                             )}
                                           </div>
-                                          <div className="bg-white border border-black/5 p-3 shadow-sm relative" style={{ borderRadius: currentStyle.borderRadius }}>
-                                            <p className="text-[13px] text-gray-900 leading-relaxed">We have plans starting from ₹999/mo. Would you like more details? 😊</p>
+                                          <div className="bg-white dark:bg-zinc-900 border border-black/5 dark:border-zinc-800 p-3 shadow-sm relative" style={{ borderRadius: currentStyle.borderRadius }}>
+                                            <p className="text-[13px] text-gray-900 dark:text-zinc-100 leading-relaxed">We have plans starting from ₹999/mo. Would you like more details? 😊</p>
                                           </div>
                                         </div>
                                       </div>
 
                                       {/* Input bar */}
-                                      <div className="p-3 border-t border-black/5 bg-white shrink-0">
-                                        <div className="flex gap-2 items-center border border-gray-200 rounded-full px-4 py-2 hover:border-gray-300 transition-colors bg-gray-50 focus-within:bg-white focus-within:ring-1 focus-within:ring-primary/20">
+                                      <div className="p-3 border-t border-black/5 dark:border-zinc-800 bg-white dark:bg-zinc-900 shrink-0">
+                                        <div className="flex gap-2 items-center border border-gray-200 dark:border-zinc-800 rounded-full px-4 py-2 hover:border-gray-300 transition-colors bg-gray-50 dark:bg-zinc-800 focus-within:bg-white dark:focus-within:bg-zinc-900 focus-within:ring-1 focus-within:ring-primary/20">
                                           <input disabled type="text" placeholder={widgetPlaceholder || "Type your message..."}
-                                            className="flex-1 text-[13px] bg-transparent outline-none text-gray-900 placeholder:text-gray-500" />
+                                            className="flex-1 text-[13px] bg-transparent outline-none text-gray-900 dark:text-zinc-100 placeholder:text-gray-500 dark:placeholder:text-zinc-400" />
                                           <div className="w-7 h-7 rounded-full flex items-center justify-center text-white shrink-0 cursor-not-allowed shadow-sm opacity-80" style={{ backgroundColor: widgetPrimaryColor }}>
                                             <Send className="w-3.5 h-3.5 ml-0.5" />
                                           </div>
                                         </div>
                                         {widgetShowBranding && (
-                                          <p className="text-[10.5px] text-center text-gray-500/60 mt-2 font-medium">Powered by Flowra</p>
+                                          <p className="text-[10.5px] text-center text-gray-500/60 dark:text-zinc-400/60 mt-2 font-medium">Powered by Flowra</p>
                                         )}
                                       </div>
                                     </div>
@@ -1149,13 +1149,13 @@ export default function ChatbotPage() {
                             </div>
 
                             {/* Preview info bar — dimension badge lives here */}
-                            <div className="flex items-center gap-3 text-[11px] text-gray-500 mt-2">
+                            <div className="flex items-center gap-3 text-[11px] text-gray-500 dark:text-zinc-400 mt-2">
                               <div className="flex items-center gap-1.5">
                                 <div className="w-2 h-2 rounded-full bg-green-400" />
                                 <span>Live preview — changes reflected instantly</span>
                               </div>
                               <span>·</span>
-                              <span className="font-mono text-[11px] bg-slate-800 text-slate-100 px-2 py-0.5 rounded">
+                              <span className="font-mono text-[11px] bg-slate-800 text-slate-100 dark:bg-zinc-800 dark:text-zinc-200 px-2 py-0.5 rounded border dark:border-zinc-700">
                                 {device.width}px × {device.height}px
                               </span>
                               <span>·</span>
@@ -1193,17 +1193,17 @@ export default function ChatbotPage() {
                       { label: "Avg Resolution Time", value: "3m 45s" },
                       { label: "AI Deflection Rate", value: "87.6%" },
                     ].map((metric, i) => (
-                      <div key={i} className="bg-white border border-border p-4 rounded-xl shadow-sm">
-                        <p className="text-[12px] font-medium text-gray-500 uppercase tracking-wider">{metric.label}</p>
-                        <p className="text-2xl font-bold text-gray-900 mt-2">{metric.value}</p>
+                      <div key={i} className="bg-white dark:bg-zinc-900 border border-border dark:border-zinc-800 p-4 rounded-xl shadow-sm">
+                        <p className="text-[12px] font-medium text-gray-500 dark:text-zinc-400 uppercase tracking-wider">{metric.label}</p>
+                        <p className="text-2xl font-bold text-gray-900 dark:text-zinc-100 mt-2">{metric.value}</p>
                       </div>
                     ))}
                   </div>
                   {/* Main Chart Placeholder */}
-                  <div className="bg-white border border-border rounded-xl p-6 shadow-sm min-h-[400px] flex flex-col items-center justify-center">
-                    <BarChart3 className="h-10 w-10 text-gray-500/30 mb-3" />
-                    <p className="text-[14px] font-semibold text-gray-500">Conversations over 30 Days</p>
-                    <p className="text-[12px] text-gray-500">Line chart visualization pending integration.</p>
+                  <div className="bg-white dark:bg-zinc-900 border border-border dark:border-zinc-800 rounded-xl p-6 shadow-sm min-h-[400px] flex flex-col items-center justify-center">
+                    <BarChart3 className="h-10 w-10 text-gray-500/30 dark:text-zinc-600 mb-3" />
+                    <p className="text-[14px] font-semibold text-gray-500 dark:text-zinc-400">Conversations over 30 Days</p>
+                    <p className="text-[12px] text-gray-500 dark:text-zinc-500">Line chart visualization pending integration.</p>
                   </div>
                 </section>
               )}
@@ -1213,10 +1213,10 @@ export default function ChatbotPage() {
 
         {/* Full-Screen Immersive Chat Playground (Testing Tab) */}
         {activeTab === "Testing" && (
-          <div className="absolute inset-0 bg-[#ECE5DD] z-40 flex flex-col items-center">
-            <div className="w-full bg-[#075E54] p-4 flex items-center justify-between shrink-0 shadow-md">
+          <div className="absolute inset-0 bg-[#ECE5DD] dark:bg-[#0b0e14] z-40 flex flex-col items-center transition-colors">
+            <div className="w-full bg-[#075E54] dark:bg-[#053831] p-4 flex items-center justify-between shrink-0 shadow-md border-b dark:border-zinc-800/60">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#C4B1F9] flex items-center justify-center text-white text-lg font-bold">A</div>
+                <div className="w-10 h-10 rounded-full bg-[#C4B1F9] dark:bg-[#7c3aed] flex items-center justify-center text-white text-lg font-bold">A</div>
                 <div>
                   <p className="text-[15px] font-bold text-white">Aria Chatbot (Immersive Playground)</p>
                   <p className="text-[12px] text-white/80">Uses live knowledge base + behavior settings</p>
@@ -1228,31 +1228,33 @@ export default function ChatbotPage() {
             </div>
 
             <div ref={chatScrollRef} className="flex-1 w-full max-w-3xl overflow-y-auto p-6 space-y-4">
-              <div className="bg-[#E1F3FB] text-[#1E3A8A] text-[12px] p-2 rounded-lg text-center mx-auto max-w-xs mb-4 shadow-sm">
+              <div className="bg-[#E1F3FB] dark:bg-[#182229] text-[#1E3A8A] dark:text-[#70b3e6] border dark:border-[#22303c] text-[12px] p-2 rounded-lg text-center mx-auto max-w-xs mb-4 shadow-sm font-medium">
                 Chat securely with your AI configuration
               </div>
               {testMessages.map(msg => (
-                <div key={msg.id} className={cn("p-3 rounded-lg shadow-sm max-w-[75%] relative",
-                  msg.sender === "user" ? "self-end ml-auto bg-[#DCF8C6] rounded-tr-none" : "self-start bg-white rounded-tl-none"
+                <div key={msg.id} className={cn("p-3.5 rounded-2xl shadow-md max-w-[78%] relative transition-all",
+                  msg.sender === "user"
+                    ? "self-end ml-auto bg-[#DCF8C6] dark:bg-[#005c4b] text-gray-900 dark:text-zinc-100 rounded-tr-none border dark:border-[#00705b]"
+                    : "self-start bg-white dark:bg-[#1f2c34] text-gray-900 dark:text-zinc-100 rounded-tl-none border border-gray-100 dark:border-[#2a3942]"
                 )}>
-                  <p className="text-[14px] text-gray-900 whitespace-pre-wrap leading-relaxed">{msg.text}</p>
+                  <p className="text-[14px] whitespace-pre-wrap leading-relaxed">{msg.text}</p>
                 </div>
               ))}
               {isTyping && (
-                <div className="self-start bg-white px-4 py-3 rounded-lg rounded-tl-none shadow-sm flex gap-1">
-                  {[0, 1, 2].map(i => <div key={i} className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: `${i * 150}ms` }} />)}
+                <div className="self-start bg-white dark:bg-[#1f2c34] border border-gray-100 dark:border-[#2a3942] px-4 py-3 rounded-2xl rounded-tl-none shadow-md flex gap-1.5">
+                  {[0, 1, 2].map(i => <div key={i} className="w-2 h-2 bg-gray-400 dark:bg-zinc-400 rounded-full animate-bounce" style={{ animationDelay: `${i * 150}ms` }} />)}
                 </div>
               )}
             </div>
 
-            <div className="w-full bg-[#F0F0F0] p-4 shrink-0 flex justify-center">
+            <div className="w-full bg-[#F0F0F0] dark:bg-[#111b21] p-4 shrink-0 flex justify-center border-t border-gray-200 dark:border-[#222e35]">
               <div className="w-full max-w-3xl flex items-center gap-3">
                 <input type="text" value={testInput} onChange={e => setTestInput(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && !e.shiftKey && handleTestSend()}
                   placeholder="Type a message..."
-                  className="bg-white rounded-full flex-1 h-12 px-6 text-[14px] outline-none shadow-sm focus:ring-1 focus:ring-[#075E54]" />
+                  className="bg-white dark:bg-[#2a3942] text-gray-900 dark:text-zinc-100 dark:placeholder-zinc-400 rounded-full flex-1 h-12 px-6 text-[14px] outline-none shadow-sm focus:ring-1 focus:ring-[#075E54] dark:focus:ring-[#00a884] border dark:border-zinc-700/50" />
                 <button onClick={handleTestSend} disabled={isTyping || !testInput.trim()}
-                  className="w-12 h-12 bg-[#075E54] rounded-full flex items-center justify-center shrink-0 hover:bg-[#054c44] transition-colors disabled:opacity-50 shadow-sm">
+                  className="w-12 h-12 bg-[#075E54] dark:bg-[#00a884] rounded-full flex items-center justify-center shrink-0 hover:bg-[#054c44] dark:hover:bg-[#008f70] transition-colors disabled:opacity-50 shadow-sm">
                   <Send className="h-5 w-5 text-white ml-[-2px]" />
                 </button>
               </div>
@@ -1262,38 +1264,40 @@ export default function ChatbotPage() {
       </div>
 
       {/* Global Test Bot Drawer */}
-      <div className={cn("fixed top-0 right-0 h-screen w-[400px] z-50 bg-gray-50 border-l border-gray-200 shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col",
+      <div className={cn("fixed top-0 right-0 h-screen w-[400px] z-50 bg-gray-50 dark:bg-zinc-950 border-l border-gray-200 dark:border-zinc-800 shadow-2xl transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col",
         isTestDrawerOpen ? "translate-x-0" : "translate-x-full"
       )}>
-        <div className="p-4 border-b border-border flex items-center justify-between bg-white shrink-0">
+        <div className="p-4 border-b border-border dark:border-zinc-800 flex items-center justify-between bg-white dark:bg-zinc-900 shrink-0">
           <div className="flex items-center gap-2">
-            <h3 className="text-[15px] font-bold text-gray-900">Test Chat</h3>
-            <span className="text-[11px] text-[#059669] bg-[#059669]/10 px-2 py-0.5 rounded-full font-medium">Live AI</span>
+            <h3 className="text-[15px] font-bold text-gray-900 dark:text-zinc-100">Test Chat</h3>
+            <span className="text-[11px] text-[#059669] bg-[#059669]/10 dark:bg-emerald-950/60 dark:text-emerald-400 px-2 py-0.5 rounded-full font-medium">Live AI</span>
           </div>
-          <button onClick={() => setIsTestDrawerOpen(false)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors"><X className="h-4 w-4" /></button>
+          <button onClick={() => setIsTestDrawerOpen(false)} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-500 dark:text-zinc-400 transition-colors"><X className="h-4 w-4" /></button>
         </div>
-        <div className="flex-1 bg-[#ECE5DD] flex flex-col overflow-hidden">
+        <div className="flex-1 bg-[#ECE5DD] dark:bg-[#0b0e14] flex flex-col overflow-hidden transition-colors">
           <div ref={chatScrollRef} className="flex-1 p-4 overflow-y-auto flex flex-col gap-3 scroll-smooth">
             {testMessages.map(msg => (
-              <div key={msg.id} className={cn("p-2.5 rounded-lg shadow-sm max-w-[85%] text-[13px] relative",
-                msg.sender === "user" ? "self-end ml-auto bg-[#DCF8C6] rounded-tr-none" : "self-start bg-white rounded-tl-none"
+              <div key={msg.id} className={cn("p-3 rounded-xl shadow-md max-w-[85%] text-[13px] relative transition-all",
+                msg.sender === "user"
+                  ? "self-end ml-auto bg-[#DCF8C6] dark:bg-[#005c4b] text-gray-900 dark:text-zinc-100 rounded-tr-none border dark:border-[#00705b]"
+                  : "self-start bg-white dark:bg-[#1f2c34] text-gray-900 dark:text-zinc-100 rounded-tl-none border border-gray-100 dark:border-[#2a3942]"
               )}>
-                <p className="text-gray-900 whitespace-pre-wrap">{msg.text}</p>
+                <p className="whitespace-pre-wrap leading-relaxed">{msg.text}</p>
               </div>
             ))}
             {isTyping && (
-              <div className="self-start bg-white px-3 py-2 rounded-lg rounded-tl-none shadow-sm flex gap-1">
-                {[0, 1, 2].map(i => <div key={i} className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: `${i * 150}ms` }} />)}
+              <div className="self-start bg-white dark:bg-[#1f2c34] border border-gray-100 dark:border-[#2a3942] px-3 py-2 rounded-xl rounded-tl-none shadow-md flex gap-1">
+                {[0, 1, 2].map(i => <div key={i} className="w-1.5 h-1.5 bg-gray-400 dark:bg-zinc-400 rounded-full animate-bounce" style={{ animationDelay: `${i * 150}ms` }} />)}
               </div>
             )}
           </div>
-          <div className="bg-[#F0F0F0] p-3 flex items-center gap-2 border-t border-border">
+          <div className="bg-[#F0F0F0] dark:bg-[#111b21] p-3 flex items-center gap-2 border-t border-border dark:border-[#222e35]">
             <input type="text" value={testInput} onChange={e => setTestInput(e.target.value)}
               onKeyDown={e => e.key === "Enter" && handleTestSend()}
               placeholder="Ask your bot..."
-              className="bg-white rounded-full flex-1 h-10 px-4 text-[13px] outline-none shadow-sm" />
+              className="bg-white dark:bg-[#2a3942] text-gray-900 dark:text-zinc-100 dark:placeholder-zinc-400 rounded-full flex-1 h-10 px-4 text-[13px] outline-none shadow-sm focus:ring-1 focus:ring-[#075E54] dark:focus:ring-[#00a884] border dark:border-zinc-700/50" />
             <button onClick={handleTestSend} disabled={isTyping || !testInput.trim()}
-              className="w-10 h-10 bg-[#075E54] rounded-full flex items-center justify-center shrink-0 disabled:opacity-50 hover:bg-[#054c44] transition-colors shadow-sm">
+              className="w-10 h-10 bg-[#075E54] dark:bg-[#00a884] rounded-full flex items-center justify-center shrink-0 disabled:opacity-50 hover:bg-[#054c44] dark:hover:bg-[#008f70] transition-colors shadow-sm">
               <Send className="h-4 w-4 text-white ml-[-2px]" />
             </button>
           </div>

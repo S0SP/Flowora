@@ -199,10 +199,14 @@ const CustomNode = React.memo(({ id, data, selected }: { id: string; data: any; 
  )}
  style={{ 
  backgroundColor: "var(--node-bg)", 
- borderColor: selected ? "var(--text-primary)" : "var(--node-border)", 
+ borderLeftColor: selected ? "var(--text-primary)" : "var(--node-border)", 
+ borderRightColor: selected ? "var(--text-primary)" : "var(--node-border)", 
+ borderBottomColor: selected ? "var(--text-primary)" : "var(--node-border)", 
+ borderTopColor: cfg.accentColor,
+ borderTopWidth: "3px",
+ borderTopStyle: "solid",
  boxShadow: selected ? "var(--node-shadow)" : "none",
  width: isWhatsApp && data.branches?.length ? 220 : 200, 
- borderTop: `3px solid ${cfg.accentColor}` 
  }}
  >
  {/* Target Handle */}
