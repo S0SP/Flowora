@@ -1,16 +1,5 @@
 /**
  * Flowora — Tenant resolution helpers.
- *
- * Every server-side operation (API routes, server actions, RSC) MUST call
- * getWorkspaceId() to get the active workspace. This is the single source
- * of tenant context — never pass workspace_id from the client body directly.
- *
- * Flow:
- *   1. Read Supabase JWT → auth.uid()
- *   2. Look up workspace_members for the active workspace stored in cookie fw_ws
- *   3. If no valid membership, throw 403
- *
- * The middleware sets the `fw_ws` cookie on login/workspace switch.
  */
 
 import { cookies, headers } from 'next/headers'
@@ -19,10 +8,6 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export const WORKSPACE_COOKIE = 'fw_ws'
 
-// -------------------------------------------------------------------------
-// Types
-// -------------------------------------------------------------------------
-
 export interface TenantContext {
   userId: string
   workspaceId: string
@@ -30,14 +15,6 @@ export interface TenantContext {
   permissions: Record<string, Record<string, boolean>>
 }
 
-// -------------------------------------------------------------------------
-// Get tenant context (use in Route Handlers and Server Components)
-// -------------------------------------------------------------------------
-
-/**
- * Resolve the current user + workspace context.
- * Throws if unauthenticated or not a member of the requested workspace.
- */
 export async function getTenant(): Promise<TenantContext> {
   const supabase = await createClient()
   const { data: { user }, error } = await supabase.auth.getUser()
@@ -53,7 +30,6 @@ export async function getTenant(): Promise<TenantContext> {
     throw new TenantError('No active workspace — complete onboarding', 400)
   }
 
-  // Verify membership (RLS will double-enforce, but we need role/permissions)
   const { data: member, error: memberError } = await supabase
     .from('workspace_members')
     .select('role, permissions')
@@ -79,10 +55,6 @@ export async function getTenant(): Promise<TenantContext> {
   }
 }
 
-/**
- * Get tenant context for API route handlers — returns a NextResponse 
- * error response instead of throwing, for cleaner route code.
- */
 export async function withTenant(
   handler: (ctx: TenantContext) => Promise<NextResponse>
 ): Promise<NextResponse> {
@@ -97,10 +69,6 @@ export async function withTenant(
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
-
-// -------------------------------------------------------------------------
-// Permission helpers
-// -------------------------------------------------------------------------
 
 export function hasPermission(
   ctx: TenantContext,
@@ -117,14 +85,13 @@ export function requirePermission(ctx: TenantContext, module: string, action: 'r
   }
 }
 
-// -------------------------------------------------------------------------
-// Middleware helpers (called from middleware.ts)
-// -------------------------------------------------------------------------
-
 /**
- * After auth, check if the user has completed onboarding.
- * If not, redirect to /onboarding.
- * Also set the fw_ws cookie to the user's first workspace if not already set.
+ * After auth, resolve the user's active workspace and set fw_ws cookie.
+ * 
+ * KEY CHANGE: We now consider ANY user with an active workspace_members row
+ * as "onboarded" — we do NOT require workspaces.onboarding_completed to be true.
+ * The onboarding_completed flag is best-effort and can lag due to race conditions
+ * between the client setting document.cookie and the server PATCH response.
  */
 export async function resolveWorkspaceForMiddleware(
   request: NextRequest,
@@ -133,9 +100,9 @@ export async function resolveWorkspaceForMiddleware(
 ): Promise<NextResponse> {
   let workspaceId = request.cookies.get(WORKSPACE_COOKIE)?.value
 
-  // Use admin client to query workspace membership (bypasses RLS in middleware)
   const admin = await createAdminClient()
 
+  // Validate the cookie workspace_id if present
   let validMembership = false;
   if (workspaceId) {
     const { data: check } = await admin
@@ -144,7 +111,7 @@ export async function resolveWorkspaceForMiddleware(
       .eq('workspace_id', workspaceId)
       .eq('user_id', userId)
       .eq('status', 'active')
-      .single()
+      .maybeSingle()
     if (check) validMembership = true;
   }
 
@@ -152,83 +119,26 @@ export async function resolveWorkspaceForMiddleware(
     // Find first active workspace for this user
     const { data: membership } = await admin
       .from('workspace_members')
-      .select('workspace_id, workspaces(onboarding_completed)')
+      .select('workspace_id')
       .eq('user_id', userId)
       .eq('status', 'active')
       .order('created_at', { ascending: true })
       .limit(1)
       .maybeSingle()
 
-    // Check user's profile onboarding status
-    const { data: profile } = await admin
-      .from('profiles')
-      .select('onboarding_completed')
-      .eq('id', userId)
-      .maybeSingle()
-
-    const isProfileOnboarded = !!profile?.onboarding_completed
-
     if (!membership) {
-      if (isProfileOnboarded) {
-        // Auto create default workspace for onboarded user
-        const baseSlug = `workspace-${Date.now().toString(36)}`
-        const { data: ws } = await admin.from('workspaces').insert({
-          name: 'My Workspace',
-          slug: baseSlug,
-          owner_id: userId,
-          onboarding_completed: true,
-        }).select('id').single()
-
-        if (ws) {
-          await admin.from('workspace_members').insert({
-            workspace_id: ws.id,
-            user_id: userId,
-            role: 'owner',
-            status: 'active',
-          })
-          response.cookies.set(WORKSPACE_COOKIE, ws.id, { path: '/', httpOnly: false, sameSite: 'lax' })
-          return response
-        }
-      }
-
-      // No workspace and profile not onboarded — redirect to /onboarding
-      if (request.nextUrl.pathname === '/onboarding') {
-        return response
-      }
+      // No workspace at all — redirect to onboarding
       const url = request.nextUrl.clone()
       url.pathname = '/onboarding'
       return NextResponse.redirect(url)
     }
 
-    const ws = membership.workspaces as unknown as { onboarding_completed: boolean } | null
-
-    if (!ws?.onboarding_completed && !isProfileOnboarded) {
-      if (request.nextUrl.pathname === '/onboarding') {
-        response.cookies.set(WORKSPACE_COOKIE, membership.workspace_id, { path: '/', httpOnly: false, sameSite: 'lax' })
-        return response
-      }
-      const url = request.nextUrl.clone()
-      url.pathname = '/onboarding'
-      const redirect = NextResponse.redirect(url)
-      redirect.cookies.set(WORKSPACE_COOKIE, membership.workspace_id, { path: '/', httpOnly: false, sameSite: 'lax' })
-      return redirect
-    }
-
-    // If profile is onboarded but workspace flag was false/null, sync it now
-    if (isProfileOnboarded && !ws?.onboarding_completed) {
-      await admin.from('workspaces').update({ onboarding_completed: true }).eq('id', membership.workspace_id)
-    }
-
-    // Set the cookie and continue
+    // Set the cookie and continue — do NOT check onboarding_completed on workspace row
     response.cookies.set(WORKSPACE_COOKIE, membership.workspace_id, { path: '/', httpOnly: false, sameSite: 'lax' })
   }
 
   return response
 }
-
-// -------------------------------------------------------------------------
-// Error type
-// -------------------------------------------------------------------------
 
 export class TenantError extends Error {
   constructor(

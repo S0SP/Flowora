@@ -70,11 +70,15 @@ export default function OnboardingPage() {
           setWorkspaceId(data.activeWorkspace.id)
           setCompanyName(data.activeWorkspace.name)
           document.cookie = `fw_ws=${data.activeWorkspace.id}; path=/; samesite=lax`
-          if (data.activeWorkspace.onboarding_completed) {
-            window.location.href = "/dashboard"
-            return
+          // NOTE: Do NOT redirect to /dashboard here — if the user is already fully onboarded,
+          // the Next.js middleware will redirect them to /dashboard automatically.
+          // Redirecting here caused an infinite loop:
+          //   useEffect → /dashboard → middleware → /onboarding → useEffect → repeat
+          if (!data.activeWorkspace.onboarding_completed) {
+            // Workspace exists but onboarding not complete — skip to step 2
+            setStep(prev => (prev === 1 ? 2 : prev))
           }
-          setStep(prev => (prev === 1 ? 2 : prev))
+          // If onboarding IS complete, the middleware will redirect; just wait.
         }
       })
       .catch(() => {})
