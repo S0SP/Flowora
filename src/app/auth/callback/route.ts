@@ -6,7 +6,7 @@ import { createAdminClient } from "@/lib/supabase/server"
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get("code")
-  const next = requestUrl.searchParams.get("next") ?? "/onboarding"
+  const nextParam = requestUrl.searchParams.get("next")
   const origin = requestUrl.origin
 
   if (!code) {
@@ -15,11 +15,7 @@ export async function GET(request: NextRequest) {
   }
 
   const cookieStore = await cookies()
-  // Redirect to onboarding by default — middleware will redirect to /dashboard
-  // if the user is already onboarded. This is safer than redirecting to /dashboard
-  // directly, which can fail if workspace data isn't set up yet.
-  const redirectTarget = next === "/dashboard" ? "/onboarding" : next
-  const response = NextResponse.redirect(`${origin}${redirectTarget}`)
+  let cookiesToSetOnResponse: any[] = []
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -30,11 +26,7 @@ export async function GET(request: NextRequest) {
           return cookieStore.getAll()
         },
         setAll(cookiesToSet: any[]) {
-          // Write to response first — this is what the browser will receive
-          cookiesToSet.forEach(({ name, value, options }: any) => {
-            response.cookies.set(name, value, options)
-          })
-          // Best-effort write to the Next.js cookie store
+          cookiesToSetOnResponse = cookiesToSet
           cookiesToSet.forEach(({ name, value, options }: any) => {
             try {
               cookieStore.set(name, value, options)
@@ -51,28 +43,25 @@ export async function GET(request: NextRequest) {
 
   if (error) {
     console.error("[auth/callback] exchangeCodeForSession error:", error.message)
-    // Auth truly failed — send to login with error
     return NextResponse.redirect(`${origin}/auth/login?error=auth_callback_failed`)
   }
 
-  // Auth succeeded — try to activate any pending invite memberships
-  // This is best-effort and must NOT block the login flow
-  try {
-    const user = sessionData?.user
-    if (user) {
+  const user = sessionData?.user
+  let targetPath = nextParam ?? "/dashboard"
+
+  if (user) {
+    try {
       const admin = await createAdminClient()
-      const { error: inviteErr } = await admin
+
+      // Activate any pending invited memberships
+      await admin
         .from("workspace_members")
         .update({ status: "active", updated_at: new Date().toISOString() })
         .eq("user_id", user.id)
         .eq("status", "invited")
 
-      if (inviteErr) {
-        console.error("[auth/callback] invite activation error (non-fatal):", inviteErr.message)
-      }
-
-      // Also ensure profile exists
-      await admin
+      // Ensure profile exists and check onboarding status
+      const { data: profile } = await admin
         .from("profiles")
         .upsert({
           id: user.id,
@@ -80,12 +69,34 @@ export async function GET(request: NextRequest) {
           full_name: user.user_metadata?.full_name ?? null,
           avatar_url: user.user_metadata?.avatar_url ?? null,
         }, { onConflict: "id" })
+        .select("onboarding_completed")
+        .maybeSingle()
+
+      // Check workspace membership
+      const { data: membership } = await admin
+        .from("workspace_members")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("status", "active")
+        .limit(1)
+        .maybeSingle()
+
+      const isUserOnboarded = profile?.onboarding_completed || !!membership
+
+      if (isUserOnboarded) {
+        targetPath = nextParam && nextParam !== "/onboarding" ? nextParam : "/dashboard"
+      } else {
+        targetPath = "/onboarding"
+      }
+    } catch (adminErr: any) {
+      console.error("[auth/callback] admin check error (non-fatal):", adminErr?.message ?? adminErr)
     }
-  } catch (adminErr: any) {
-    // Non-fatal — user is authenticated, just couldn't activate invites
-    console.error("[auth/callback] admin operation error (non-fatal):", adminErr?.message ?? adminErr)
   }
 
-  // Auth succeeded — redirect to onboarding (middleware will forward to /dashboard if already onboarded)
+  const response = NextResponse.redirect(`${origin}${targetPath}`)
+  cookiesToSetOnResponse.forEach(({ name, value, options }: any) => {
+    response.cookies.set(name, value, options)
+  })
+
   return response
 }
